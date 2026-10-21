@@ -92,6 +92,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             base.OnLoad(e);
             this.buildBatchTab();
+            this.buildExtrasTab();
         }
 
         private void buildBatchTab()

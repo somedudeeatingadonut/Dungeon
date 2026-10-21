@@ -3393,6 +3393,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             List<int[][]> classCertReqs = new List<int[][]>();
 
             List<int>[] classWeaponTypes = new List<int>[100];
+            RandomizerExtras.beginClassVariety(classWeaponTypes);
 
             List<int> eBattalions = new List<int>();
             List<int> dBattalions = new List<int>();
@@ -5250,7 +5251,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     {
                         int[] equippedAbilities = { 255, 255, 255, 255, 255 };
                         for (int i = 0; i < numEquippedAbilities; i++)
-                            equippedAbilities[i] = abilityPool[rng.Next(0, abilityPool.Count)];
+                            equippedAbilities[i] = RandomizerExtras.pickAbility(abilityPool);
 
                         for (int i = 0; i < 5; i++)
                         {
@@ -5458,7 +5459,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                     if (settings.randClassMasteryAb && settings.randClassAb)
                     {
-                        int masteryAbility = abilityPool[rng.Next(0, abilityPool.Count)];
+                        int masteryAbility = RandomizerExtras.pickAbility(abilityPool);
                         classData[classAbStart + abMod + 0L] = (byte)masteryAbility; // Mastery Ability
 
                         changelog += "\nMastery Ability:\t" + abilityNames[classData[classAbStart + abMod + 0L]];
@@ -5529,34 +5530,34 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         for (int i = 0; i < numClassAbs; i++)
                         {
                             if (!settings.baseClassAb || rng.Next(0, 3) != 0)
-                                classAbilities[i] = abilityPool[rng.Next(0, abilityPool.Count)];
+                                classAbilities[i] = RandomizerExtras.pickAbility(abilityPool);
                             else
                             {
                                 switch (weaponTypes[rng.Next(0, numWeaponTypes)])
                                 {
                                     case 0:
-                                        classAbilities[i] = swordOnlyAbilities[rng.Next(0, swordOnlyAbilities.Length)];
+                                        classAbilities[i] = RandomizerExtras.pickAbility(swordOnlyAbilities);
                                         break;
                                     case 1:
-                                        classAbilities[i] = lanceOnlyAbilities[rng.Next(0, lanceOnlyAbilities.Length)];
+                                        classAbilities[i] = RandomizerExtras.pickAbility(lanceOnlyAbilities);
                                         break;
                                     case 2:
-                                        classAbilities[i] = axeOnlyAbilities[rng.Next(0, axeOnlyAbilities.Length)];
+                                        classAbilities[i] = RandomizerExtras.pickAbility(axeOnlyAbilities);
                                         break;
                                     case 3:
-                                        classAbilities[i] = bowOnlyAbilities[rng.Next(0, bowOnlyAbilities.Length)];
+                                        classAbilities[i] = RandomizerExtras.pickAbility(bowOnlyAbilities);
                                         break;
                                     case 4:
-                                        classAbilities[i] = brawlOnlyAbilities[rng.Next(0, brawlOnlyAbilities.Length)];
+                                        classAbilities[i] = RandomizerExtras.pickAbility(brawlOnlyAbilities);
                                         break;
                                     case 5:
-                                        classAbilities[i] = blackOnlyAbilities[rng.Next(0, blackOnlyAbilities.Length)];
+                                        classAbilities[i] = RandomizerExtras.pickAbility(blackOnlyAbilities);
                                         break;
                                     case 6:
-                                        classAbilities[i] = faithOnlyAbilities[rng.Next(0, faithOnlyAbilities.Length)];
+                                        classAbilities[i] = RandomizerExtras.pickAbility(faithOnlyAbilities);
                                         break;
                                     case 7:
-                                        classAbilities[i] = darkOnlyAbilities[rng.Next(0, darkOnlyAbilities.Length)];
+                                        classAbilities[i] = RandomizerExtras.pickAbility(darkOnlyAbilities);
                                         break;
                                 }
                             }
@@ -5668,7 +5669,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         int numLatentAbilities = classData[classMonsterStart + monsterMod + 52L] - 1;
                         int[] latentAbilities = { 255, 255, 255, 255 };
                         for (int i = 0; i < numLatentAbilities; i++)
-                            latentAbilities[i] = genericAbilities[rng.Next(0, genericAbilities.Length)];
+                            latentAbilities[i] = RandomizerExtras.pickAbility(genericAbilities);
                         classData[classMonsterStart + monsterMod + 64L] = (byte)latentAbilities[0]; // Latent abilities
                         classData[classMonsterStart + monsterMod + 65L] = (byte)latentAbilities[1];
                         classData[classMonsterStart + monsterMod + 66L] = (byte)latentAbilities[2];
@@ -5677,8 +5678,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                     if (settings.randBarrierAb)
                     {
-                        classData[classMonsterStart + monsterMod + 68L] = (byte)genericAbilities[rng.Next(0, genericAbilities.Length)]; // Barrier abilities
-                        classData[classMonsterStart + monsterMod + 69L] = (byte)genericAbilities[rng.Next(0, genericAbilities.Length)];
+                        classData[classMonsterStart + monsterMod + 68L] = (byte)RandomizerExtras.pickAbility(genericAbilities); // Barrier abilities
+                        classData[classMonsterStart + monsterMod + 69L] = (byte)RandomizerExtras.pickAbility(genericAbilities);
                     }
                 }
             }
@@ -6899,19 +6900,19 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 Randomizer.personData[Randomizer.charBlockStart + charMod + 26L] = (byte)zeroClasses[rng.Next(0, zeroClasses.Count)];
                                 break;
                             case 1:
-                                Randomizer.personData[Randomizer.charBlockStart + charMod + 26L] = (byte)begClasses[rng.Next(0, begClasses.Count)];
+                                Randomizer.personData[Randomizer.charBlockStart + charMod + 26L] = (byte)RandomizerExtras.pickClass(1, begClasses);
                                 break;
                             case 2:
-                                Randomizer.personData[Randomizer.charBlockStart + charMod + 26L] = (byte)interClasses[rng.Next(0, interClasses.Count)];
+                                Randomizer.personData[Randomizer.charBlockStart + charMod + 26L] = (byte)RandomizerExtras.pickClass(2, interClasses);
                                 break;
                             case 3:
-                                Randomizer.personData[Randomizer.charBlockStart + charMod + 26L] = (byte)advClasses[rng.Next(0, advClasses.Count)];
+                                Randomizer.personData[Randomizer.charBlockStart + charMod + 26L] = (byte)RandomizerExtras.pickClass(3, advClasses);
                                 break;
                             case 4:
                                 Randomizer.personData[Randomizer.charBlockStart + charMod + 26L] = (byte)masterClasses[rng.Next(0, masterClasses.Count)];
                                 break;
                             case 6:
-                                Randomizer.personData[Randomizer.charBlockStart + charMod + 26L] = (byte)uniClasses[rng.Next(0, uniClasses.Count)];
+                                Randomizer.personData[Randomizer.charBlockStart + charMod + 26L] = (byte)RandomizerExtras.pickClass(6, uniClasses);
                                 break;
                             default:
                                 break;
@@ -7342,14 +7343,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 if (settings.randGenericAb && !settings.preserveProwessAb)
                                 {
                                     changelog += "\n";
-                                    personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)swordAbilities[rng.Next(0, swordAbilities.Length)] : (byte)swordOnlyAbilities[rng.Next(0, swordOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)lanceAbilities[rng.Next(0, lanceAbilities.Length)] : (byte)lanceOnlyAbilities[rng.Next(0, lanceOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)axeAbilities[rng.Next(0, axeAbilities.Length)] : (byte)axeOnlyAbilities[rng.Next(0, axeOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)bowAbilities[rng.Next(0, bowAbilities.Length)] : (byte)bowOnlyAbilities[rng.Next(0, bowOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 15L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)brawlAbilities[rng.Next(0, brawlAbilities.Length)] : (byte)brawlOnlyAbilities[rng.Next(0, brawlOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 16L] = settings.baseGenericAb ? (byte)genericAbilities[rng.Next(0, genericAbilities.Length)] : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 17L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)faithAbilities[rng.Next(0, faithAbilities.Length)] : (byte)faithOnlyAbilities[rng.Next(0, faithOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 18L] = settings.baseGenericAb ? (byte)genericAbilities[rng.Next(0, genericAbilities.Length)] : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
+                                    personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(swordAbilities) : (byte)RandomizerExtras.pickAbility(swordOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(lanceAbilities) : (byte)RandomizerExtras.pickAbility(lanceOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(axeAbilities) : (byte)RandomizerExtras.pickAbility(axeOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(bowAbilities) : (byte)RandomizerExtras.pickAbility(bowOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 15L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(brawlAbilities) : (byte)RandomizerExtras.pickAbility(brawlOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 16L] = settings.baseGenericAb ? (byte)RandomizerExtras.pickAbility(genericAbilities) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 17L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(faithAbilities) : (byte)RandomizerExtras.pickAbility(faithOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 18L] = settings.baseGenericAb ? (byte)RandomizerExtras.pickAbility(genericAbilities) : (byte)RandomizerExtras.pickAbility(allAbilities);
 
                                     changelog += "\n" + abilityNames[personData[charLearnStart + learnMod + 11L]] + " learned at " + getSkillName(0) + " " + getRankName(rank);
                                     changelog += "\n" + abilityNames[personData[charLearnStart + learnMod + 12L]] + " learned at " + getSkillName(1) + " " + getRankName(rank);
@@ -7379,14 +7380,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 if (settings.randGenericAb && !settings.preserveProwessAb)
                                 {
                                     changelog += "\n";
-                                    personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)swordAbilities[rng.Next(0, swordAbilities.Length)] : (byte)swordOnlyAbilities[rng.Next(0, swordOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)lanceAbilities[rng.Next(0, lanceAbilities.Length)] : (byte)lanceOnlyAbilities[rng.Next(0, lanceOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)axeAbilities[rng.Next(0, axeAbilities.Length)] : (byte)axeOnlyAbilities[rng.Next(0, axeOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)bowAbilities[rng.Next(0, bowAbilities.Length)] : (byte)bowOnlyAbilities[rng.Next(0, bowOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 15L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)brawlAbilities[rng.Next(0, brawlAbilities.Length)] : (byte)brawlOnlyAbilities[rng.Next(0, brawlOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 16L] = settings.baseGenericAb ? (byte)genericAbilities[rng.Next(0, genericAbilities.Length)] : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 17L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)faithAbilities[rng.Next(0, faithAbilities.Length)] : (byte)faithOnlyAbilities[rng.Next(0, faithOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 18L] = settings.baseGenericAb ? (byte)genericAbilities[rng.Next(0, genericAbilities.Length)] : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
+                                    personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(swordAbilities) : (byte)RandomizerExtras.pickAbility(swordOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(lanceAbilities) : (byte)RandomizerExtras.pickAbility(lanceOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(axeAbilities) : (byte)RandomizerExtras.pickAbility(axeOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(bowAbilities) : (byte)RandomizerExtras.pickAbility(bowOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 15L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(brawlAbilities) : (byte)RandomizerExtras.pickAbility(brawlOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 16L] = settings.baseGenericAb ? (byte)RandomizerExtras.pickAbility(genericAbilities) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 17L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(faithAbilities) : (byte)RandomizerExtras.pickAbility(faithOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 18L] = settings.baseGenericAb ? (byte)RandomizerExtras.pickAbility(genericAbilities) : (byte)RandomizerExtras.pickAbility(allAbilities);
 
                                     changelog += "\n" + abilityNames[personData[charLearnStart + learnMod + 11L]] + " learned at " + getSkillName(0) + " " + getRankName(rank);
                                     changelog += "\n" + abilityNames[personData[charLearnStart + learnMod + 12L]] + " learned at " + getSkillName(1) + " " + getRankName(rank);
@@ -7434,7 +7435,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                                 if (settings.baseGenericAb)
                                 {
-                                    personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)bowAbilities[rng.Next(0, bowAbilities.Length)] : (byte)bowOnlyAbilities[rng.Next(0, bowOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
+                                    personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(bowAbilities) : (byte)RandomizerExtras.pickAbility(bowOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
 
                                     changelog += "\n" +
                                         abilityNames[personData[charLearnStart + learnMod + 14L]] +
@@ -7442,7 +7443,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                                     for (int i = 0; i < 2; i++)
                                     {
-                                        int tempAbility = settings.baseGenericAb ? (byte)genericAbilities[rng.Next(0, genericAbilities.Length)] : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
+                                        int tempAbility = settings.baseGenericAb ? (byte)RandomizerExtras.pickAbility(genericAbilities) : (byte)RandomizerExtras.pickAbility(allAbilities);
                                         personData[charLearnStart + learnMod + 19L + (long)i] = (byte)tempAbility;
 
                                         changelog += "\n" +
@@ -7455,14 +7456,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 if (settings.randGenericAb && !settings.preserveProwessAb)
                                 {
                                     changelog += "\n";
-                                    personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)swordAbilities[rng.Next(0, swordAbilities.Length)] : (byte)swordOnlyAbilities[rng.Next(0, swordOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)lanceAbilities[rng.Next(0, lanceAbilities.Length)] : (byte)lanceOnlyAbilities[rng.Next(0, lanceOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)axeAbilities[rng.Next(0, axeAbilities.Length)] : (byte)axeOnlyAbilities[rng.Next(0, axeOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)bowAbilities[rng.Next(0, bowAbilities.Length)] : (byte)bowOnlyAbilities[rng.Next(0, bowOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 15L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)brawlAbilities[rng.Next(0, brawlAbilities.Length)] : (byte)brawlOnlyAbilities[rng.Next(0, brawlOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 16L] = settings.baseGenericAb ? (byte)genericAbilities[rng.Next(0, genericAbilities.Length)] : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 17L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)faithAbilities[rng.Next(0, faithAbilities.Length)] : (byte)faithOnlyAbilities[rng.Next(0, faithOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 18L] = settings.baseGenericAb ? (byte)genericAbilities[rng.Next(0, genericAbilities.Length)] : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
+                                    personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(swordAbilities) : (byte)RandomizerExtras.pickAbility(swordOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(lanceAbilities) : (byte)RandomizerExtras.pickAbility(lanceOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(axeAbilities) : (byte)RandomizerExtras.pickAbility(axeOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(bowAbilities) : (byte)RandomizerExtras.pickAbility(bowOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 15L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(brawlAbilities) : (byte)RandomizerExtras.pickAbility(brawlOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 16L] = settings.baseGenericAb ? (byte)RandomizerExtras.pickAbility(genericAbilities) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 17L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(faithAbilities) : (byte)RandomizerExtras.pickAbility(faithOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 18L] = settings.baseGenericAb ? (byte)RandomizerExtras.pickAbility(genericAbilities) : (byte)RandomizerExtras.pickAbility(allAbilities);
 
                                     changelog += "\n" + abilityNames[personData[charLearnStart + learnMod + 11L]] + " learned at " + getSkillName(0) + " " + getRankName(rank);
                                     changelog += "\n" + abilityNames[personData[charLearnStart + learnMod + 12L]] + " learned at " + getSkillName(1) + " " + getRankName(rank);
@@ -7498,12 +7499,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                                 if (settings.randGenericAb)
                                 {
-                                    personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)swordAbilities[rng.Next(0, swordAbilities.Length)] : (byte)swordOnlyAbilities[rng.Next(0, swordOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)lanceAbilities[rng.Next(0, lanceAbilities.Length)] : (byte)lanceOnlyAbilities[rng.Next(0, lanceOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)axeAbilities[rng.Next(0, axeAbilities.Length)] : (byte)axeOnlyAbilities[rng.Next(0, axeOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
+                                    personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(swordAbilities) : (byte)RandomizerExtras.pickAbility(swordOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(lanceAbilities) : (byte)RandomizerExtras.pickAbility(lanceOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(axeAbilities) : (byte)RandomizerExtras.pickAbility(axeOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
 
-                                    personData[charLearnStart + learnMod + 18L] = settings.baseGenericAb ? (byte)genericAbilities[rng.Next(0, genericAbilities.Length)] : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 21L] = settings.baseGenericAb ? (byte)genericAbilities[rng.Next(0, genericAbilities.Length)] : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
+                                    personData[charLearnStart + learnMod + 18L] = settings.baseGenericAb ? (byte)RandomizerExtras.pickAbility(genericAbilities) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 21L] = settings.baseGenericAb ? (byte)RandomizerExtras.pickAbility(genericAbilities) : (byte)RandomizerExtras.pickAbility(allAbilities);
 
                                     changelog += "\n" +
                                         abilityNames[personData[charLearnStart + learnMod + 11L]] +
@@ -7526,14 +7527,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 if (settings.randGenericAb && !settings.preserveProwessAb)
                                 {
                                     changelog += "\n";
-                                    personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)swordAbilities[rng.Next(0, swordAbilities.Length)] : (byte)swordOnlyAbilities[rng.Next(0, swordOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)lanceAbilities[rng.Next(0, lanceAbilities.Length)] : (byte)lanceOnlyAbilities[rng.Next(0, lanceOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)axeAbilities[rng.Next(0, axeAbilities.Length)] : (byte)axeOnlyAbilities[rng.Next(0, axeOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)bowAbilities[rng.Next(0, bowAbilities.Length)] : (byte)bowOnlyAbilities[rng.Next(0, bowOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 15L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)brawlAbilities[rng.Next(0, brawlAbilities.Length)] : (byte)brawlOnlyAbilities[rng.Next(0, brawlOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 16L] = settings.baseGenericAb ? (byte)genericAbilities[rng.Next(0, genericAbilities.Length)] : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 17L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)faithAbilities[rng.Next(0, faithAbilities.Length)] : (byte)faithOnlyAbilities[rng.Next(0, faithOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 18L] = settings.baseGenericAb ? (byte)genericAbilities[rng.Next(0, genericAbilities.Length)] : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
+                                    personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(swordAbilities) : (byte)RandomizerExtras.pickAbility(swordOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(lanceAbilities) : (byte)RandomizerExtras.pickAbility(lanceOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(axeAbilities) : (byte)RandomizerExtras.pickAbility(axeOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(bowAbilities) : (byte)RandomizerExtras.pickAbility(bowOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 15L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(brawlAbilities) : (byte)RandomizerExtras.pickAbility(brawlOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 16L] = settings.baseGenericAb ? (byte)RandomizerExtras.pickAbility(genericAbilities) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 17L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(faithAbilities) : (byte)RandomizerExtras.pickAbility(faithOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 18L] = settings.baseGenericAb ? (byte)RandomizerExtras.pickAbility(genericAbilities) : (byte)RandomizerExtras.pickAbility(allAbilities);
 
                                     changelog += "\n" + abilityNames[personData[charLearnStart + learnMod + 11L]] + " learned at " + getSkillName(0) + " " + getRankName(rank);
                                     changelog += "\n" + abilityNames[personData[charLearnStart + learnMod + 12L]] + " learned at " + getSkillName(1) + " " + getRankName(rank);
@@ -7551,14 +7552,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                     changelog += "\n";
                                     if (!settings.preserveProwessAb)
                                     {
-                                        personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)swordAbilities[rng.Next(0, swordAbilities.Length)] : (byte)swordOnlyAbilities[rng.Next(0, swordOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                        personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)lanceAbilities[rng.Next(0, lanceAbilities.Length)] : (byte)lanceOnlyAbilities[rng.Next(0, lanceOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                        personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)axeAbilities[rng.Next(0, axeAbilities.Length)] : (byte)axeOnlyAbilities[rng.Next(0, axeOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                        personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)bowAbilities[rng.Next(0, bowAbilities.Length)] : (byte)bowOnlyAbilities[rng.Next(0, bowOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                        personData[charLearnStart + learnMod + 15L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)brawlAbilities[rng.Next(0, brawlAbilities.Length)] : (byte)brawlOnlyAbilities[rng.Next(0, brawlOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                        personData[charLearnStart + learnMod + 16L] = settings.baseGenericAb ? (byte)genericAbilities[rng.Next(0, genericAbilities.Length)] : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                        personData[charLearnStart + learnMod + 17L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)faithAbilities[rng.Next(0, faithAbilities.Length)] : (byte)faithOnlyAbilities[rng.Next(0, faithOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                        personData[charLearnStart + learnMod + 18L] = settings.baseGenericAb ? (byte)genericAbilities[rng.Next(0, genericAbilities.Length)] : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
+                                        personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(swordAbilities) : (byte)RandomizerExtras.pickAbility(swordOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                        personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(lanceAbilities) : (byte)RandomizerExtras.pickAbility(lanceOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                        personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(axeAbilities) : (byte)RandomizerExtras.pickAbility(axeOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                        personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(bowAbilities) : (byte)RandomizerExtras.pickAbility(bowOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                        personData[charLearnStart + learnMod + 15L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(brawlAbilities) : (byte)RandomizerExtras.pickAbility(brawlOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                        personData[charLearnStart + learnMod + 16L] = settings.baseGenericAb ? (byte)RandomizerExtras.pickAbility(genericAbilities) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                        personData[charLearnStart + learnMod + 17L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(faithAbilities) : (byte)RandomizerExtras.pickAbility(faithOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                        personData[charLearnStart + learnMod + 18L] = settings.baseGenericAb ? (byte)RandomizerExtras.pickAbility(genericAbilities) : (byte)RandomizerExtras.pickAbility(allAbilities);
 
                                         changelog += "\n" + abilityNames[personData[charLearnStart + learnMod + 11L]] + " learned at " + getSkillName(0) + " " + getRankName(rank);
                                         changelog += "\n" + abilityNames[personData[charLearnStart + learnMod + 12L]] + " learned at " + getSkillName(1) + " " + getRankName(rank);
@@ -7571,7 +7572,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                     }
                                     for (int i = 0; i < 3; i++)
                                     {
-                                        personData[charLearnStart + learnMod + 19L + (long)i] = settings.baseGenericAb ? (byte)genericAbilities[rng.Next(0, genericAbilities.Length)] : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
+                                        personData[charLearnStart + learnMod + 19L + (long)i] = settings.baseGenericAb ? (byte)RandomizerExtras.pickAbility(genericAbilities) : (byte)RandomizerExtras.pickAbility(allAbilities);
 
                                         changelog += "\n" +
                                             abilityNames[personData[charLearnStart + learnMod + 19L + (long)i]] +
@@ -7583,12 +7584,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 if (settings.randGenericAb)
                                 {
                                     changelog += "\n";
-                                    personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)swordAbilities[rng.Next(0, swordAbilities.Length)] : (byte)swordOnlyAbilities[rng.Next(0, swordOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)lanceAbilities[rng.Next(0, lanceAbilities.Length)] : (byte)lanceOnlyAbilities[rng.Next(0, lanceOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)axeAbilities[rng.Next(0, axeAbilities.Length)] : (byte)axeOnlyAbilities[rng.Next(0, axeOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)bowAbilities[rng.Next(0, bowAbilities.Length)] : (byte)bowOnlyAbilities[rng.Next(0, bowOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 15L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)brawlAbilities[rng.Next(0, brawlAbilities.Length)] : (byte)brawlOnlyAbilities[rng.Next(0, brawlOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 17L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)faithAbilities[rng.Next(0, faithAbilities.Length)] : (byte)faithOnlyAbilities[rng.Next(0, faithOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
+                                    personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(swordAbilities) : (byte)RandomizerExtras.pickAbility(swordOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(lanceAbilities) : (byte)RandomizerExtras.pickAbility(lanceOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(axeAbilities) : (byte)RandomizerExtras.pickAbility(axeOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(bowAbilities) : (byte)RandomizerExtras.pickAbility(bowOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 15L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(brawlAbilities) : (byte)RandomizerExtras.pickAbility(brawlOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 17L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(faithAbilities) : (byte)RandomizerExtras.pickAbility(faithOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
 
                                     changelog += "\n" + abilityNames[personData[charLearnStart + learnMod + 11L]] + " learned at " + getSkillName(0) + " " + getRankName(rank);
                                     changelog += "\n" + abilityNames[personData[charLearnStart + learnMod + 12L]] + " learned at " + getSkillName(1) + " " + getRankName(rank);
@@ -7602,12 +7603,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 if (settings.randGenericAb)
                                 {
                                     changelog += "\n";
-                                    personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)swordAbilities[rng.Next(0, swordAbilities.Length)] : (byte)swordOnlyAbilities[rng.Next(0, swordOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)lanceAbilities[rng.Next(0, lanceAbilities.Length)] : (byte)lanceOnlyAbilities[rng.Next(0, lanceOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)axeAbilities[rng.Next(0, axeAbilities.Length)] : (byte)axeOnlyAbilities[rng.Next(0, axeOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)bowAbilities[rng.Next(0, bowAbilities.Length)] : (byte)bowOnlyAbilities[rng.Next(0, bowOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 15L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)brawlAbilities[rng.Next(0, brawlAbilities.Length)] : (byte)brawlOnlyAbilities[rng.Next(0, brawlOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
-                                    personData[charLearnStart + learnMod + 17L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)faithAbilities[rng.Next(0, faithAbilities.Length)] : (byte)faithOnlyAbilities[rng.Next(0, faithOnlyAbilities.Length)]) : (byte)allAbilities[rng.Next(0, allAbilities.Count)];
+                                    personData[charLearnStart + learnMod + 11L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(swordAbilities) : (byte)RandomizerExtras.pickAbility(swordOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 12L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(lanceAbilities) : (byte)RandomizerExtras.pickAbility(lanceOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 13L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(axeAbilities) : (byte)RandomizerExtras.pickAbility(axeOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 14L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(bowAbilities) : (byte)RandomizerExtras.pickAbility(bowOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 15L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(brawlAbilities) : (byte)RandomizerExtras.pickAbility(brawlOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
+                                    personData[charLearnStart + learnMod + 17L] = settings.baseGenericAb ? (rng.Next(0, 2) == 0 ? (byte)RandomizerExtras.pickAbility(faithAbilities) : (byte)RandomizerExtras.pickAbility(faithOnlyAbilities)) : (byte)RandomizerExtras.pickAbility(allAbilities);
 
                                     changelog += "\n" + abilityNames[personData[charLearnStart + learnMod + 11L]] + " learned at " + getSkillName(0) + " " + getRankName(rank);
                                     changelog += "\n" + abilityNames[personData[charLearnStart + learnMod + 12L]] + " learned at " + getSkillName(1) + " " + getRankName(rank);
@@ -7618,7 +7619,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                                     for (int i = 0; i < 4; i++)
                                     {
-                                        personData[charLearnStart + learnMod + 18L + (long)i] = (byte)genericAbilities[rng.Next(genericAbilities.Length)];
+                                        personData[charLearnStart + learnMod + 18L + (long)i] = (byte)RandomizerExtras.pickAbility(genericAbilities);
 
                                         changelog += "\n" +
                                             abilityNames[personData[charLearnStart + learnMod + 18L + (long)i]] +
@@ -7787,39 +7788,39 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                     startClass = zeroClasses[rng.Next(0, zeroClasses.Count)];
                                 if (settings.randCharPreCertClasses)
                                 {
-                                    postTSCerts[0] = settings.charOptimalClasses ? getBestFittingClass(1, proficiencies, classCertReqs) : begClasses[rng.Next(0, begClasses.Count)];
-                                    postTSCerts[1] = settings.charOptimalClasses ? getBestFittingClass(2, proficiencies, classCertReqs) : interClasses[rng.Next(0, interClasses.Count)];
-                                    postTSCerts[2] = settings.charOptimalClasses ? getBestFittingClass(3, proficiencies, classCertReqs) : advClasses[rng.Next(0, advClasses.Count)];
+                                    postTSCerts[0] = settings.charOptimalClasses ? getBestFittingClass(1, proficiencies, classCertReqs) : RandomizerExtras.pickClass(1, begClasses);
+                                    postTSCerts[1] = settings.charOptimalClasses ? getBestFittingClass(2, proficiencies, classCertReqs) : RandomizerExtras.pickClass(2, interClasses);
+                                    postTSCerts[2] = settings.charOptimalClasses ? getBestFittingClass(3, proficiencies, classCertReqs) : RandomizerExtras.pickClass(3, advClasses);
                                 }
                                 break;
                             case 1:
                                 if (settings.randCharStartClasses)
-                                    startClass = settings.charOptimalClasses ? getBestFittingClass(1, proficiencies, classCertReqs) : begClasses[rng.Next(0, begClasses.Count)];
+                                    startClass = settings.charOptimalClasses ? getBestFittingClass(1, proficiencies, classCertReqs) : RandomizerExtras.pickClass(1, begClasses);
                                 if (settings.randCharPreCertClasses)
                                 {
                                     preCerts[0] = zeroClasses[rng.Next(0, zeroClasses.Count)];
-                                    postTSCerts[0] = settings.charOptimalClasses ? getBestFittingClass(1, proficiencies, classCertReqs) : begClasses[rng.Next(0, begClasses.Count)];
+                                    postTSCerts[0] = settings.charOptimalClasses ? getBestFittingClass(1, proficiencies, classCertReqs) : RandomizerExtras.pickClass(1, begClasses);
                                 }
                                 break;
                             case 2:
                                 if (settings.randCharStartClasses)
-                                    startClass = settings.charOptimalClasses ? getBestFittingClass(2, proficiencies, classCertReqs) : interClasses[rng.Next(0, interClasses.Count)];
+                                    startClass = settings.charOptimalClasses ? getBestFittingClass(2, proficiencies, classCertReqs) : RandomizerExtras.pickClass(2, interClasses);
                                 if (settings.randCharPreCertClasses)
                                 {
                                     preCerts[0] = zeroClasses[rng.Next(0, zeroClasses.Count)];
-                                    preCerts[1] = settings.charOptimalClasses ? getBestFittingClass(1, proficiencies, classCertReqs) : begClasses[rng.Next(0, begClasses.Count)];
-                                    postTSCerts[0] = settings.charOptimalClasses ? getBestFittingClass(2, proficiencies, classCertReqs) : interClasses[rng.Next(0, interClasses.Count)];
+                                    preCerts[1] = settings.charOptimalClasses ? getBestFittingClass(1, proficiencies, classCertReqs) : RandomizerExtras.pickClass(1, begClasses);
+                                    postTSCerts[0] = settings.charOptimalClasses ? getBestFittingClass(2, proficiencies, classCertReqs) : RandomizerExtras.pickClass(2, interClasses);
                                 }
                                 break;
                             case 3:
                                 if (settings.randCharStartClasses)
-                                    startClass = settings.charOptimalClasses ? getBestFittingClass(3, proficiencies, classCertReqs) : advClasses[rng.Next(0, advClasses.Count)];
+                                    startClass = settings.charOptimalClasses ? getBestFittingClass(3, proficiencies, classCertReqs) : RandomizerExtras.pickClass(3, advClasses);
                                 if (settings.randCharPreCertClasses)
                                 {
                                     preCerts[0] = zeroClasses[rng.Next(0, zeroClasses.Count)];
-                                    preCerts[1] = settings.charOptimalClasses ? getBestFittingClass(1, proficiencies, classCertReqs) : begClasses[rng.Next(0, begClasses.Count)];
-                                    preCerts[2] = settings.charOptimalClasses ? getBestFittingClass(2, proficiencies, classCertReqs) : interClasses[rng.Next(0, interClasses.Count)];
-                                    postTSCerts[0] = settings.charOptimalClasses ? getBestFittingClass(3, proficiencies, classCertReqs) : advClasses[rng.Next(0, advClasses.Count)];
+                                    preCerts[1] = settings.charOptimalClasses ? getBestFittingClass(1, proficiencies, classCertReqs) : RandomizerExtras.pickClass(1, begClasses);
+                                    preCerts[2] = settings.charOptimalClasses ? getBestFittingClass(2, proficiencies, classCertReqs) : RandomizerExtras.pickClass(2, interClasses);
+                                    postTSCerts[0] = settings.charOptimalClasses ? getBestFittingClass(3, proficiencies, classCertReqs) : RandomizerExtras.pickClass(3, advClasses);
                                 }
                                 break;
                             case 4:
@@ -7829,8 +7830,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 if (settings.randCharPreCertClasses)
                                 {
                                     preCerts[0] = zeroClasses[rng.Next(0, zeroClasses.Count)];
-                                    preCerts[1] = settings.charOptimalClasses ? getBestFittingClass(1, proficiencies, classCertReqs) : begClasses[rng.Next(0, begClasses.Count)];
-                                    preCerts[2] = settings.charOptimalClasses ? getBestFittingClass(2, proficiencies, classCertReqs) : interClasses[rng.Next(0, interClasses.Count)];
+                                    preCerts[1] = settings.charOptimalClasses ? getBestFittingClass(1, proficiencies, classCertReqs) : RandomizerExtras.pickClass(1, begClasses);
+                                    preCerts[2] = settings.charOptimalClasses ? getBestFittingClass(2, proficiencies, classCertReqs) : RandomizerExtras.pickClass(2, interClasses);
                                 }
                                 if (settings.randCharStartClasses)
                                     startClass = personData[charBlockStart + charMod + 26L];
@@ -8203,47 +8204,47 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         {
                             case 0:
                                 if (rng.Next(0, 2) == 0 || budArt[i] == 255)
-                                    budAbility[i] = swordAbilities[rng.Next(swordAbilities.Length)];
+                                    budAbility[i] = RandomizerExtras.pickAbility(swordAbilities);
                                 break;
                             case 1:
                                 if (rng.Next(0, 2) == 0 || budArt[i] == 255)
-                                    budAbility[i] = lanceAbilities[rng.Next(lanceAbilities.Length)];
+                                    budAbility[i] = RandomizerExtras.pickAbility(lanceAbilities);
                                 break;
                             case 2:
                                 if (rng.Next(0, 2) == 0 || budArt[i] == 255)
-                                    budAbility[i] = axeAbilities[rng.Next(axeAbilities.Length)];
+                                    budAbility[i] = RandomizerExtras.pickAbility(axeAbilities);
                                 break;
                             case 3:
                                 if (rng.Next(0, 2) == 0 || budArt[i] == 255)
-                                    budAbility[i] = bowAbilities[rng.Next(bowAbilities.Length)];
+                                    budAbility[i] = RandomizerExtras.pickAbility(bowAbilities);
                                 break;
                             case 4:
                                 if (rng.Next(0, 2) == 0 || budArt[i] == 255)
-                                    budAbility[i] = brawlAbilities[rng.Next(brawlAbilities.Length)];
+                                    budAbility[i] = RandomizerExtras.pickAbility(brawlAbilities);
                                 break;
                             case 5:
                                 if (!hasBlackSpells && !hasDarkSpells)
-                                    budAbility[i] = genericAbilities[rng.Next(genericAbilities.Length)];
+                                    budAbility[i] = RandomizerExtras.pickAbility(genericAbilities);
                                 else if (!hasDarkSpells)
-                                    budAbility[i] = blackAbilities[rng.Next(blackAbilities.Length)];
+                                    budAbility[i] = RandomizerExtras.pickAbility(blackAbilities);
                                 else if (!hasBlackSpells)
-                                    budAbility[i] = darkAbilities[rng.Next(darkAbilities.Length)];
+                                    budAbility[i] = RandomizerExtras.pickAbility(darkAbilities);
                                 else if (rng.Next(0, 2) == 0)
-                                    budAbility[i] = blackAbilities[rng.Next(blackAbilities.Length)];
+                                    budAbility[i] = RandomizerExtras.pickAbility(blackAbilities);
                                 else
-                                    budAbility[i] = darkAbilities[rng.Next(darkAbilities.Length)];
+                                    budAbility[i] = RandomizerExtras.pickAbility(darkAbilities);
                                 break;
                             case 6:
-                                budAbility[i] = faithAbilities[rng.Next(faithAbilities.Length)];
+                                budAbility[i] = RandomizerExtras.pickAbility(faithAbilities);
                                 break;
                             case 255:
                                 break;
                             default:
-                                budAbility[i] = genericAbilities[rng.Next(genericAbilities.Length)];
+                                budAbility[i] = RandomizerExtras.pickAbility(genericAbilities);
                                 break;
                         }
                         if (budAbility[i] < 255 && !settings.baseBuddingTalents)
-                            budAbility[i] = allAbilities[rng.Next(0, allAbilities.Count)];
+                            budAbility[i] = RandomizerExtras.pickAbility(allAbilities);
                         if (budSkill[i] < 11)
                         {
                             byte[] budBytes0L = BitConverter.GetBytes((short)budCharacter[i]);
@@ -8395,39 +8396,39 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                             switch (skillAbilitySkills[i])
                             {
                                 case 0:
-                                    skillAbilities[i] = swordAbilities[rng.Next(swordAbilities.Length)];
+                                    skillAbilities[i] = RandomizerExtras.pickAbility(swordAbilities);
                                     break;
                                 case 1:
-                                    skillAbilities[i] = lanceAbilities[rng.Next(lanceAbilities.Length)];
+                                    skillAbilities[i] = RandomizerExtras.pickAbility(lanceAbilities);
                                     break;
                                 case 2:
-                                    skillAbilities[i] = axeAbilities[rng.Next(axeAbilities.Length)];
+                                    skillAbilities[i] = RandomizerExtras.pickAbility(axeAbilities);
                                     break;
                                 case 3:
-                                    skillAbilities[i] = bowAbilities[rng.Next(bowAbilities.Length)];
+                                    skillAbilities[i] = RandomizerExtras.pickAbility(bowAbilities);
                                     break;
                                 case 4:
-                                    skillAbilities[i] = brawlAbilities[rng.Next(brawlAbilities.Length)];
+                                    skillAbilities[i] = RandomizerExtras.pickAbility(brawlAbilities);
                                     break;
                                 case 5:
                                     if (!hasBlackSpells)
-                                        skillAbilities[i] = darkAbilities[rng.Next(darkAbilities.Length)];
+                                        skillAbilities[i] = RandomizerExtras.pickAbility(darkAbilities);
                                     else if (!hasDarkSpells)
-                                        skillAbilities[i] = blackAbilities[rng.Next(blackAbilities.Length)];
+                                        skillAbilities[i] = RandomizerExtras.pickAbility(blackAbilities);
                                     else if (rng.Next(0, 2) == 0)
-                                        skillAbilities[i] = blackAbilities[rng.Next(blackAbilities.Length)];
+                                        skillAbilities[i] = RandomizerExtras.pickAbility(blackAbilities);
                                     else
-                                        skillAbilities[i] = darkAbilities[rng.Next(darkAbilities.Length)];
+                                        skillAbilities[i] = RandomizerExtras.pickAbility(darkAbilities);
                                     break;
                                 case 6:
-                                    skillAbilities[i] = faithAbilities[rng.Next(faithAbilities.Length)];
+                                    skillAbilities[i] = RandomizerExtras.pickAbility(faithAbilities);
                                     break;
                                 default:
-                                    skillAbilities[i] = genericAbilities[rng.Next(genericAbilities.Length)];
+                                    skillAbilities[i] = RandomizerExtras.pickAbility(genericAbilities);
                                     break;
                             }
                             if (!settings.baseCharAb)
-                                skillAbilities[i] = allAbilities[rng.Next(0, allAbilities.Count)];
+                                skillAbilities[i] = RandomizerExtras.pickAbility(allAbilities);
 
                             changelog += "\t" + abilityNames[skillAbilities[i]] + " at " + getSkillName(skillAbilitySkills[i]) + " " + getRankName(skillAbilityRanks[i]);
                         }
@@ -8483,7 +8484,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         int numPersonalAbilities = p(settings.newPersonalAbPostTsP) ? 2 : 1;
                         for (int i = 0; i < numPersonalAbilities; i++)
                         {
-                            personalAbilities[i] = settings.basePersonalAb ? abilityPool[rng.Next(0, abilityPool.Count)] : allAbilities[rng.Next(0, allAbilities.Count)];
+                            personalAbilities[i] = settings.basePersonalAb ? RandomizerExtras.pickAbility(abilityPool) : RandomizerExtras.pickAbility(allAbilities);
                         }
                         personData[charSkillStart + skillMod + 20L] = (byte)personalAbilities[0]; // Personal ability
                         personData[charSkillStart + skillMod + 21L] = (byte)personalAbilities[1];
@@ -8573,7 +8574,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 {
                     long enemySkillMod = charEnemySkillLen * (long)index;
 
-                    personData[charEnemySkillStart + enemySkillMod + 2L] = (byte)genericAbilities[rng.Next(0, genericAbilities.Length)];
+                    personData[charEnemySkillStart + enemySkillMod + 2L] = (byte)RandomizerExtras.pickAbility(genericAbilities);
                 }
             }
             if (calendarLoaded)
@@ -8699,31 +8700,31 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                             case 0:
                                 if (settings.randCharPreCertClasses)
                                 {
-                                    lobbyData[reqruitStart + mod + 6L] = settings.charOptimalClasses ? (byte)getBestFittingClass(1, proficiencyArchive[charIndex], classCertReqs) : (byte)begClasses[rng.Next(0, begClasses.Count)];
-                                    lobbyData[reqruitStart + mod + 8L] = settings.charOptimalClasses ? (byte)getBestFittingClass(2, proficiencyArchive[charIndex], classCertReqs) : (byte)interClasses[rng.Next(0, interClasses.Count)];
+                                    lobbyData[reqruitStart + mod + 6L] = settings.charOptimalClasses ? (byte)getBestFittingClass(1, proficiencyArchive[charIndex], classCertReqs) : (byte)RandomizerExtras.pickClass(1, begClasses);
+                                    lobbyData[reqruitStart + mod + 8L] = settings.charOptimalClasses ? (byte)getBestFittingClass(2, proficiencyArchive[charIndex], classCertReqs) : (byte)RandomizerExtras.pickClass(2, interClasses);
                                 }
                                 break;
 
                             case 1:
                                 if (settings.randCharStartClasses)
-                                    lobbyData[reqruitStart + mod + 6L] = settings.charOptimalClasses ? (byte)getBestFittingClass(1, proficiencyArchive[charIndex], classCertReqs) : (byte)begClasses[rng.Next(0, begClasses.Count)];
+                                    lobbyData[reqruitStart + mod + 6L] = settings.charOptimalClasses ? (byte)getBestFittingClass(1, proficiencyArchive[charIndex], classCertReqs) : (byte)RandomizerExtras.pickClass(1, begClasses);
                                 if (settings.randCharPreCertClasses)
-                                    lobbyData[reqruitStart + mod + 8L] = settings.charOptimalClasses ? (byte)getBestFittingClass(2, proficiencyArchive[charIndex], classCertReqs) : (byte)interClasses[rng.Next(0, interClasses.Count)];
+                                    lobbyData[reqruitStart + mod + 8L] = settings.charOptimalClasses ? (byte)getBestFittingClass(2, proficiencyArchive[charIndex], classCertReqs) : (byte)RandomizerExtras.pickClass(2, interClasses);
                                 break;
 
                             case 2:
                                 if (settings.randCharStartClasses)
                                 {
-                                    lobbyData[reqruitStart + mod + 6L] = settings.charOptimalClasses ? (byte)getBestFittingClass(2, proficiencyArchive[charIndex], classCertReqs) : (byte)interClasses[rng.Next(0, interClasses.Count)];
-                                    lobbyData[reqruitStart + mod + 8L] = settings.charOptimalClasses ? (byte)getBestFittingClass(2, proficiencyArchive[charIndex], classCertReqs) : (byte)interClasses[rng.Next(0, interClasses.Count)];
+                                    lobbyData[reqruitStart + mod + 6L] = settings.charOptimalClasses ? (byte)getBestFittingClass(2, proficiencyArchive[charIndex], classCertReqs) : (byte)RandomizerExtras.pickClass(2, interClasses);
+                                    lobbyData[reqruitStart + mod + 8L] = settings.charOptimalClasses ? (byte)getBestFittingClass(2, proficiencyArchive[charIndex], classCertReqs) : (byte)RandomizerExtras.pickClass(2, interClasses);
                                 }
                                 break;
 
                             case 3:
                                 if (settings.randCharStartClasses)
                                 {
-                                    lobbyData[reqruitStart + mod + 6L] = settings.charOptimalClasses ? (byte)getBestFittingClass(3, proficiencyArchive[charIndex], classCertReqs) : (byte)advClasses[rng.Next(0, advClasses.Count)];
-                                    lobbyData[reqruitStart + mod + 8L] = settings.charOptimalClasses ? (byte)getBestFittingClass(3, proficiencyArchive[charIndex], classCertReqs) : (byte)advClasses[rng.Next(0, advClasses.Count)];
+                                    lobbyData[reqruitStart + mod + 6L] = settings.charOptimalClasses ? (byte)getBestFittingClass(3, proficiencyArchive[charIndex], classCertReqs) : (byte)RandomizerExtras.pickClass(3, advClasses);
+                                    lobbyData[reqruitStart + mod + 8L] = settings.charOptimalClasses ? (byte)getBestFittingClass(3, proficiencyArchive[charIndex], classCertReqs) : (byte)RandomizerExtras.pickClass(3, advClasses);
                                 }
                                 break;
 
@@ -10904,15 +10905,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                         if (monster)
                                             classId = (byte)monsterClasses[rng.Next(0, monsterClasses.Count)];
                                         if (begClasses.Contains(classId))
-                                            classId = (byte)begClasses[rng.Next(0, begClasses.Count)];
+                                            classId = (byte)RandomizerExtras.pickClass(1, begClasses);
                                         if (interClasses.Contains(classId))
-                                            classId = (byte)interClasses[rng.Next(0, interClasses.Count)];
+                                            classId = (byte)RandomizerExtras.pickClass(2, interClasses);
                                         if (advClasses.Contains(classId))
-                                            classId = (byte)advClasses[rng.Next(0, advClasses.Count)];
+                                            classId = (byte)RandomizerExtras.pickClass(3, advClasses);
                                         if (masterClasses.Contains(classId))
                                             classId = (byte)masterClasses[rng.Next(0, masterClasses.Count)];
                                         if (uniClasses.Contains(classId))
-                                            classId = (byte)uniClasses[rng.Next(0, uniClasses.Count)];
+                                            classId = (byte)RandomizerExtras.pickClass(6, uniClasses);
                                     }
 
                                     baiSectionData[unitStart + 4] = (byte)(newMapClasses[classId] + 1); // class
@@ -11008,15 +11009,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                                 for (int i = 0; i < physWeaponTypes.Count; i++)
                                                     for (int j = 0; j <= weaponPoolTier; j++)
                                                         weaponPool.AddRange(availableWeapons[physWeaponTypes[i]][j]);
+                                                RandomizerExtras.filterRanges(weaponPool);
 
-                                                for (int i = 0; i < physWeaponTypes.Count; i++)
+                                                for (int i = 0; i < physWeaponTypes.Count && weaponPool.Count > 0; i++)
                                                     newInventory.Add((ushort)(weaponPool[rng.Next(0, weaponPool.Count)] + itemTypeIdOffsets[0]));
                                             }
                                             else
                                             {
-                                                newInventory.Add((ushort)(obtainableWeapons[rng.Next(0, obtainableWeapons.Length)] + itemTypeIdOffsets[0]));
+                                                newInventory.Add((ushort)(RandomizerExtras.pickEnemyWeapon() + itemTypeIdOffsets[0]));
                                                 if (p(30))
-                                                    newInventory.Add((ushort)(obtainableWeapons[rng.Next(0, obtainableWeapons.Length)] + itemTypeIdOffsets[0]));
+                                                    newInventory.Add((ushort)(RandomizerExtras.pickEnemyWeapon() + itemTypeIdOffsets[0]));
                                             }
                                         }
 
@@ -11165,7 +11167,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                         }
 
                                         for (int i = 0; i < abCount; i++)
-                                            baiAbSet[i] = (byte)(abilityPool[rng.Next(0, abilityPool.Count)] + 1);
+                                            baiAbSet[i] = (byte)(RandomizerExtras.pickAbility(abilityPool) + 1);
                                     }
 
                                     for (int i = 0; i < baiAbSet.Length; i++)
@@ -11435,6 +11437,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     scenarioData[scenarioStart + scenarioMod + 34] = (byte)Math.Round(Math.Max(1, Math.Min(99, scenarioData[scenarioStart + scenarioMod + 34] * settings.lvMultiplier / 100)));
                     scenarioData[scenarioStart + scenarioMod + 35] = (byte)Math.Round(Math.Max(1, Math.Min(99, scenarioData[scenarioStart + scenarioMod + 35] * settings.lvMultiplier / 100)));
                 }
+
+            RandomizerExtras.applyAfterRandomization();
 
             changelog += "\n\n\n---RANDOMIZATION SETTINGS---";
             changelog += "\n\n" + ObjectDumper.Dump(settings, 0);
@@ -11740,7 +11744,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             switch (itemType)
             {
                 case 0:
-                    newItem = obtainableWeapons[rng.Next(0, obtainableWeapons.Length)];
+                    newItem = obtainableWeapons[rng.Next(0, obtainableWeapons.Length)]; // shop stock keeps siege tomes
                     break;
                 case 1:
                     newItem = obtainableEquipment[rng.Next(0, obtainableEquipment.Length)];
@@ -12065,9 +12069,21 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             List<int[][]> eligibleClasses = new List<int[][]>();
             List<int> classScores = new List<int>();
             List<int> bestFitsInEligibleClasses = new List<int>();
+
+            // Even class variety: restrict the "optimal" pick to the weapon type
+            // that is currently behind in this tier, then fall back if the tier
+            // has nothing of that type.
+            int preferredType = RandomizerExtras.nextPreferredType(classTier, null);
+
             for (int clID = 0; clID < classCertReqs.Count; clID++)
-                if (classCertReqs[clID][0][0] == classTier && classCertReqs[clID][2][0] == 1)
+                if (classCertReqs[clID][0][0] == classTier && classCertReqs[clID][2][0] == 1
+                    && (preferredType < 0 || RandomizerExtras.classHasType(clID, preferredType)))
                     eligibleClasses.Add(new int[][] { new int[] { clID }, classCertReqs[clID][1] });
+
+            if (eligibleClasses.Count == 0)
+                for (int clID = 0; clID < classCertReqs.Count; clID++)
+                    if (classCertReqs[clID][0][0] == classTier && classCertReqs[clID][2][0] == 1)
+                        eligibleClasses.Add(new int[][] { new int[] { clID }, classCertReqs[clID][1] });
             for (int c = 0; c < eligibleClasses.Count; c++)
             {
                 double score = 0.0;

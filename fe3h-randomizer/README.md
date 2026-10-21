@@ -18,7 +18,9 @@ fe3h-randomizer/
     Fire Emblem Three Houses Randomizer.sln     open in Visual Studio
     Fire Emblem Three Houses Randomizer.csproj
     build.bat                                   one-click build
-    BatchTools.cs                               <- the new feature (new file)
+    BatchTools.cs                               <- folder scan + output writing (new)
+    RandomizerExtras.cs                         <- the four extra options (new)
+    RandomizerExtrasTab.cs                      <- "Extra options" tab (new)
     RandomizerForm.cs                           <- original code, 2 tiny edits
     Randomizer.cs, Settings.cs, ...             <- original code, untouched
     Resources\DATA0.bin, INFO0.bin, INFO2.bin   <- data extracted from the exe
@@ -37,6 +39,59 @@ fe3h-randomizer/
    `build.bat /install` also copies the result over
    `..\Fire Emblem Three Houses Randomizer.exe` and keeps your current exe as
    `Fire Emblem Three Houses Randomizer.exe.original.bak`.
+
+## Extra options tab
+
+Four more options live on the **"Extra options"** tab. They apply when you run
+the randomization, so they combine with every other setting.
+
+### Random classes - even variety (the big one)
+
+Randomizing classes used to hand out whatever the RNG felt like, which often
+meant fifteen axe classes and a single mage. With this on, the class picks are
+spread over weapon types instead:
+
+* Every tier keeps its own "deck" of weapon types, so a tier cannot end up
+  without, say, magic while handing out axes all day.
+* The same class is never handed out twice while an unused one is available, so
+  the actual classes (and therefore their growths, stats, abilities and combat
+  arts) differ as well.
+* "Optimal class" mode is filtered the same way: the best fitting class is
+  picked *inside* the weapon type that is currently behind.
+* After randomizing the class data, the growth, stat, class ability and combat
+  art values inside each tier are rotated, so one class no longer hogs every
+  high roll and two neighbouring classes do not end up with the same kit.
+
+The **Safety (%)** slider sets how strictly this is enforced:
+
+| Safety | Behaviour |
+| --- | --- |
+| 100% | Every class tier except the starting class gets all weapon types. |
+| 60% (default) | Most tiers cover every type, the rest stays balanced without being rigid. |
+| 0% | Only one guaranteed option per weapon type across the whole run - swords could end up in a single master class - but never nothing. |
+
+### Abilities that must never be randomized
+
+A tick list of all 252 abilities. Anything ticked is never handed out by the
+ability, class ability or learnset randomization. The dragon / monster
+abilities - **Ancient Dragonskin**, **Ancient Dragon Wrath**, **Divine Dragon
+Horn**, **Giant Wings**, **Dragon Effect Null** and **Monster Effect Null** -
+are ticked by default. "Add the abilities the randomizer already avoids" brings
+in the tool's own `badAbilities` list as well.
+
+### Enemy siege tomes and long range weapons
+
+Tick it and set the maximum range: weapons above that range are removed from the
+pools that random map enemies draw their weapons from, so no more Meteor,
+Bolting or 4+ range bows on random enemies. Range 2 keeps the usual melee / 2
+range setup. Player weapons and shop stock are untouched.
+
+### Level scaling
+
+Moves a percentage of the enemy Str / Mag / Def / Res growths into HP. Enemy
+stats grow per level from the class enemy growths, so this makes level scaling
+produce tankier enemies instead of harder hitting ones. 0% leaves it alone, 20%
+is a noticeable but fair change, 60% is the maximum.
 
 ## Use it
 
@@ -112,8 +167,20 @@ has exactly two edits:
          if (Randomizer.personLoaded)
 ```
 
+`Randomizer.cs` (the randomization itself) only gets small, targeted hooks:
+
+* `RandomizerExtras.beginClassVariety(classWeaponTypes)` once, and the plain
+  class picks become `RandomizerExtras.pickClass(tier, pool)`.
+* `Randomizer.getBestFittingClass` gains a preferred-type filter with a
+  fallback to the old behaviour.
+* Ability picks become `RandomizerExtras.pickAbility(pool)` (147 call sites),
+  so the blocklist applies everywhere abilities are handed out.
+* The two enemy weapon pools are filtered with `RandomizerExtras.filterRanges`.
+* One `RandomizerExtras.applyAfterRandomization()` call before the changelog is
+  written, which runs the growth shift and the tier spread passes.
+
 Why a partial class: the decompiled form is 36,000 lines of machine-generated
-layout code. Adding a separate file means the new feature cannot break existing
+layout code. Adding separate files means the new features cannot break existing
 behaviour, and the original per-file *Load* and *Save* buttons keep working
 exactly as before.
 
