@@ -174,23 +174,30 @@ Weapons, gambits and combat arts store their effect in the **same id space**
 byte +7 of an 18-byte block, 0..93 with 96 meaning "none"), which makes a real
 crossover possible without inventing anything:
 
+Every graft is its own **percentage chance**, rolled once per entry, so they can be
+mixed at whatever rate you like. An entry is rolled at most once, in the order
+shown below, and stops at the first graft that succeeds.
+
 | Option | Default | What it does |
 | --- | --- | --- |
-| Graft another weapon's effects onto each weapon | off | Copies the status effect, the effectiveness bits and the property bits (double attack, magic damage, ignore defence, leave at 1 HP) from another weapon. |
-| ...only take effects from weapons of a different type | off | The donor must be a different weapon type, so a sword can end up behaving like a bow. |
-| Give each weapon a random combat art effect | off | The weapon's status effect is replaced by one drawn from the combat-art effect range. Experimental. |
-| Give each weapon a gambit's effects | off | The same, with a gambit as the donor. Experimental. |
+| Weapons take another weapon's effects (%) | 0 | Copies the status effect, the effectiveness bits and the property bits (double attack, magic damage, ignore defence, leave at 1 HP) from another weapon. |
+| Weapons take a combat art effect (%) | 0 | The weapon's status effect is replaced by a combat-art effect id. |
+| Weapons take a gambit's effects (%) | 0 | The full effect set comes from a gambit. |
+| Combat arts take another art's effect (%) | 0 | The art's effect id is replaced by another art's. |
+| Combat arts take a weapon's effect (%) | 0 | The art's effect id comes from a weapon. |
+| Gambits take another gambit's effects (%) | 0 | The gambit's whole effect set comes from another gambit. |
+| Gambits take a weapon's effects (%) | 0 | The gambit's whole effect set comes from a weapon. |
+| Weapon donors must be a different weapon type | off | Applies to the three weapon grafts: the donor must be a different weapon type, so a sword can genuinely behave like a bow. |
 | No two weapons share the same effect set | off | Duplicate effect combinations are re-rolled. |
 
 Only the **effects** move - might, hit, crit, weight, range and durability stay
 exactly as the normal weapon randomization set them, so these stack with
-`randAtk*` instead of replacing it. The three graft options do not stack with each
-other (weapon, then combat art, then gambit), and a weapon with no donor that has
-an effect is left alone.
+`randAtk*` instead of replacing it. A weapon, art or gambit with no eligible donor
+is left alone, and unused art rows (flag 63) and empty gambit rows are skipped.
 
-The changelog gets a `---WEAPON EFFECT REMIX---` section with the counts and the
-first 40 renamed effects, because the normal changelog is built before these
-passes run.
+The changelog gets a `---EFFECT REMIX---` section with the counts, the chance
+used for each graft, and the first 40 renamed weapon effects, because the normal
+changelog is built before these passes run.
 
 ### Quick setup for testing
 

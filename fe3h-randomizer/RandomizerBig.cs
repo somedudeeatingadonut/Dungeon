@@ -33,12 +33,25 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static bool shuffleCharacterSheets = false;
         public static bool bossRemix = false;
 
-        // weapon effect remix
-        public static bool graftWeaponEffects = false;
-        public static bool graftCombatArtEffects = false;
-        public static bool graftGambitEffects = false;
+        // weapon / art / gambit effect remix - every graft is its own chance
+        // (percent of entries, rolled once per entry)
+        public static int weaponGraftChance;        // weapon <- another weapon
+        public static int weaponFromArtChance;      // weapon <- a combat art effect
+        public static int weaponFromGambitChance;   // weapon <- a gambit
+        public static int artGraftChance;           // combat art <- another combat art
+        public static int artFromWeaponChance;      // combat art <- a weapon's effect
+        public static int gambitGraftChance;        // gambit <- another gambit
+        public static int gambitFromWeaponChance;   // gambit <- a weapon's effects
         public static bool uniqueWeaponEffects = false;
         public static bool weaponDonorsDifferInType = false;
+
+        public static bool anyEffectRemix()
+        {
+            return weaponGraftChance > 0 || weaponFromArtChance > 0 || weaponFromGambitChance > 0
+                || artGraftChance > 0 || artFromWeaponChance > 0
+                || gambitGraftChance > 0 || gambitFromWeaponChance > 0
+                || uniqueWeaponEffects;
+        }
         /// <summary>0 = inside one class tier, 1 = across every class.</summary>
         public static int swapScope = 0;
 
@@ -48,8 +61,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statCharSheetsSwapped;
         public static int statBossRemixed;
         public static int statWeaponEffectsGrafted;
+        public static int statWeaponFromArtGrafted;
+        public static int statWeaponFromGambitGrafted;
         public static int statArtEffectsGrafted;
+        public static int statArtFromWeaponGrafted;
         public static int statGambitEffectsGrafted;
+        public static int statGambitFromWeaponGrafted;
         public static int statWeaponEffectsRerolled;
 
         public static void resetCounters()
@@ -59,8 +76,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statCharSheetsSwapped = 0;
             statBossRemixed = 0;
             statWeaponEffectsGrafted = 0;
+            statWeaponFromArtGrafted = 0;
+            statWeaponFromGambitGrafted = 0;
             statArtEffectsGrafted = 0;
+            statArtFromWeaponGrafted = 0;
             statGambitEffectsGrafted = 0;
+            statGambitFromWeaponGrafted = 0;
             statWeaponEffectsRerolled = 0;
         }
 
@@ -291,120 +312,213 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
         }
 
-        // ------------------------------------------------- 5. weapon effect remix
+        // ------------------------------------- 5. weapon / art / gambit effects
         // Weapons, gambits and combat arts all store their effect in the same id
-        // space (weapon and gambit effect: byte +12 of a 24 byte block, combat
-        // art effect: byte +7 of an 18 byte block, 0..93 with 96 meaning "none").
-        // That makes the crossover possible without inventing anything:
+        // space (weapon and gambit: byte +12 of a 24 byte block, combat art:
+        // byte +7 of an 18 byte block, 0..93 with 96 meaning "none"). Every
+        // graft below is its own percentage chance, rolled once per entry, so
+        // they can be mixed at whatever rate you like.
         //
-        //   * graft another weapon's effects onto a weapon (status effect,
-        //     effectiveness and the property bits - double attack, magic damage,
-        //     ignore defence, leave at 1 HP), optionally only from weapons of a
-        //     different type so the result is visibly different;
-        //   * give a weapon one of the combat art effect ids;
-        //   * give a weapon a gambit's effects.
-        //
-        // Only the *effects* move. Might / hit / crit / weight / range / durability
-        // are left exactly as the normal randomization set them, so this composes
-        // with randAtk* instead of overwriting it.
+        // Only the *effects* move. Might / hit / crit / weight / range /
+        // durability are left exactly as the normal randomization set them, so
+        // this composes with randAtk* instead of overwriting it.
         private const int weaponSlotEffect = 12;
         private const int weaponSlotEffectiveness = 14;
         private const int weaponSlotProperties = 22;
         private const int weaponSlotType = 5;
+        private const int artSlotEffect = 7;
+        private const int artSlotUsedFlag = 13;   // 63 marks an unused art row
+        private const int artCount = 80;
+        private const int gambitCount = 80;
+        private const int weaponCount = 500;
         private const int effectNone = 96;
-        private const int artEffectMin = 18;
-        private const int artEffectMaxExclusive = 55;
 
         private static void remixWeaponEffects()
         {
             if (Randomizer.itemData == null)
                 return;
-            if (!graftWeaponEffects && !graftCombatArtEffects && !graftGambitEffects
-                && !uniqueWeaponEffects)
+            if (!anyEffectRemix())
                 return;
 
-            byte[] data = Randomizer.itemData;
-            int weapons = 500;
-            int gambits = 80;
-
-            if (graftWeaponEffects || graftCombatArtEffects || graftGambitEffects)
-            {
-                for (int index = 0; index < weapons; index++)
-                {
-                    int target = (int)Randomizer.weaponBlockStart + (int)Randomizer.weaponBlockLen * index;
-                    if (target + weaponSlotProperties >= data.Length)
-                        break;
-
-                    if (graftWeaponEffects)
-                    {
-                        int donor = pickWeaponDonor(index, weapons);
-                        if (donor >= 0)
-                        {
-                            int source = (int)Randomizer.weaponBlockStart + (int)Randomizer.weaponBlockLen * donor;
-                            graftEffect(data, source, target);
-                            statWeaponEffectsGrafted++;
-                            continue;
-                        }
-                    }
-                    if (graftCombatArtEffects)
-                    {
-                        data[target + weaponSlotEffect] =
-                            (byte)Randomizer.rng.Next(artEffectMin, artEffectMaxExclusive);
-                        statArtEffectsGrafted++;
-                        continue;
-                    }
-                    if (graftGambitEffects)
-                    {
-                        int donor = pickGambitDonor(gambits);
-                        if (donor >= 0)
-                        {
-                            int source = (int)Randomizer.gambitBlockStart + (int)Randomizer.gambitBlockLen * donor;
-                            if (source + weaponSlotProperties < data.Length)
-                            {
-                                graftEffect(data, source, target);
-                                statGambitEffectsGrafted++;
-                            }
-                        }
-                    }
-                }
-            }
+            remixWeapons();
+            remixCombatArts();
+            remixGambits();
 
             if (uniqueWeaponEffects)
-            {
-                List<string> seen = new List<string>();
-                for (int index = 0; index < weapons; index++)
-                {
-                    int target = (int)Randomizer.weaponBlockStart + (int)Randomizer.weaponBlockLen * index;
-                    if (target + weaponSlotProperties >= data.Length)
-                        break;
-                    if (data[target + weaponSlotEffect] == effectNone)
-                        continue; // no effect at all, nothing to keep unique
-
-                    string key = weaponEffectKey(data, target);
-                    if (!seen.Contains(key))
-                    {
-                        seen.Add(key);
-                        continue;
-                    }
-                    // Someone already has this exact effect set - reroll the
-                    // status effect until the combination is new.
-                    for (int attempt = 0; attempt < 20; attempt++)
-                    {
-                        data[target + weaponSlotEffect] =
-                            (byte)Randomizer.rng.Next(0, effectNone);
-                        string candidate = weaponEffectKey(data, target);
-                        if (!seen.Contains(candidate))
-                        {
-                            seen.Add(candidate);
-                            statWeaponEffectsRerolled++;
-                            break;
-                        }
-                    }
-                }
-            }
+                makeWeaponEffectsUnique();
 
             if (Randomizer.changelog != null)
                 appendWeaponChangelog();
+        }
+
+        private static bool roll(int percent)
+        {
+            if (percent <= 0)
+                return false;
+            if (percent >= 100)
+                return true;
+            return Randomizer.rng.Next(0, 100) < percent;
+        }
+
+        // ------------------------------------------------------- weapons
+        private static void remixWeapons()
+        {
+            byte[] data = Randomizer.itemData;
+            for (int index = 0; index < weaponCount; index++)
+            {
+                int target = (int)Randomizer.weaponBlockStart + (int)Randomizer.weaponBlockLen * index;
+                if (target + weaponSlotProperties >= data.Length)
+                    break;
+
+                if (roll(weaponGraftChance))
+                {
+                    int donor = pickWeaponDonor(index);
+                    if (donor >= 0)
+                    {
+                        graftEffect(data, weaponBlock(donor), target);
+                        statWeaponEffectsGrafted++;
+                        continue;
+                    }
+                }
+                if (roll(weaponFromArtChance))
+                {
+                    int donor = pickArtDonor(-1);
+                    if (donor >= 0)
+                    {
+                        data[target + weaponSlotEffect] = data[artBlock(donor) + artSlotEffect];
+                        statWeaponFromArtGrafted++;
+                        continue;
+                    }
+                }
+                if (roll(weaponFromGambitChance))
+                {
+                    int donor = pickGambitDonor(-1);
+                    if (donor >= 0)
+                    {
+                        graftEffect(data, gambitBlock(donor), target);
+                        statWeaponFromGambitGrafted++;
+                    }
+                }
+            }
+        }
+
+        // -------------------------------------------------- combat arts
+        private static void remixCombatArts()
+        {
+            byte[] data = Randomizer.itemData;
+            for (int index = 0; index < artCount; index++)
+            {
+                int target = artBlock(index);
+                if (target + artSlotUsedFlag >= data.Length)
+                    break;
+                if (data[target + artSlotUsedFlag] == 63)
+                    continue; // unused row
+
+                if (roll(artGraftChance))
+                {
+                    int donor = pickArtDonor(index);
+                    if (donor >= 0)
+                    {
+                        data[target + artSlotEffect] = data[artBlock(donor) + artSlotEffect];
+                        statArtEffectsGrafted++;
+                        continue;
+                    }
+                }
+                if (roll(artFromWeaponChance))
+                {
+                    int donor = pickWeaponDonor(-1);
+                    if (donor >= 0)
+                    {
+                        data[target + artSlotEffect] = data[weaponBlock(donor) + weaponSlotEffect];
+                        statArtFromWeaponGrafted++;
+                    }
+                }
+            }
+        }
+
+        // ------------------------------------------------------- gambits
+        private static void remixGambits()
+        {
+            byte[] data = Randomizer.itemData;
+            for (int index = 0; index < gambitCount; index++)
+            {
+                int target = gambitBlock(index);
+                if (target + weaponSlotProperties >= data.Length)
+                    break;
+                // completely empty rows are not gambits at all
+                if (data[target + weaponSlotEffect] == 0 && data[target + weaponSlotEffectiveness] == 0
+                    && data[target + weaponSlotProperties] == 0)
+                    continue;
+
+                if (roll(gambitGraftChance))
+                {
+                    int donor = pickGambitDonor(index);
+                    if (donor >= 0)
+                    {
+                        graftEffect(data, gambitBlock(donor), target);
+                        statGambitEffectsGrafted++;
+                        continue;
+                    }
+                }
+                if (roll(gambitFromWeaponChance))
+                {
+                    int donor = pickWeaponDonor(-1);
+                    if (donor >= 0)
+                    {
+                        graftEffect(data, weaponBlock(donor), target);
+                        statGambitFromWeaponGrafted++;
+                    }
+                }
+            }
+        }
+
+        // ------------------------------------------------------- uniqueness
+        private static void makeWeaponEffectsUnique()
+        {
+            byte[] data = Randomizer.itemData;
+            List<string> seen = new List<string>();
+            for (int index = 0; index < weaponCount; index++)
+            {
+                int target = weaponBlock(index);
+                if (target + weaponSlotProperties >= data.Length)
+                    break;
+                if (data[target + weaponSlotEffect] == effectNone)
+                    continue; // no effect at all, nothing to keep unique
+
+                string key = weaponEffectKey(data, target);
+                if (!seen.Contains(key))
+                {
+                    seen.Add(key);
+                    continue;
+                }
+                for (int attempt = 0; attempt < 20; attempt++)
+                {
+                    data[target + weaponSlotEffect] = (byte)Randomizer.rng.Next(0, effectNone);
+                    string candidate = weaponEffectKey(data, target);
+                    if (!seen.Contains(candidate))
+                    {
+                        seen.Add(candidate);
+                        statWeaponEffectsRerolled++;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // --------------------------------------------------------- helpers
+        private static int weaponBlock(int index)
+        {
+            return (int)Randomizer.weaponBlockStart + (int)Randomizer.weaponBlockLen * index;
+        }
+
+        private static int artBlock(int index)
+        {
+            return (int)Randomizer.artBlockStart + (int)Randomizer.artBlockLen * index;
+        }
+
+        private static int gambitBlock(int index)
+        {
+            return (int)Randomizer.gambitBlockStart + (int)Randomizer.gambitBlockLen * index;
         }
 
         private static string weaponEffectKey(byte[] data, int block)
@@ -414,6 +528,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + data[block + weaponSlotProperties].ToString();
         }
 
+        // Copies the whole effect set: status effect, effectiveness, properties.
         private static void graftEffect(byte[] data, int source, int target)
         {
             data[target + weaponSlotEffect] = data[source + weaponSlotEffect];
@@ -421,43 +536,67 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             data[target + weaponSlotProperties] = data[source + weaponSlotProperties];
         }
 
-        private static int pickWeaponDonor(int targetIndex, int weaponCount)
+        private static int pickWeaponDonor(int targetIndex)
         {
+            byte[] data = Randomizer.itemData;
             int targetType = -1;
-            int targetBlock = (int)Randomizer.weaponBlockStart
-                + (int)Randomizer.weaponBlockLen * targetIndex;
-            if (targetBlock + weaponSlotType < Randomizer.itemData.Length)
-                targetType = Randomizer.itemData[targetBlock + weaponSlotType];
+            if (targetIndex >= 0)
+            {
+                int targetBlock = weaponBlock(targetIndex);
+                if (targetBlock + weaponSlotType < data.Length)
+                    targetType = data[targetBlock + weaponSlotType];
+            }
 
             for (int attempt = 0; attempt < 24; attempt++)
             {
                 int donor = Randomizer.rng.Next(0, weaponCount);
                 if (donor == targetIndex)
                     continue;
-                int source = (int)Randomizer.weaponBlockStart
-                    + (int)Randomizer.weaponBlockLen * donor;
-                if (source + weaponSlotProperties >= Randomizer.itemData.Length)
+                int source = weaponBlock(donor);
+                if (source + weaponSlotProperties >= data.Length)
                     continue;
-                if (Randomizer.itemData[source + weaponSlotEffect] == effectNone)
+                if (data[source + weaponSlotEffect] == effectNone)
                     continue; // donor has no effect, nothing to give
                 if (weaponDonorsDifferInType && targetType >= 0
-                    && Randomizer.itemData[source + weaponSlotType] == targetType)
+                    && data[source + weaponSlotType] == targetType)
                     continue;
                 return donor;
             }
             return -1;
         }
 
-        private static int pickGambitDonor(int gambitCount)
+        private static int pickArtDonor(int skipIndex)
         {
+            byte[] data = Randomizer.itemData;
+            for (int attempt = 0; attempt < 24; attempt++)
+            {
+                int donor = Randomizer.rng.Next(0, artCount);
+                if (donor == skipIndex)
+                    continue;
+                int source = artBlock(donor);
+                if (source + artSlotUsedFlag >= data.Length)
+                    continue;
+                if (data[source + artSlotUsedFlag] == 63)
+                    continue; // unused row
+                if (data[source + artSlotEffect] == effectNone)
+                    continue;
+                return donor;
+            }
+            return -1;
+        }
+
+        private static int pickGambitDonor(int skipIndex)
+        {
+            byte[] data = Randomizer.itemData;
             for (int attempt = 0; attempt < 24; attempt++)
             {
                 int donor = Randomizer.rng.Next(0, gambitCount);
-                int source = (int)Randomizer.gambitBlockStart
-                    + (int)Randomizer.gambitBlockLen * donor;
-                if (source + weaponSlotProperties >= Randomizer.itemData.Length)
+                if (donor == skipIndex)
                     continue;
-                if (Randomizer.itemData[source + weaponSlotEffect] == effectNone)
+                int source = gambitBlock(donor);
+                if (source + weaponSlotProperties >= data.Length)
+                    continue;
+                if (data[source + weaponSlotEffect] == effectNone)
                     continue;
                 return donor;
             }
@@ -470,24 +609,31 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private static void appendWeaponChangelog()
         {
             byte[] vanilla = Randomizer.itemDataV;
-            Randomizer.changelog += "\n\n\n---WEAPON EFFECT REMIX---";
-            if (graftWeaponEffects)
-                Randomizer.changelog += "\nEffects grafted from other weapons: " + statWeaponEffectsGrafted.ToString();
-            if (graftCombatArtEffects)
-                Randomizer.changelog += "\nWeapons given a combat art effect: " + statArtEffectsGrafted.ToString();
-            if (graftGambitEffects)
-                Randomizer.changelog += "\nWeapons given a gambit's effects: " + statGambitEffectsGrafted.ToString();
+            Randomizer.changelog += "\n\n\n---EFFECT REMIX---";
+            Randomizer.changelog += "\nWeapon <- weapon: " + statWeaponEffectsGrafted.ToString()
+                + "  (chance " + weaponGraftChance + "%)";
+            Randomizer.changelog += "\nWeapon <- combat art: " + statWeaponFromArtGrafted.ToString()
+                + "  (chance " + weaponFromArtChance + "%)";
+            Randomizer.changelog += "\nWeapon <- gambit: " + statWeaponFromGambitGrafted.ToString()
+                + "  (chance " + weaponFromGambitChance + "%)";
+            Randomizer.changelog += "\nCombat art <- combat art: " + statArtEffectsGrafted.ToString()
+                + "  (chance " + artGraftChance + "%)";
+            Randomizer.changelog += "\nCombat art <- weapon: " + statArtFromWeaponGrafted.ToString()
+                + "  (chance " + artFromWeaponChance + "%)";
+            Randomizer.changelog += "\nGambit <- gambit: " + statGambitEffectsGrafted.ToString()
+                + "  (chance " + gambitGraftChance + "%)";
+            Randomizer.changelog += "\nGambit <- weapon: " + statGambitFromWeaponGrafted.ToString()
+                + "  (chance " + gambitFromWeaponChance + "%)";
             if (uniqueWeaponEffects)
                 Randomizer.changelog += "\nWeapons with a duplicate effect set re-rolled: " + statWeaponEffectsRerolled.ToString();
             if (weaponDonorsDifferInType)
-                Randomizer.changelog += "\nDonors were always weapons of a different type.";
+                Randomizer.changelog += "\nWeapon donors were always of a different weapon type.";
 
             int shown = 0;
-            int weapons = 500;
             byte[] data = Randomizer.itemData;
-            for (int index = 0; index < weapons && shown < 40; index++)
+            for (int index = 0; index < weaponCount && shown < 40; index++)
             {
-                int block = (int)Randomizer.weaponBlockStart + (int)Randomizer.weaponBlockLen * index;
+                int block = weaponBlock(index);
                 if (block + weaponSlotProperties >= data.Length)
                     break;
                 if (Randomizer.weaponNames == null || index >= Randomizer.weaponNames.Length)
@@ -502,11 +648,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 int effect = data[block + weaponSlotEffect];
                 string effectName = effect >= 0 && effect < Randomizer.effectNames.Length
                     ? Randomizer.effectNames[effect] : "(unknown)";
-                if (Randomizer.changelog != null)
-                {
-                    Randomizer.changelog += "\n" + name + " : " + effectName;
-                    shown++;
-                }
+                Randomizer.changelog += "\n" + name + " : " + effectName;
+                shown++;
             }
         }
 
@@ -516,9 +659,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (Randomizer.itemData == null)
                 return 0;
             int count = 0;
-            for (int index = 0; index < 500; index++)
+            for (int index = 0; index < weaponCount; index++)
             {
-                int block = (int)Randomizer.weaponBlockStart + (int)Randomizer.weaponBlockLen * index;
+                int block = weaponBlock(index);
                 if (block + weaponSlotProperties >= Randomizer.itemData.Length)
                     break;
                 if (Randomizer.itemData[block + weaponSlotEffect] != effectNone)
@@ -533,9 +676,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 return 0;
             List<string> seen = new List<string>();
             int duplicates = 0;
-            for (int index = 0; index < 500; index++)
+            for (int index = 0; index < weaponCount; index++)
             {
-                int block = (int)Randomizer.weaponBlockStart + (int)Randomizer.weaponBlockLen * index;
+                int block = weaponBlock(index);
                 if (block + weaponSlotProperties >= Randomizer.itemData.Length)
                     break;
                 if (Randomizer.itemData[block + weaponSlotEffect] == effectNone)

@@ -386,13 +386,21 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + "   (characters swapped " + RandomizerBig.statCharSheetsSwapped.ToString() + ")");
             text.AppendLine("Boss remix                     : " + RandomizerBig.bossRemix
                 + "   (bosses remixed " + RandomizerBig.statBossRemixed.ToString() + ")");
-            text.AppendLine("Graft weapon effects          : " + RandomizerBig.graftWeaponEffects
+            text.AppendLine("Weapons <- weapon effects     : " + RandomizerBig.weaponGraftChance + "%"
                 + "   (grafted " + RandomizerBig.statWeaponEffectsGrafted.ToString()
-                + ", donors of a different type: " + RandomizerBig.weaponDonorsDifferInType + ")");
-            text.AppendLine("Combat art effects on weapons : " + RandomizerBig.graftCombatArtEffects
-                + "   (weapons given one " + RandomizerBig.statArtEffectsGrafted.ToString() + ")");
-            text.AppendLine("Gambit effects on weapons     : " + RandomizerBig.graftGambitEffects
-                + "   (weapons given one " + RandomizerBig.statGambitEffectsGrafted.ToString() + ")");
+                + ", different type only: " + RandomizerBig.weaponDonorsDifferInType + ")");
+            text.AppendLine("Weapons <- combat art effect  : " + RandomizerBig.weaponFromArtChance + "%"
+                + "   (grafted " + RandomizerBig.statWeaponFromArtGrafted.ToString() + ")");
+            text.AppendLine("Weapons <- gambit effects     : " + RandomizerBig.weaponFromGambitChance + "%"
+                + "   (grafted " + RandomizerBig.statWeaponFromGambitGrafted.ToString() + ")");
+            text.AppendLine("Combat arts <- combat art     : " + RandomizerBig.artGraftChance + "%"
+                + "   (grafted " + RandomizerBig.statArtEffectsGrafted.ToString() + ")");
+            text.AppendLine("Combat arts <- weapon effect  : " + RandomizerBig.artFromWeaponChance + "%"
+                + "   (grafted " + RandomizerBig.statArtFromWeaponGrafted.ToString() + ")");
+            text.AppendLine("Gambits <- gambit effects     : " + RandomizerBig.gambitGraftChance + "%"
+                + "   (grafted " + RandomizerBig.statGambitEffectsGrafted.ToString() + ")");
+            text.AppendLine("Gambits <- weapon effects     : " + RandomizerBig.gambitFromWeaponChance + "%"
+                + "   (grafted " + RandomizerBig.statGambitFromWeaponGrafted.ToString() + ")");
             text.AppendLine("Unique weapon effect sets     : " + RandomizerBig.uniqueWeaponEffects
                 + "   (rerolled " + RandomizerBig.statWeaponEffectsRerolled.ToString()
                 + ", left " + RandomizerBig.countDuplicateWeaponEffects().ToString() + ")");
@@ -425,32 +433,20 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 else
                     warnings.Add("character sheet shuffle was on but no character changed");
             }
-            if (RandomizerBig.graftWeaponEffects)
-            {
-                if (RandomizerBig.statWeaponEffectsGrafted > 0)
-                    passes.Add("weapon effects grafted: " + RandomizerBig.statWeaponEffectsGrafted.ToString()
-                        + " weapon(s) took another weapon's effects");
-                else if (Randomizer.itemData == null)
-                    warnings.Add("weapon effect graft was on but fixed_data.bin is not loaded");
-                else
-                    warnings.Add("weapon effect graft was on but no donor with an effect was found");
-            }
-            if (RandomizerBig.graftCombatArtEffects)
-            {
-                if (RandomizerBig.statArtEffectsGrafted > 0)
-                    passes.Add("combat art effects on weapons: " + RandomizerBig.statArtEffectsGrafted.ToString()
-                        + " weapon(s) given an art effect id");
-                else
-                    warnings.Add("combat art effect graft was on but nothing changed (fix_data.bin not loaded?)");
-            }
-            if (RandomizerBig.graftGambitEffects)
-            {
-                if (RandomizerBig.statGambitEffectsGrafted > 0)
-                    passes.Add("gambit effects on weapons: " + RandomizerBig.statGambitEffectsGrafted.ToString()
-                        + " weapon(s) given a gambit's effects");
-                else
-                    warnings.Add("gambit effect graft was on but nothing changed");
-            }
+            ReportGraft(passes, warnings, "weapons taking other weapons' effects",
+                RandomizerBig.weaponGraftChance, RandomizerBig.statWeaponEffectsGrafted);
+            ReportGraft(passes, warnings, "weapons taking a combat art effect",
+                RandomizerBig.weaponFromArtChance, RandomizerBig.statWeaponFromArtGrafted);
+            ReportGraft(passes, warnings, "weapons taking a gambit's effects",
+                RandomizerBig.weaponFromGambitChance, RandomizerBig.statWeaponFromGambitGrafted);
+            ReportGraft(passes, warnings, "combat arts taking another art's effect",
+                RandomizerBig.artGraftChance, RandomizerBig.statArtEffectsGrafted);
+            ReportGraft(passes, warnings, "combat arts taking a weapon's effect",
+                RandomizerBig.artFromWeaponChance, RandomizerBig.statArtFromWeaponGrafted);
+            ReportGraft(passes, warnings, "gambits taking another gambit's effects",
+                RandomizerBig.gambitGraftChance, RandomizerBig.statGambitEffectsGrafted);
+            ReportGraft(passes, warnings, "gambits taking a weapon's effects",
+                RandomizerBig.gambitFromWeaponChance, RandomizerBig.statGambitFromWeaponGrafted);
             if (RandomizerBig.uniqueWeaponEffects)
             {
                 int duplicates = RandomizerBig.countDuplicateWeaponEffects();
@@ -467,6 +463,24 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 else
                     warnings.Add("boss remix was on but no boss class changed");
             }
+        }
+
+        // A chance based graft: silent when the chance is 0, a warning when the
+        // chance is set but nothing was grafted.
+        private static void ReportGraft(List<string> passes, List<string> warnings,
+            string what, int chance, int grafted)
+        {
+            if (chance <= 0)
+                return;
+            if (Randomizer.itemData == null)
+            {
+                warnings.Add(what + ": set to " + chance.ToString() + "% but fixed_data.bin is not loaded");
+                return;
+            }
+            if (grafted > 0)
+                passes.Add(what + ": " + grafted.ToString() + " entr(ies) at " + chance.ToString() + "% chance");
+            else
+                warnings.Add(what + ": nothing grafted at " + chance.ToString() + "% (no eligible donor)");
         }
 
         private static void AppendInputs(StringBuilder text, List<string> warnings)

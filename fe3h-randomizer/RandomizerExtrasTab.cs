@@ -40,9 +40,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private CheckBox extrasBigScope_checkBox;
         private CheckBox extrasBigCharSheets_checkBox;
         private CheckBox extrasBigBossRemix_checkBox;
-        private CheckBox extrasBigWeaponGraft_checkBox;
-        private CheckBox extrasBigWeaponArtEffect_checkBox;
-        private CheckBox extrasBigWeaponGambitEffect_checkBox;
+        private NumericUpDown extrasGraftWeapon_numericUpDown;
+        private NumericUpDown extrasGraftWeaponFromArt_numericUpDown;
+        private NumericUpDown extrasGraftWeaponFromGambit_numericUpDown;
+        private NumericUpDown extrasGraftArt_numericUpDown;
+        private NumericUpDown extrasGraftArtFromWeapon_numericUpDown;
+        private NumericUpDown extrasGraftGambit_numericUpDown;
+        private NumericUpDown extrasGraftGambitFromWeapon_numericUpDown;
         private CheckBox extrasBigWeaponUnique_checkBox;
         private CheckBox extrasBigWeaponDifferentType_checkBox;
         private CheckBox extrasDebugAuto_checkBox;
@@ -460,40 +464,90 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "whole ability kit of another one, and takes precedence over the boss protection\r\n"
                     + "options above."));
 
-                addFullRow(layout, sectionLabel("Weapon effects remix"));
+                addFullRow(layout, sectionLabel("Weapon / art / gambit effect remix"));
                 addFullRow(layout, helpLabel(
                     "Weapons, gambits and combat arts all store their effect in the same id space, so their\r\n"
-                    + "effects can be swapped around. Only the effects move - might, hit, crit, weight, range\r\n"
-                    + "and durability stay exactly as the normal weapon randomization set them, so these\r\n"
-                    + "options stack with it instead of replacing it."));
+                    + "effects can be moved between them. Every line is its own percentage chance, rolled\r\n"
+                    + "once per entry, so you can mix them at whatever rate you like. Only the effects move -\r\n"
+                    + "might, hit, crit, weight, range and durability stay exactly as the normal weapon\r\n"
+                    + "randomization set them, so this stacks with it instead of replacing it."));
 
-                this.extrasBigWeaponGraft_checkBox = new CheckBox();
-                this.extrasBigWeaponGraft_checkBox.AutoSize = true;
-                this.extrasBigWeaponGraft_checkBox.Checked = RandomizerBig.graftWeaponEffects;
-                this.extrasBigWeaponGraft_checkBox.Text = "Graft another weapon's effects onto each weapon (status effect, effectiveness, properties)";
-                this.extrasBigWeaponGraft_checkBox.CheckedChanged += new EventHandler(this.extrasBigWeaponGraft_checkBox_CheckedChanged);
-                addFullRow(layout, this.extrasBigWeaponGraft_checkBox);
+                this.extrasGraftWeapon_numericUpDown = new NumericUpDown();
+                this.extrasGraftWeapon_numericUpDown.Minimum = 0;
+                this.extrasGraftWeapon_numericUpDown.Maximum = 100;
+                this.extrasGraftWeapon_numericUpDown.Increment = 5;
+                this.extrasGraftWeapon_numericUpDown.Value = RandomizerBig.weaponGraftChance;
+                this.extrasGraftWeapon_numericUpDown.Width = 70;
+                this.extrasGraftWeapon_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasGraftWeapon_numericUpDown.ValueChanged += new EventHandler(this.extrasGraft_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Weapons take another weapon's effects (%):"), this.extrasGraftWeapon_numericUpDown);
+
+                this.extrasGraftWeaponFromArt_numericUpDown = new NumericUpDown();
+                this.extrasGraftWeaponFromArt_numericUpDown.Minimum = 0;
+                this.extrasGraftWeaponFromArt_numericUpDown.Maximum = 100;
+                this.extrasGraftWeaponFromArt_numericUpDown.Increment = 5;
+                this.extrasGraftWeaponFromArt_numericUpDown.Value = RandomizerBig.weaponFromArtChance;
+                this.extrasGraftWeaponFromArt_numericUpDown.Width = 70;
+                this.extrasGraftWeaponFromArt_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasGraftWeaponFromArt_numericUpDown.ValueChanged += new EventHandler(this.extrasGraft_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Weapons take a combat art effect (%):"), this.extrasGraftWeaponFromArt_numericUpDown);
+
+                this.extrasGraftWeaponFromGambit_numericUpDown = new NumericUpDown();
+                this.extrasGraftWeaponFromGambit_numericUpDown.Minimum = 0;
+                this.extrasGraftWeaponFromGambit_numericUpDown.Maximum = 100;
+                this.extrasGraftWeaponFromGambit_numericUpDown.Increment = 5;
+                this.extrasGraftWeaponFromGambit_numericUpDown.Value = RandomizerBig.weaponFromGambitChance;
+                this.extrasGraftWeaponFromGambit_numericUpDown.Width = 70;
+                this.extrasGraftWeaponFromGambit_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasGraftWeaponFromGambit_numericUpDown.ValueChanged += new EventHandler(this.extrasGraft_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Weapons take a gambit's effects (%):"), this.extrasGraftWeaponFromGambit_numericUpDown);
+
+                this.extrasGraftArt_numericUpDown = new NumericUpDown();
+                this.extrasGraftArt_numericUpDown.Minimum = 0;
+                this.extrasGraftArt_numericUpDown.Maximum = 100;
+                this.extrasGraftArt_numericUpDown.Increment = 5;
+                this.extrasGraftArt_numericUpDown.Value = RandomizerBig.artGraftChance;
+                this.extrasGraftArt_numericUpDown.Width = 70;
+                this.extrasGraftArt_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasGraftArt_numericUpDown.ValueChanged += new EventHandler(this.extrasGraft_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Combat arts take another art's effect (%):"), this.extrasGraftArt_numericUpDown);
+
+                this.extrasGraftArtFromWeapon_numericUpDown = new NumericUpDown();
+                this.extrasGraftArtFromWeapon_numericUpDown.Minimum = 0;
+                this.extrasGraftArtFromWeapon_numericUpDown.Maximum = 100;
+                this.extrasGraftArtFromWeapon_numericUpDown.Increment = 5;
+                this.extrasGraftArtFromWeapon_numericUpDown.Value = RandomizerBig.artFromWeaponChance;
+                this.extrasGraftArtFromWeapon_numericUpDown.Width = 70;
+                this.extrasGraftArtFromWeapon_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasGraftArtFromWeapon_numericUpDown.ValueChanged += new EventHandler(this.extrasGraft_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Combat arts take a weapon's effect (%):"), this.extrasGraftArtFromWeapon_numericUpDown);
+
+                this.extrasGraftGambit_numericUpDown = new NumericUpDown();
+                this.extrasGraftGambit_numericUpDown.Minimum = 0;
+                this.extrasGraftGambit_numericUpDown.Maximum = 100;
+                this.extrasGraftGambit_numericUpDown.Increment = 5;
+                this.extrasGraftGambit_numericUpDown.Value = RandomizerBig.gambitGraftChance;
+                this.extrasGraftGambit_numericUpDown.Width = 70;
+                this.extrasGraftGambit_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasGraftGambit_numericUpDown.ValueChanged += new EventHandler(this.extrasGraft_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Gambits take another gambit's effects (%):"), this.extrasGraftGambit_numericUpDown);
+
+                this.extrasGraftGambitFromWeapon_numericUpDown = new NumericUpDown();
+                this.extrasGraftGambitFromWeapon_numericUpDown.Minimum = 0;
+                this.extrasGraftGambitFromWeapon_numericUpDown.Maximum = 100;
+                this.extrasGraftGambitFromWeapon_numericUpDown.Increment = 5;
+                this.extrasGraftGambitFromWeapon_numericUpDown.Value = RandomizerBig.gambitFromWeaponChance;
+                this.extrasGraftGambitFromWeapon_numericUpDown.Width = 70;
+                this.extrasGraftGambitFromWeapon_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasGraftGambitFromWeapon_numericUpDown.ValueChanged += new EventHandler(this.extrasGraft_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Gambits take a weapon's effects (%):"), this.extrasGraftGambitFromWeapon_numericUpDown);
 
                 this.extrasBigWeaponDifferentType_checkBox = new CheckBox();
                 this.extrasBigWeaponDifferentType_checkBox.AutoSize = true;
                 this.extrasBigWeaponDifferentType_checkBox.Checked = RandomizerBig.weaponDonorsDifferInType;
-                this.extrasBigWeaponDifferentType_checkBox.Text = "    ...only take effects from weapons of a different type";
+                this.extrasBigWeaponDifferentType_checkBox.Text = "Weapon donors must be a different weapon type";
                 this.extrasBigWeaponDifferentType_checkBox.CheckedChanged += new EventHandler(this.extrasBigWeaponDifferentType_checkBox_CheckedChanged);
                 addFullRow(layout, this.extrasBigWeaponDifferentType_checkBox);
-
-                this.extrasBigWeaponArtEffect_checkBox = new CheckBox();
-                this.extrasBigWeaponArtEffect_checkBox.AutoSize = true;
-                this.extrasBigWeaponArtEffect_checkBox.Checked = RandomizerBig.graftCombatArtEffects;
-                this.extrasBigWeaponArtEffect_checkBox.Text = "Give each weapon a random combat art effect (experimental)";
-                this.extrasBigWeaponArtEffect_checkBox.CheckedChanged += new EventHandler(this.extrasBigWeaponArtEffect_checkBox_CheckedChanged);
-                addFullRow(layout, this.extrasBigWeaponArtEffect_checkBox);
-
-                this.extrasBigWeaponGambitEffect_checkBox = new CheckBox();
-                this.extrasBigWeaponGambitEffect_checkBox.AutoSize = true;
-                this.extrasBigWeaponGambitEffect_checkBox.Checked = RandomizerBig.graftGambitEffects;
-                this.extrasBigWeaponGambitEffect_checkBox.Text = "Give each weapon a gambit's effects (experimental)";
-                this.extrasBigWeaponGambitEffect_checkBox.CheckedChanged += new EventHandler(this.extrasBigWeaponGambitEffect_checkBox_CheckedChanged);
-                addFullRow(layout, this.extrasBigWeaponGambitEffect_checkBox);
 
                 this.extrasBigWeaponUnique_checkBox = new CheckBox();
                 this.extrasBigWeaponUnique_checkBox.AutoSize = true;
@@ -503,11 +557,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 addFullRow(layout, this.extrasBigWeaponUnique_checkBox);
 
                 addFullRow(layout, helpLabel(
-                    "The graft copies the status effect, the effectiveness bits and the property bits\r\n"
-                    + "(double attack, magic damage, ignore defence, leave at 1 HP). A weapon that had no\r\n"
-                    + "donor with an effect is left alone. The three graft options do not stack with each\r\n"
-                    + "other - the order is weapon, then combat art, then gambit. Experimental: the combat\r\n"
-                    + "art and gambit effects were never meant to sit on a weapon, so keep a save handy."));
+                    "Each entry is rolled at most once, in the order shown, so a weapon takes one donor and\r\n"
+                    + "stops. A weapon graft copies the status effect, the effectiveness bits and the property\r\n"
+                    + "bits (double attack, magic damage, ignore defence, leave at 1 HP); art and gambit grafts\r\n"
+                    + "copy their effect id. Experimental: combat art and gambit effect ids were never meant\r\n"
+                    + "to sit on a weapon, and vice versa, so keep a save handy when you raise these."));
 
                 // ------------------------------------------------------- debug
                 addFullRow(layout, sectionLabel("Debug report"));
@@ -757,11 +811,24 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             RandomizerBig.bossRemix = this.extrasBigBossRemix_checkBox.Checked;
         }
 
-        private void extrasBigWeaponGraft_checkBox_CheckedChanged(object sender, EventArgs e)
+        private void extrasGraft_numericUpDown_ValueChanged(object sender, EventArgs e)
         {
-            if (this.extrasBuilding || this.extrasBigWeaponGraft_checkBox == null)
+            if (this.extrasBuilding)
                 return;
-            RandomizerBig.graftWeaponEffects = this.extrasBigWeaponGraft_checkBox.Checked;
+            if (this.extrasGraftWeapon_numericUpDown != null)
+                RandomizerBig.weaponGraftChance = (int)this.extrasGraftWeapon_numericUpDown.Value;
+            if (this.extrasGraftWeaponFromArt_numericUpDown != null)
+                RandomizerBig.weaponFromArtChance = (int)this.extrasGraftWeaponFromArt_numericUpDown.Value;
+            if (this.extrasGraftWeaponFromGambit_numericUpDown != null)
+                RandomizerBig.weaponFromGambitChance = (int)this.extrasGraftWeaponFromGambit_numericUpDown.Value;
+            if (this.extrasGraftArt_numericUpDown != null)
+                RandomizerBig.artGraftChance = (int)this.extrasGraftArt_numericUpDown.Value;
+            if (this.extrasGraftArtFromWeapon_numericUpDown != null)
+                RandomizerBig.artFromWeaponChance = (int)this.extrasGraftArtFromWeapon_numericUpDown.Value;
+            if (this.extrasGraftGambit_numericUpDown != null)
+                RandomizerBig.gambitGraftChance = (int)this.extrasGraftGambit_numericUpDown.Value;
+            if (this.extrasGraftGambitFromWeapon_numericUpDown != null)
+                RandomizerBig.gambitFromWeaponChance = (int)this.extrasGraftGambitFromWeapon_numericUpDown.Value;
         }
 
         private void extrasBigWeaponDifferentType_checkBox_CheckedChanged(object sender, EventArgs e)
@@ -769,20 +836,6 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasBuilding || this.extrasBigWeaponDifferentType_checkBox == null)
                 return;
             RandomizerBig.weaponDonorsDifferInType = this.extrasBigWeaponDifferentType_checkBox.Checked;
-        }
-
-        private void extrasBigWeaponArtEffect_checkBox_CheckedChanged(object sender, EventArgs e)
-        {
-            if (this.extrasBuilding || this.extrasBigWeaponArtEffect_checkBox == null)
-                return;
-            RandomizerBig.graftCombatArtEffects = this.extrasBigWeaponArtEffect_checkBox.Checked;
-        }
-
-        private void extrasBigWeaponGambitEffect_checkBox_CheckedChanged(object sender, EventArgs e)
-        {
-            if (this.extrasBuilding || this.extrasBigWeaponGambitEffect_checkBox == null)
-                return;
-            RandomizerBig.graftGambitEffects = this.extrasBigWeaponGambitEffect_checkBox.Checked;
         }
 
         private void extrasBigWeaponUnique_checkBox_CheckedChanged(object sender, EventArgs e)

@@ -98,9 +98,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             RandomizerBig.swapClassGrowthProfiles = value;
             RandomizerBig.shuffleCharacterSheets = value;
             RandomizerBig.bossRemix = value;
-            RandomizerBig.graftWeaponEffects = value;
-            RandomizerBig.graftCombatArtEffects = value;
-            RandomizerBig.graftGambitEffects = value;
+            // Effects remix: every graft is a chance, so "on" means a solid
+            // stress value rather than 100 (which would replace every effect).
+            int graftChance = value ? 50 : 0;
+            RandomizerBig.weaponGraftChance = graftChance;
+            RandomizerBig.weaponFromArtChance = graftChance;
+            RandomizerBig.weaponFromGambitChance = graftChance;
+            RandomizerBig.artGraftChance = graftChance;
+            RandomizerBig.artFromWeaponChance = graftChance;
+            RandomizerBig.gambitGraftChance = graftChance;
+            RandomizerBig.gambitFromWeaponChance = graftChance;
             RandomizerBig.uniqueWeaponEffects = value;
 
             this.quickSyncExtraControls();
@@ -157,12 +164,20 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasBigScope_checkBox.Checked = RandomizerBig.swapScope == 1;
             if (this.extrasBigCharSheets_checkBox != null)
                 this.extrasBigCharSheets_checkBox.Checked = RandomizerBig.shuffleCharacterSheets;
-            if (this.extrasBigWeaponGraft_checkBox != null)
-                this.extrasBigWeaponGraft_checkBox.Checked = RandomizerBig.graftWeaponEffects;
-            if (this.extrasBigWeaponArtEffect_checkBox != null)
-                this.extrasBigWeaponArtEffect_checkBox.Checked = RandomizerBig.graftCombatArtEffects;
-            if (this.extrasBigWeaponGambitEffect_checkBox != null)
-                this.extrasBigWeaponGambitEffect_checkBox.Checked = RandomizerBig.graftGambitEffects;
+            if (this.extrasGraftWeapon_numericUpDown != null)
+                this.extrasGraftWeapon_numericUpDown.Value = RandomizerBig.weaponGraftChance;
+            if (this.extrasGraftWeaponFromArt_numericUpDown != null)
+                this.extrasGraftWeaponFromArt_numericUpDown.Value = RandomizerBig.weaponFromArtChance;
+            if (this.extrasGraftWeaponFromGambit_numericUpDown != null)
+                this.extrasGraftWeaponFromGambit_numericUpDown.Value = RandomizerBig.weaponFromGambitChance;
+            if (this.extrasGraftArt_numericUpDown != null)
+                this.extrasGraftArt_numericUpDown.Value = RandomizerBig.artGraftChance;
+            if (this.extrasGraftArtFromWeapon_numericUpDown != null)
+                this.extrasGraftArtFromWeapon_numericUpDown.Value = RandomizerBig.artFromWeaponChance;
+            if (this.extrasGraftGambit_numericUpDown != null)
+                this.extrasGraftGambit_numericUpDown.Value = RandomizerBig.gambitGraftChance;
+            if (this.extrasGraftGambitFromWeapon_numericUpDown != null)
+                this.extrasGraftGambitFromWeapon_numericUpDown.Value = RandomizerBig.gambitFromWeaponChance;
             if (this.extrasBigWeaponUnique_checkBox != null)
                 this.extrasBigWeaponUnique_checkBox.Checked = RandomizerBig.uniqueWeaponEffects;
             if (this.extrasBigWeaponDifferentType_checkBox != null)
