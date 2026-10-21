@@ -21,6 +21,8 @@ fe3h-randomizer/
     BatchTools.cs                               <- folder scan + output writing (new)
     RandomizerExtras.cs                         <- the four extra options (new)
     RandomizerExtrasTab.cs                      <- "Extra options" tab (new)
+    PerformanceTweaks.cs                        <- layout / painting tweaks (new)
+    DebugReport.cs                              <- the debug report (new)
     RandomizerForm.cs                           <- original code, 2 tiny edits
     Randomizer.cs, Settings.cs, ...             <- original code, untouched
     Resources\DATA0.bin, INFO0.bin, INFO2.bin   <- data extracted from the exe
@@ -51,6 +53,9 @@ Randomizing classes used to hand out whatever the RNG felt like, which often
 meant fifteen axe classes and a single mage. With this on, the class picks are
 spread over weapon types instead:
 
+* The weapon types the **classes themselves** get are dealt from a balanced
+  per-tier bag instead of being rolled independently, which is what used to
+  produce fifteen axe classes and one mage in a tier.
 * Every tier keeps its own "deck" of weapon types, so a tier cannot end up
   without, say, magic while handing out axes all day.
 * The same class is never handed out twice while an unused one is available, so
@@ -60,7 +65,10 @@ spread over weapon types instead:
   picked *inside* the weapon type that is currently behind.
 * After randomizing the class data, the growth, stat, class ability and combat
   art values inside each tier are rotated, so one class no longer hogs every
-  high roll and two neighbouring classes do not end up with the same kit.
+  high roll and two neighbouring classes do not end up with the same kit. Only
+  the values you are already randomizing are touched (growth randomization for
+  growths, class ability randomization for abilities, and so on), so vanilla
+  kits are never disturbed.
 
 The **Safety (%)** slider sets how strictly this is enforced:
 
@@ -82,9 +90,10 @@ in the tool's own `badAbilities` list as well.
 ### Enemy siege tomes and long range weapons
 
 Tick it and set the maximum range: weapons above that range are removed from the
-pools that random map enemies draw their weapons from, so no more Meteor,
-Bolting or 4+ range bows on random enemies. Range 2 keeps the usual melee / 2
-range setup. Player weapons and shop stock are untouched.
+pools that random map enemies draw their weapons from, and enemy **spells** are
+re-rolled until they fit as well (Meteor and Bolting are spells, not weapons, so
+they are checked against the magic table). Range 2 keeps the usual melee / 2
+range setup. Player weapons, player spell lists and shop stock are untouched.
 
 **Chance an enemy still gets one (%)** lets a percentage of enemies ignore the
 limit. It is rolled once per enemy, and the siege weapon still has to come out of
@@ -150,6 +159,51 @@ Copy `nx`, `patch1`, `patch3` and `patch4` from the output folder into the
 
 Empty folders are not created, so you only get the patch folders that actually
 received files.
+
+## Performance tweaks
+
+Small, paint-and-layout-only changes - no randomization logic is touched:
+
+* the form, the tab control and every tab page are double buffered (this is what
+  makes tab switching look laggy: the page repaints several times while it is
+  being shown)
+* layout is suspended during a tab switch and resumed once, so the ~2,700
+  controls of a page are laid out in one pass instead of many partial ones
+* `updateAllDisplay()`, which re-fills thousands of controls after loading a file
+  or toggling an option, now batches its layout work into a single pass
+* the two added tabs suspend their layout while they are being built
+
+If a switch is ever cancelled, the suspended page is released on the next
+switch, so a page can never get stuck in suspended layout.
+
+## Debug report
+
+The **Extra options** tab has a *Debug report* section:
+
+* **"Write a debug report automatically after every randomization"** (on by
+  default) - after a run, `FE3H Randomizer Debug.txt` is written to the output
+  folder (or next to the exe if no output folder is set).
+* **"Write debug report now"** - writes one on demand, e.g. right after loading
+  files, to check that the scan found everything.
+* **"Open debug folder"** - opens the folder with the report.
+
+The report is plain text and contains:
+
+| Section | Contents |
+| --- | --- |
+| Environment | exe path, assembly/file version, OS, .NET version, 32/64-bit |
+| New options | every extra option and the full blocked ability list with names |
+| Loaded files | all 20 possible inputs: loaded or not, path, size, size mismatch warnings |
+| Did it run? | counters for every new code path (class picks, weapon type draws, blocked ability picks, range filters, bypass rolls, growth shifts), with warnings when an enabled option never fired |
+| Class variety | weapon type spread per class tier, before vs after, the types the balancer served, and a PASS/FAIL against the safety level |
+| Ability blocklist | scans class abilities, monster latent/barrier abilities and character learnsets; lists blocked abilities the randomization *introduced* (vanilla ones are reported separately, they are intentional) |
+| Siege limit | out of range weapons and spells on every map unit, marked as "same as vanilla" or "NEW" |
+| Growth shift | per stat growth totals before and after, plus the number of classes changed |
+| Summary | every PASS / WARN / FAIL line and a final count |
+| Settings dump | the full settings object, same dump the changelog uses |
+
+A crash during randomization now also writes the report (with the stack trace in
+the message box) instead of only failing with a dialog.
 
 ## What changed in the original code
 

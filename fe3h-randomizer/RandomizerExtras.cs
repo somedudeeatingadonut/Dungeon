@@ -48,6 +48,48 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             for (int i = 0; i < defaultBlockedAbilities.Length; i++)
                 blockedAbilities.Add(defaultBlockedAbilities[i]);
+            for (int i = 0; i < statTypesServedByTier.Length; i++)
+                statTypesServedByTier[i] = new List<int>();
+        }
+
+        // ------------------------------------------------------ run counters
+        // Reset at the start of every randomization and printed by the debug
+        // report, so it is visible whether each new feature actually ran.
+        public static int statClassPicks;
+        public static int statClassTypeDraws;
+        public static int statClassTypeBagRefills;
+        public static int statTypeDeckRebuilds;
+        public static int statAbilityPicks;
+        public static int statAbilityBlockedPicks;
+        public static int statRangeFilterCalls;
+        public static int statRangeFilteredWeapons;
+        public static int statSiegeBypassRolls;
+        public static int statSpellPicks;
+        public static int statSpellsFiltered;
+        public static int statGrowthShiftedClasses;
+        public static int statSpreadPasses;
+        public static List<int>[] statTypesServedByTier = new List<int>[8];
+        public static List<int> statTypesServedGlobal = new List<int>();
+
+        public static void beginRandomization()
+        {
+            statClassPicks = 0;
+            statClassTypeDraws = 0;
+            statClassTypeBagRefills = 0;
+            statTypeDeckRebuilds = 0;
+            statAbilityPicks = 0;
+            statAbilityBlockedPicks = 0;
+            statRangeFilterCalls = 0;
+            statRangeFilteredWeapons = 0;
+            statSiegeBypassRolls = 0;
+            statSpellPicks = 0;
+            statSpellsFiltered = 0;
+            statGrowthShiftedClasses = 0;
+            statSpreadPasses = 0;
+            for (int i = 0; i < statTypesServedByTier.Length; i++)
+                statTypesServedByTier[i] = new List<int>();
+            statTypesServedGlobal = new List<int>();
+            resetClassVariety();
         }
 
         // ------------------------------------------------- class data offsets
@@ -94,6 +136,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 cachedBlockedCount = blockedAbilities.Count;
             }
             List<int> allowed = cachedAbilityAllowed;
+            statAbilityPicks++;
+            if (allowed.Count < pool.Length)
+                statAbilityBlockedPicks++;
             if (allowed.Count == 0)
                 return pool[Randomizer.rng.Next(0, pool.Length)];
             return allowed[Randomizer.rng.Next(0, allowed.Count)];
@@ -107,6 +152,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 return pool[Randomizer.rng.Next(0, pool.Count)];
 
             List<int> allowed = allowedOnly(pool);
+            statAbilityPicks++;
+            if (allowed.Count < pool.Count)
+                statAbilityBlockedPicks++;
             if (allowed.Count == 0)
                 return pool[Randomizer.rng.Next(0, pool.Count)];
             return allowed[Randomizer.rng.Next(0, allowed.Count)];
@@ -172,8 +220,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (!limitSiegeTomes || maxEnemyWeaponRange <= 0 || siegeChance <= 0)
                 return false;
             if (siegeChance >= 100)
+            {
+                statSiegeBypassRolls++;
                 return true;
-            return Randomizer.rng.Next(0, 100) < siegeChance;
+            }
+            if (Randomizer.rng.Next(0, 100) < siegeChance)
+            {
+                statSiegeBypassRolls++;
+                return true;
+            }
+            return false;
         }
 
         // Same as filterRanges, but rolled once per enemy so a small percentage
@@ -190,13 +246,89 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             if (!limitSiegeTomes || maxEnemyWeaponRange <= 0 || pool == null)
                 return;
+            statRangeFilterCalls++;
             for (int i = 0; i < pool.Count; )
             {
                 if (weaponRangeAllowed(pool[i]))
                     i++;
                 else
+                {
                     pool.RemoveAt(i);
+                    statRangeFilteredWeapons++;
+                }
             }
+        }
+
+        // Siege *spells* (Meteor, Bolting, ...) live in the magic table, not the
+        // weapon table, so they need their own range lookup.
+        public static int spellRange(int spellId)
+        {
+            if (!Randomizer.itemLoaded || Randomizer.itemData == null)
+                return 0;
+            long offset = Randomizer.magicBlockStart + Randomizer.magicBlockLen * (long)spellId + 7L;
+            if (offset < 0 || offset >= Randomizer.itemData.Length)
+                return 0;
+            return Randomizer.itemData[offset];
+        }
+
+        public static bool spellRangeAllowed(int spellId)
+        {
+            if (!limitSiegeTomes || maxEnemyWeaponRange <= 0)
+                return true;
+            int range = spellRange(spellId);
+            if (range <= 0 || range >= 100)
+                return true;
+            return range <= maxEnemyWeaponRange;
+        }
+
+        // Drop-in replacement for getSpell(...) on the enemy side only, so player
+        // spell lists keep their siege tomes.
+        public static int pickEnemySpell(int type, int rank, bool forceRank, bool forceOffensive)
+        {
+            int spell = Randomizer.getSpell(type, rank, forceRank, forceOffensive);
+            if (!limitSiegeTomes || maxEnemyWeaponRange <= 0)
+                return spell;
+
+            statSpellPicks++;
+            if (siegeAllowedThisTime())
+                return spell;
+            if (spellRangeAllowed(spell))
+                return spell;
+
+            int closest = spell;
+            for (int attempt = 0; attempt < 12; attempt++)
+            {
+                int candidate = Randomizer.getSpell(type, rank, forceRank, forceOffensive);
+                if (spellRangeAllowed(candidate))
+                {
+                    statSpellsFiltered++;
+                    return candidate;
+                }
+                if (spellRange(candidate) < spellRange(closest))
+                    closest = candidate;
+            }
+            statSpellsFiltered++;
+            return closest;
+        }
+
+        // Replacement for "rng.Next(0, 38)" where the enemy spell slot was just a
+        // random spell index.
+        public static int pickRandomEnemySpell(int count)
+        {
+            int spell = Randomizer.rng.Next(0, count);
+            if (!limitSiegeTomes || maxEnemyWeaponRange <= 0 || count <= 0)
+                return spell;
+            if (siegeAllowedThisTime() || spellRangeAllowed(spell))
+                return spell;
+
+            List<int> allowed = new List<int>();
+            for (int i = 0; i < count; i++)
+                if (spellRangeAllowed(i))
+                    allowed.Add(i);
+            statSpellsFiltered++;
+            if (allowed.Count == 0)
+                return spell;
+            return allowed[Randomizer.rng.Next(0, allowed.Count)];
         }
 
         private static int[] filteredObtainableWeapons;
@@ -236,13 +368,55 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private static List<int> globalTypeDeck;
         private static int[] classUseCount = new int[100];
 
+        private static List<int>[] classTypeBag = new List<int>[8];
+        private static List<int> globalClassTypeBag;
+
         public static void beginClassVariety(List<int>[] classWeaponTypes)
         {
             weaponTypesOfClass = classWeaponTypes;
+            resetClassVariety();
+        }
+
+        public static void resetClassVariety()
+        {
             for (int i = 0; i < tierTypeDeck.Length; i++)
+            {
                 tierTypeDeck[i] = null;
+                classTypeBag[i] = null;
+            }
             globalTypeDeck = null;
+            globalClassTypeBag = null;
             classUseCount = new int[100];
+        }
+
+        // 100% = strict per tier, 0% = only the whole run has to be covered.
+        private static bool perTierMode()
+        {
+            if (classVarietySafety >= 100)
+                return true;
+            if (classVarietySafety <= 0)
+                return false;
+            return Randomizer.rng.Next(0, 100) < classVarietySafety;
+        }
+
+        private static void recordTypeServed(int tier, int type)
+        {
+            if (type < 0 || type >= weaponTypeCount)
+                return;
+            if (tier >= 0 && tier < statTypesServedByTier.Length)
+            {
+                if (statTypesServedByTier[tier] == null)
+                    statTypesServedByTier[tier] = new List<int>();
+                if (!statTypesServedByTier[tier].Contains(type))
+                    statTypesServedByTier[tier].Add(type);
+            }
+            else
+            {
+                if (statTypesServedGlobal == null)
+                    statTypesServedGlobal = new List<int>();
+                if (!statTypesServedGlobal.Contains(type))
+                    statTypesServedGlobal.Add(type);
+            }
         }
 
         // Replaces "pool[rng.Next(0, pool.Count)]" for a class pool of one tier.
@@ -252,6 +426,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 return 0;
             if (!evenClassVariety || weaponTypesOfClass == null)
                 return pool[Randomizer.rng.Next(0, pool.Count)];
+
+            statClassPicks++;
 
             int type = nextPreferredType(tier, pool);
             List<int> candidates = pool;
@@ -290,27 +466,25 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (slot < 0 || slot >= tierTypeDeck.Length)
                 slot = 0;
 
-            bool perTier;
-            if (classVarietySafety >= 100)
-                perTier = true;
-            else if (classVarietySafety <= 0)
-                perTier = false;
-            else
-                perTier = Randomizer.rng.Next(0, 100) < classVarietySafety;
-
-            if (perTier)
+            if (perTierMode())
             {
                 if (tierTypeDeck[slot] == null || tierTypeDeck[slot].Count == 0)
+                {
                     tierTypeDeck[slot] = buildTypeDeck(pool);
-                return popUsableType(tierTypeDeck[slot], pool);
+                    statTypeDeckRebuilds++;
+                }
+                return popUsableType(tierTypeDeck[slot], pool, slot);
             }
 
             if (globalTypeDeck == null || globalTypeDeck.Count == 0)
+            {
                 globalTypeDeck = buildTypeDeck(null);
-            return popUsableType(globalTypeDeck, null);
+                statTypeDeckRebuilds++;
+            }
+            return popUsableType(globalTypeDeck, null, -1);
         }
 
-        private static int popUsableType(List<int> deck, List<int> pool)
+        private static int popUsableType(List<int> deck, List<int> pool, int tier)
         {
             for (int i = 0; i < deck.Count; i++)
             {
@@ -318,6 +492,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 if (pool == null || classesOfType(pool, type).Count > 0)
                 {
                     deck.RemoveAt(i);
+                    recordTypeServed(tier, type);
                     return type;
                 }
             }
@@ -351,6 +526,55 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             return deck;
         }
 
+        // Balances the weapon types the *classes themselves* get. Randomizer.cs
+        // calls this instead of rng.Next(0, 7) when class weapon types are
+        // randomized, so a tier cannot turn into fifteen axe classes.
+        public static int nextClassWeaponType(int tier, int slot)
+        {
+            if (!evenClassVariety)
+                return -1;
+
+            int safeTier = tier;
+            if (safeTier < 0 || safeTier >= classTypeBag.Length)
+                safeTier = 0;
+
+            if (slot <= 0 || perTierMode())
+            {
+                if (classTypeBag[safeTier] == null || classTypeBag[safeTier].Count == 0)
+                {
+                    classTypeBag[safeTier] = buildClassTypeBag();
+                    statClassTypeBagRefills++;
+                }
+                List<int> bag = classTypeBag[safeTier];
+                int type = bag[bag.Count - 1];
+                bag.RemoveAt(bag.Count - 1);
+                recordTypeServed(safeTier, type);
+                statClassTypeDraws++;
+                return type;
+            }
+
+            if (globalClassTypeBag == null || globalClassTypeBag.Count == 0)
+            {
+                globalClassTypeBag = buildClassTypeBag();
+                statClassTypeBagRefills++;
+            }
+            int globalType = globalClassTypeBag[globalClassTypeBag.Count - 1];
+            globalClassTypeBag.RemoveAt(globalClassTypeBag.Count - 1);
+            recordTypeServed(-1, globalType);
+            statClassTypeDraws++;
+            return globalType;
+        }
+
+        private static List<int> buildClassTypeBag()
+        {
+            List<int> bag = new List<int>();
+            for (int copy = 0; copy < 2; copy++)
+                for (int type = 0; type < weaponTypeCount; type++)
+                    bag.Add(type);
+            bag.Shuffle();
+            return bag;
+        }
+
         private static List<int> typesOfClass(int classId)
         {
             List<int> types = new List<int>();
@@ -361,8 +585,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 return types;
             for (int i = 0; i < source.Count; i++)
             {
-                // 7 and 5 are both "magic" in the class data; keep them apart so
-                // dark magic classes still count as casters.
+                // 7 and 5 are both "magic" in the class data; keep them together
+                // so dark magic classes still count as casters.
                 int type = source[i];
                 if (type == 7)
                     type = 5;
@@ -431,19 +655,30 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 int hpGain = moved / shiftedStats.Length;
                 int hp = Randomizer.classData[hpOffset] + hpGain;
                 Randomizer.classData[hpOffset] = (byte)Math.Min(255, hp);
+                statGrowthShiftedClasses++;
             }
         }
 
         // Even spread of the class growths / stats inside every tier: the values
         // themselves stay the same, they are only dealt out so that one class no
-        // longer hogs every high roll.
+        // longer hogs every high roll. Only values the user is already
+        // randomizing are touched, so vanilla kits are never disturbed.
         private static void spreadClassStats()
         {
+            Settings settings = Randomizer.settingsForDebug;
+            if (settings == null)
+                return;
+
             List<int>[] tiers = collectTiers();
-            spreadOffsets(playerGrowthOffsets, tiers);
-            spreadOffsets(enemyGrowthOffsets, tiers);
-            spreadOffsets(baseStatOffsets, tiers);
-            spreadOffsets(statBoostOffsets, tiers);
+            if (settings.randPlayerGrowthBoosts)
+                spreadOffsets(playerGrowthOffsets, tiers);
+            if (settings.randEnemyGrowthBoosts)
+                spreadOffsets(enemyGrowthOffsets, tiers);
+            if (settings.randClassBases)
+                spreadOffsets(baseStatOffsets, tiers);
+            if (settings.randStatBoosts)
+                spreadOffsets(statBoostOffsets, tiers);
+            statSpreadPasses++;
         }
 
         private static List<int>[] collectTiers()
@@ -506,6 +741,26 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // the tier so neighbouring classes do not end up with the same kit.
         private static void spreadClassAbilities()
         {
+            Settings settings = Randomizer.settingsForDebug;
+            if (settings == null)
+                return;
+
+            // Only rotate the slots the user is randomizing anyway.
+            List<int> slots = new List<int>();
+            if (settings.randClassAb && settings.randClassMasteryAb)
+                slots.Add(0);
+            if (settings.randClassMasteryCa)
+                slots.Add(1);
+            if (settings.randClassAb && settings.randClassClassAb)
+            {
+                slots.Add(2);
+                slots.Add(3);
+                slots.Add(4);
+            }
+            if (slots.Count == 0)
+                return;
+
+            statSpreadPasses++;
             List<int>[] tiers = collectTiers();
             for (int tier = 0; tier < tiers.Length; tier++)
             {
@@ -513,8 +768,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 if (classes.Count < 3)
                     continue;
 
-                // 0 = mastery ability, 1 = mastery combat art, 2-4 = class abilities
-                int[] abilitySlots = { 0, 1, 2, 3, 4 };
+                int[] abilitySlots = slots.ToArray();
                 for (int slot = 0; slot < abilitySlots.Length; slot++)
                 {
                     long offsetInBlock = (long)abilitySlots[slot];

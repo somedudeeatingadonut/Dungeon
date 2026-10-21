@@ -8,6 +8,7 @@
 
 using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 namespace Fire_Emblem_Three_Houses_Randomizer_V2
@@ -22,6 +23,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private NumericUpDown extrasMaxRange_numericUpDown;
         private NumericUpDown extrasSiegeChance_numericUpDown;
         private NumericUpDown extrasGrowthShift_numericUpDown;
+        private CheckBox extrasDebugAuto_checkBox;
+        private Label extrasDebugPath_label;
         private bool extrasBuilding;
 
         // ---------------------------------------------------------- row helpers
@@ -86,6 +89,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             try
             {
                 this.extras_tabPage = new TabPage();
+                this.extras_tabPage.SuspendLayout();
                 this.extras_tabPage.Text = "Extra options";
                 this.extras_tabPage.Padding = new Padding(10);
                 this.extras_tabPage.UseVisualStyleBackColor = true;
@@ -237,6 +241,49 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "enemies a little tankier instead of hitting much harder. 0% leaves it alone,\r\n"
                     + "20% is a noticeable but fair change."));
 
+                // ------------------------------------------------------- debug
+                addFullRow(layout, sectionLabel("Debug report"));
+
+                this.extrasDebugAuto_checkBox = new CheckBox();
+                this.extrasDebugAuto_checkBox.AutoSize = true;
+                this.extrasDebugAuto_checkBox.Checked = RandomizerDebug.autoWrite;
+                this.extrasDebugAuto_checkBox.Text = "Write a debug report automatically after every randomization";
+                this.extrasDebugAuto_checkBox.CheckedChanged += new EventHandler(this.extrasDebugAuto_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasDebugAuto_checkBox);
+
+                FlowLayoutPanel debugButtons = new FlowLayoutPanel();
+                debugButtons.AutoSize = true;
+                debugButtons.WrapContents = true;
+                debugButtons.Margin = new Padding(0, 0, 0, 4);
+
+                Button writeDebugButton = new Button();
+                writeDebugButton.AutoSize = true;
+                writeDebugButton.Text = "Write debug report now";
+                writeDebugButton.Click += new EventHandler(this.extrasWriteDebug_button_Click);
+                debugButtons.Controls.Add(writeDebugButton);
+
+                Button openDebugButton = new Button();
+                openDebugButton.AutoSize = true;
+                openDebugButton.Text = "Open debug folder";
+                openDebugButton.Click += new EventHandler(this.extrasOpenDebug_button_Click);
+                debugButtons.Controls.Add(openDebugButton);
+
+                addFullRow(layout, debugButtons);
+
+                this.extrasDebugPath_label = new Label();
+                this.extrasDebugPath_label.AutoSize = true;
+                this.extrasDebugPath_label.MaximumSize = new Size(900, 0);
+                this.extrasDebugPath_label.ForeColor = Color.DimGray;
+                this.extrasDebugPath_label.Margin = new Padding(0, 2, 0, 2);
+                this.extrasDebugPath_label.Text = "The report is written next to the output folder as \"FE3H Randomizer Debug.txt\".";
+                addFullRow(layout, this.extrasDebugPath_label);
+
+                addFullRow(layout, helpLabel(
+                    "The report lists every loaded file, all of these options, and checks the output data:\r\n"
+                    + "weapon type spread per tier, blocked abilities that slipped in, out of range weapons on\r\n"
+                    + "map units, and the growth totals before and after. It ends with a PASS / WARN / FAIL\r\n"
+                    + "summary so it is obvious whether something broke."));
+
                 Label spacer = new Label();
                 spacer.AutoSize = false;
                 spacer.Height = 24;
@@ -252,7 +299,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 MessageBox.Show("The extra options tab could not be added:\n\n" + exception.Message,
                     "Extra options", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
-            this.extrasBuilding = false;
+            finally
+            {
+                if (this.extras_tabPage != null)
+                {
+                    this.extras_tabPage.ResumeLayout(false);
+                    perfPreparePage(this.extras_tabPage);
+                }
+                this.extrasBuilding = false;
+            }
         }
 
         // ------------------------------------------------------------- handlers
@@ -309,6 +364,49 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             {
                 this.syncBlockedAbilities();
             });
+        }
+
+        private void extrasDebugAuto_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasDebugAuto_checkBox == null)
+                return;
+            RandomizerDebug.autoWrite = this.extrasDebugAuto_checkBox.Checked;
+        }
+
+        private void extrasWriteDebug_button_Click(object sender, EventArgs e)
+        {
+            string folder = this.batchOutputFolder;
+            if (folder == null || folder.Length == 0)
+                folder = Application.StartupPath;
+            string path = RandomizerDebug.WriteReport(folder, "written from the Extra options tab");
+            if (path == null)
+            {
+                MessageBox.Show("The debug report could not be written:\n\n" + RandomizerDebug.lastSummary,
+                    "Debug report", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+            if (this.extrasDebugPath_label != null)
+                this.extrasDebugPath_label.Text = "Last report: " + path + "  (" + RandomizerDebug.lastSummary + ")";
+            MessageBox.Show("Debug report written to:\n\n" + path + "\n\n" + RandomizerDebug.lastSummary,
+                "Debug report", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void extrasOpenDebug_button_Click(object sender, EventArgs e)
+        {
+            string folder = this.batchOutputFolder;
+            if (folder == null || folder.Length == 0)
+                folder = Application.StartupPath;
+            try
+            {
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+                System.Diagnostics.Process.Start("explorer.exe", "\"" + folder + "\"");
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show("The folder could not be opened:\n\n" + exception.Message,
+                    "Debug report", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
         }
 
         private void syncBlockedAbilities()

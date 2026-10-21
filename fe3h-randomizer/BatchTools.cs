@@ -91,6 +91,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
+            this.applyPerformanceTweaks();
             this.buildBatchTab();
             this.buildExtrasTab();
         }
@@ -103,6 +104,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             try
             {
                 this.batch_tabPage = new TabPage();
+                this.batch_tabPage.SuspendLayout();
                 this.batch_tabPage.Text = "Batch: folders";
                 this.batch_tabPage.Padding = new Padding(10);
                 this.batch_tabPage.UseVisualStyleBackColor = true;
@@ -246,6 +248,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             {
                 MessageBox.Show("The batch tools could not be added to the window:\n\n" + exception.Message,
                     "Batch tools", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+            finally
+            {
+                if (this.batch_tabPage != null)
+                {
+                    this.batch_tabPage.ResumeLayout(false);
+                    perfPreparePage(this.batch_tabPage);
+                }
             }
         }
 
@@ -786,6 +796,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 log.AppendLine("Failed: " + failed.ToString() + " file(s).");
 
             this.batchWriteLog(log.ToString());
+
+            if (RandomizerDebug.autoWrite)
+            {
+                string reportPath = RandomizerDebug.WriteReport(root, "after saving to the output folder");
+                if (reportPath != null)
+                    this.batchWriteLog("Debug report written to " + reportPath + " (" + RandomizerDebug.lastSummary + ")");
+                else
+                    this.batchWriteLog("Debug report could not be written: " + RandomizerDebug.lastSummary);
+            }
 
             string message = "Wrote " + written.ToString() + " file(s) into:\n" + root
                 + "\n\nCopy the nx, patch1, patch3 and patch4 folders from there into the romfs folder of your mod.";

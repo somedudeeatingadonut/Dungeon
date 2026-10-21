@@ -671,6 +671,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static long textSectionOffset = 6115304960;
         public static int textSectionLength = 7578688;
         public static RandomLog rng;
+        public static Settings settingsForDebug;
         public static byte[] personData;
         public static byte[] classData;
         public static byte[] itemData;
@@ -3205,6 +3206,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
         public static void randomize(Settings settings)
         {
+            RandomizerExtras.beginRandomization();
+            Randomizer.settingsForDebug = settings;
             /*
             if (data1Loaded) // replace all enemies with commanders
             {
@@ -4753,20 +4756,30 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                     if (settings.removeWeaponRestrictions && settings.randWeaponTypes)
                     {
+                        // Even class variety: draw from a balanced per-tier bag so
+                        // one weapon type cannot take over a whole tier.
+                        int balanced0 = RandomizerExtras.nextClassWeaponType(classTier, 0);
+
                         if (numWeaponTypes == 1)
                         {
-                            weaponTypes[0] = rng.Next(0, 7);
+                            weaponTypes[0] = balanced0 >= 0 ? balanced0 : rng.Next(0, 7);
                             if (weaponTypes[0] == 5 && rng.Next(0, 2) == 0)
                                 weaponTypes[0] = 7;
                             weaponTypes[1] = 0;
                         }
                         else if (numWeaponTypes == 2)
                         {
-                            while (weaponTypes[0] == weaponTypes[1])
+                            int balanced1 = RandomizerExtras.nextClassWeaponType(classTier, 1);
+                            weaponTypes[0] = balanced0 >= 0 ? balanced0 : rng.Next(0, 7);
+                            if (weaponTypes[0] == 5 && rng.Next(0, 2) == 0)
+                                weaponTypes[0] = 7;
+                            weaponTypes[1] = balanced1 >= 0 ? balanced1 : rng.Next(0, 7);
+                            if (weaponTypes[1] == 5 && rng.Next(0, 2) == 0)
+                                weaponTypes[1] = 7;
+
+                            int typeGuard = 0;
+                            while (weaponTypes[0] == weaponTypes[1] && typeGuard++ < 40)
                             {
-                                weaponTypes[0] = rng.Next(0, 7);
-                                if (weaponTypes[0] == 5 && rng.Next(0, 2) == 0)
-                                    weaponTypes[0] = 7;
                                 weaponTypes[1] = rng.Next(0, 7);
                                 if (weaponTypes[1] == 5 && rng.Next(0, 2) == 0)
                                     weaponTypes[1] = 7;
@@ -11271,17 +11284,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                                                 if (magWeaponTypes.Count > 0)
                                                 {
-                                                    baiSectionData[unitStart + 36] = (byte)(getSpell(magWeaponTypes[rng.Next(0, magWeaponTypes.Count)], spellRank, false, true) + 1); // extra spells
+                                                    baiSectionData[unitStart + 36] = (byte)(RandomizerExtras.pickEnemySpell(magWeaponTypes[rng.Next(0, magWeaponTypes.Count)], spellRank, false, true) + 1); // extra spells
                                                     if (p(30))
-                                                        baiSectionData[unitStart + 37] = (byte)(getSpell(magWeaponTypes[rng.Next(0, magWeaponTypes.Count)], spellRank, false, true) + 1);
+                                                        baiSectionData[unitStart + 37] = (byte)(RandomizerExtras.pickEnemySpell(magWeaponTypes[rng.Next(0, magWeaponTypes.Count)], spellRank, false, true) + 1);
                                                 }
                                             }
                                         }
                                         else
                                         {
-                                            baiSectionData[unitStart + 36] = (byte)(rng.Next(0, 38) + 1);
+                                            baiSectionData[unitStart + 36] = (byte)(RandomizerExtras.pickRandomEnemySpell(38) + 1);
                                             if (p(30))
-                                                baiSectionData[unitStart + 37] = (byte)(rng.Next(0, 38) + 1);
+                                                baiSectionData[unitStart + 37] = (byte)(RandomizerExtras.pickRandomEnemySpell(38) + 1);
                                         }
                                     }
                                 }

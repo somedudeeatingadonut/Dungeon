@@ -1348,43 +1348,54 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             {
                 updateInProgress = true;
 
-                randomizeAndSave_button.Enabled =
-                    Randomizer.personLoaded ||
-                    Randomizer.classLoaded ||
-                    Randomizer.itemLoaded ||
-                    Randomizer.lobbyLoaded ||
-                    Randomizer.calendarLoaded ||
-                    Randomizer.BGMLoaded ||
-                    Randomizer.msgLoaded ||
-                    Randomizer.scrLoaded ||
-                    Randomizer.gwscrLoaded ||
-                    Randomizer.tuscrLoaded ||
-                    Randomizer.btlscrLoaded ||
-                    Randomizer.activityLoaded ||
-                    Randomizer.groupWorkLoaded ||
-                    Randomizer.presentLoaded ||
-                    Randomizer.shopLoaded ||
-                    Randomizer.questLoaded ||
-                    Randomizer.scenarioLoaded ||
-                    Randomizer.growthdataLoaded ||
-                    Randomizer.data1Loaded ||
-                    Randomizer.actLoaded;
+                // Performance tweak: batch the layout work of the thousands of
+                // property changes below into one pass.
+                this.SuspendLayout();
+                try
+                {
 
-                updateClassDisplay();
-                updateActDisplay();
-                updateItemDisplay();
-                updatePersonalDisplay();
-                updateLobbyDisplay();
-                updateCalendarDisplay();
-                updateBGMDisplay();
-                updateTextBinDisplay();
-                updateActivityDisplay();
-                updateGroupWorkDisplay();
-                updatePresentDisplay();
-                updateShopDisplay();
-                updateQuestDisplay();
-                updateMapDisplay();
-                updateInProgress = false;
+                    randomizeAndSave_button.Enabled =
+                        Randomizer.personLoaded ||
+                        Randomizer.classLoaded ||
+                        Randomizer.itemLoaded ||
+                        Randomizer.lobbyLoaded ||
+                        Randomizer.calendarLoaded ||
+                        Randomizer.BGMLoaded ||
+                        Randomizer.msgLoaded ||
+                        Randomizer.scrLoaded ||
+                        Randomizer.gwscrLoaded ||
+                        Randomizer.tuscrLoaded ||
+                        Randomizer.btlscrLoaded ||
+                        Randomizer.activityLoaded ||
+                        Randomizer.groupWorkLoaded ||
+                        Randomizer.presentLoaded ||
+                        Randomizer.shopLoaded ||
+                        Randomizer.questLoaded ||
+                        Randomizer.scenarioLoaded ||
+                        Randomizer.growthdataLoaded ||
+                        Randomizer.data1Loaded ||
+                        Randomizer.actLoaded;
+
+                    updateClassDisplay();
+                    updateActDisplay();
+                    updateItemDisplay();
+                    updatePersonalDisplay();
+                    updateLobbyDisplay();
+                    updateCalendarDisplay();
+                    updateBGMDisplay();
+                    updateTextBinDisplay();
+                    updateActivityDisplay();
+                    updateGroupWorkDisplay();
+                    updatePresentDisplay();
+                    updateShopDisplay();
+                    updateQuestDisplay();
+                    updateMapDisplay();
+                }
+                finally
+                {
+                    this.ResumeLayout();
+                    updateInProgress = false;
+                }
             }
         }
 
@@ -4004,12 +4015,40 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             else
             {
-                Randomizer.randomizeTrue(settings);
+                // Added by DebugReport.cs: a crash in the randomization writes a
+                // report with the stack trace instead of only showing a dialog.
+                try
+                {
+                    Randomizer.randomizeTrue(settings);
+                }
+                catch (Exception exception)
+                {
+                    string folder = (this.batchOutputFolder != null && this.batchOutputFolder.Length > 0)
+                        ? this.batchOutputFolder : Application.StartupPath;
+                    RandomizerDebug.WriteReport(folder, "CRASH during randomization");
+                    MessageBox.Show("The randomization stopped with an error:\n\n"
+                        + exception.Message
+                        + "\n\nA debug report with the full details was written to:\n"
+                        + RandomizerDebug.lastReportPath,
+                        "Randomization failed", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+                    Randomizer.warnings = "";
+                    return;
+                }
                 if (!Randomizer.warnings.Equals(""))
                 {
                     int num4 = (int)MessageBox.Show("The following warnings were encountered while randomizing:" + Randomizer.warnings, "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
                 this.saveFiles();
+
+                // saveFilesToFolder() writes its own report; this covers the
+                // normal "save each file with a dialog" path.
+                if (RandomizerDebug.autoWrite
+                    && (this.batchOutputFolder == null || this.batchOutputFolder.Length == 0))
+                {
+                    string folder = (this.batchOutputFolder != null && this.batchOutputFolder.Length > 0)
+                        ? this.batchOutputFolder : Application.StartupPath;
+                    RandomizerDebug.WriteReport(folder, "after saving the files");
+                }
             }
             Randomizer.warnings = "";
         }

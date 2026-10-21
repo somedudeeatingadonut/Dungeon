@@ -49,6 +49,8 @@
     <Compile Include="BatchTools.cs" />
     <Compile Include="RandomizerExtras.cs" />
     <Compile Include="RandomizerExtrasTab.cs" />
+    <Compile Include="PerformanceTweaks.cs" />
+    <Compile Include="DebugReport.cs" />
     <Compile Include="Data1RawTextFile.cs" />
     <Compile Include="Data1TextFormatter.cs" />
     <Compile Include="Data1TextLanguageSection.cs" />
