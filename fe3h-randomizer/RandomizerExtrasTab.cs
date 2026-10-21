@@ -40,6 +40,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private CheckBox extrasBigScope_checkBox;
         private CheckBox extrasBigCharSheets_checkBox;
         private CheckBox extrasBigBossRemix_checkBox;
+        private CheckBox extrasBigWeaponGraft_checkBox;
+        private CheckBox extrasBigWeaponArtEffect_checkBox;
+        private CheckBox extrasBigWeaponGambitEffect_checkBox;
+        private CheckBox extrasBigWeaponUnique_checkBox;
+        private CheckBox extrasBigWeaponDifferentType_checkBox;
         private CheckBox extrasDebugAuto_checkBox;
         private Label extrasDebugPath_label;
         private bool extrasBuilding;
@@ -455,6 +460,55 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "whole ability kit of another one, and takes precedence over the boss protection\r\n"
                     + "options above."));
 
+                addFullRow(layout, sectionLabel("Weapon effects remix"));
+                addFullRow(layout, helpLabel(
+                    "Weapons, gambits and combat arts all store their effect in the same id space, so their\r\n"
+                    + "effects can be swapped around. Only the effects move - might, hit, crit, weight, range\r\n"
+                    + "and durability stay exactly as the normal weapon randomization set them, so these\r\n"
+                    + "options stack with it instead of replacing it."));
+
+                this.extrasBigWeaponGraft_checkBox = new CheckBox();
+                this.extrasBigWeaponGraft_checkBox.AutoSize = true;
+                this.extrasBigWeaponGraft_checkBox.Checked = RandomizerBig.graftWeaponEffects;
+                this.extrasBigWeaponGraft_checkBox.Text = "Graft another weapon's effects onto each weapon (status effect, effectiveness, properties)";
+                this.extrasBigWeaponGraft_checkBox.CheckedChanged += new EventHandler(this.extrasBigWeaponGraft_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasBigWeaponGraft_checkBox);
+
+                this.extrasBigWeaponDifferentType_checkBox = new CheckBox();
+                this.extrasBigWeaponDifferentType_checkBox.AutoSize = true;
+                this.extrasBigWeaponDifferentType_checkBox.Checked = RandomizerBig.weaponDonorsDifferInType;
+                this.extrasBigWeaponDifferentType_checkBox.Text = "    ...only take effects from weapons of a different type";
+                this.extrasBigWeaponDifferentType_checkBox.CheckedChanged += new EventHandler(this.extrasBigWeaponDifferentType_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasBigWeaponDifferentType_checkBox);
+
+                this.extrasBigWeaponArtEffect_checkBox = new CheckBox();
+                this.extrasBigWeaponArtEffect_checkBox.AutoSize = true;
+                this.extrasBigWeaponArtEffect_checkBox.Checked = RandomizerBig.graftCombatArtEffects;
+                this.extrasBigWeaponArtEffect_checkBox.Text = "Give each weapon a random combat art effect (experimental)";
+                this.extrasBigWeaponArtEffect_checkBox.CheckedChanged += new EventHandler(this.extrasBigWeaponArtEffect_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasBigWeaponArtEffect_checkBox);
+
+                this.extrasBigWeaponGambitEffect_checkBox = new CheckBox();
+                this.extrasBigWeaponGambitEffect_checkBox.AutoSize = true;
+                this.extrasBigWeaponGambitEffect_checkBox.Checked = RandomizerBig.graftGambitEffects;
+                this.extrasBigWeaponGambitEffect_checkBox.Text = "Give each weapon a gambit's effects (experimental)";
+                this.extrasBigWeaponGambitEffect_checkBox.CheckedChanged += new EventHandler(this.extrasBigWeaponGambitEffect_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasBigWeaponGambitEffect_checkBox);
+
+                this.extrasBigWeaponUnique_checkBox = new CheckBox();
+                this.extrasBigWeaponUnique_checkBox.AutoSize = true;
+                this.extrasBigWeaponUnique_checkBox.Checked = RandomizerBig.uniqueWeaponEffects;
+                this.extrasBigWeaponUnique_checkBox.Text = "No two weapons share the same effect set";
+                this.extrasBigWeaponUnique_checkBox.CheckedChanged += new EventHandler(this.extrasBigWeaponUnique_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasBigWeaponUnique_checkBox);
+
+                addFullRow(layout, helpLabel(
+                    "The graft copies the status effect, the effectiveness bits and the property bits\r\n"
+                    + "(double attack, magic damage, ignore defence, leave at 1 HP). A weapon that had no\r\n"
+                    + "donor with an effect is left alone. The three graft options do not stack with each\r\n"
+                    + "other - the order is weapon, then combat art, then gambit. Experimental: the combat\r\n"
+                    + "art and gambit effects were never meant to sit on a weapon, so keep a save handy."));
+
                 // ------------------------------------------------------- debug
                 addFullRow(layout, sectionLabel("Debug report"));
 
@@ -701,6 +755,41 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasBuilding || this.extrasBigBossRemix_checkBox == null)
                 return;
             RandomizerBig.bossRemix = this.extrasBigBossRemix_checkBox.Checked;
+        }
+
+        private void extrasBigWeaponGraft_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasBigWeaponGraft_checkBox == null)
+                return;
+            RandomizerBig.graftWeaponEffects = this.extrasBigWeaponGraft_checkBox.Checked;
+        }
+
+        private void extrasBigWeaponDifferentType_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasBigWeaponDifferentType_checkBox == null)
+                return;
+            RandomizerBig.weaponDonorsDifferInType = this.extrasBigWeaponDifferentType_checkBox.Checked;
+        }
+
+        private void extrasBigWeaponArtEffect_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasBigWeaponArtEffect_checkBox == null)
+                return;
+            RandomizerBig.graftCombatArtEffects = this.extrasBigWeaponArtEffect_checkBox.Checked;
+        }
+
+        private void extrasBigWeaponGambitEffect_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasBigWeaponGambitEffect_checkBox == null)
+                return;
+            RandomizerBig.graftGambitEffects = this.extrasBigWeaponGambitEffect_checkBox.Checked;
+        }
+
+        private void extrasBigWeaponUnique_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasBigWeaponUnique_checkBox == null)
+                return;
+            RandomizerBig.uniqueWeaponEffects = this.extrasBigWeaponUnique_checkBox.Checked;
         }
 
         private void extrasDebugAuto_checkBox_CheckedChanged(object sender, EventArgs e)

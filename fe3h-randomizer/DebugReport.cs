@@ -386,6 +386,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + "   (characters swapped " + RandomizerBig.statCharSheetsSwapped.ToString() + ")");
             text.AppendLine("Boss remix                     : " + RandomizerBig.bossRemix
                 + "   (bosses remixed " + RandomizerBig.statBossRemixed.ToString() + ")");
+            text.AppendLine("Graft weapon effects          : " + RandomizerBig.graftWeaponEffects
+                + "   (grafted " + RandomizerBig.statWeaponEffectsGrafted.ToString()
+                + ", donors of a different type: " + RandomizerBig.weaponDonorsDifferInType + ")");
+            text.AppendLine("Combat art effects on weapons : " + RandomizerBig.graftCombatArtEffects
+                + "   (weapons given one " + RandomizerBig.statArtEffectsGrafted.ToString() + ")");
+            text.AppendLine("Gambit effects on weapons     : " + RandomizerBig.graftGambitEffects
+                + "   (weapons given one " + RandomizerBig.statGambitEffectsGrafted.ToString() + ")");
+            text.AppendLine("Unique weapon effect sets     : " + RandomizerBig.uniqueWeaponEffects
+                + "   (rerolled " + RandomizerBig.statWeaponEffectsRerolled.ToString()
+                + ", left " + RandomizerBig.countDuplicateWeaponEffects().ToString() + ")");
+            text.AppendLine("    weapons with an effect : " + RandomizerBig.countWeaponsWithEffects().ToString());
             text.AppendLine("    classes differing from vanilla : " + RandomizerBig.countChangedClasses().ToString());
             text.AppendLine("    characters differing from vanilla : " + RandomizerBig.countChangedCharacters().ToString());
             text.AppendLine();
@@ -413,6 +424,40 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         + " character(s) got another character's bases and growths");
                 else
                     warnings.Add("character sheet shuffle was on but no character changed");
+            }
+            if (RandomizerBig.graftWeaponEffects)
+            {
+                if (RandomizerBig.statWeaponEffectsGrafted > 0)
+                    passes.Add("weapon effects grafted: " + RandomizerBig.statWeaponEffectsGrafted.ToString()
+                        + " weapon(s) took another weapon's effects");
+                else if (Randomizer.itemData == null)
+                    warnings.Add("weapon effect graft was on but fixed_data.bin is not loaded");
+                else
+                    warnings.Add("weapon effect graft was on but no donor with an effect was found");
+            }
+            if (RandomizerBig.graftCombatArtEffects)
+            {
+                if (RandomizerBig.statArtEffectsGrafted > 0)
+                    passes.Add("combat art effects on weapons: " + RandomizerBig.statArtEffectsGrafted.ToString()
+                        + " weapon(s) given an art effect id");
+                else
+                    warnings.Add("combat art effect graft was on but nothing changed (fix_data.bin not loaded?)");
+            }
+            if (RandomizerBig.graftGambitEffects)
+            {
+                if (RandomizerBig.statGambitEffectsGrafted > 0)
+                    passes.Add("gambit effects on weapons: " + RandomizerBig.statGambitEffectsGrafted.ToString()
+                        + " weapon(s) given a gambit's effects");
+                else
+                    warnings.Add("gambit effect graft was on but nothing changed");
+            }
+            if (RandomizerBig.uniqueWeaponEffects)
+            {
+                int duplicates = RandomizerBig.countDuplicateWeaponEffects();
+                if (duplicates == 0)
+                    passes.Add("no two weapons share an effect set");
+                else
+                    warnings.Add(duplicates.ToString() + " weapon(s) still share an effect set");
             }
             if (RandomizerBig.bossRemix)
             {

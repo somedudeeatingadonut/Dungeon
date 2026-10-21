@@ -98,6 +98,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             RandomizerBig.swapClassGrowthProfiles = value;
             RandomizerBig.shuffleCharacterSheets = value;
             RandomizerBig.bossRemix = value;
+            RandomizerBig.graftWeaponEffects = value;
+            RandomizerBig.graftCombatArtEffects = value;
+            RandomizerBig.graftGambitEffects = value;
+            RandomizerBig.uniqueWeaponEffects = value;
 
             this.quickSyncExtraControls();
             try
@@ -153,6 +157,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasBigScope_checkBox.Checked = RandomizerBig.swapScope == 1;
             if (this.extrasBigCharSheets_checkBox != null)
                 this.extrasBigCharSheets_checkBox.Checked = RandomizerBig.shuffleCharacterSheets;
+            if (this.extrasBigWeaponGraft_checkBox != null)
+                this.extrasBigWeaponGraft_checkBox.Checked = RandomizerBig.graftWeaponEffects;
+            if (this.extrasBigWeaponArtEffect_checkBox != null)
+                this.extrasBigWeaponArtEffect_checkBox.Checked = RandomizerBig.graftCombatArtEffects;
+            if (this.extrasBigWeaponGambitEffect_checkBox != null)
+                this.extrasBigWeaponGambitEffect_checkBox.Checked = RandomizerBig.graftGambitEffects;
+            if (this.extrasBigWeaponUnique_checkBox != null)
+                this.extrasBigWeaponUnique_checkBox.Checked = RandomizerBig.uniqueWeaponEffects;
+            if (this.extrasBigWeaponDifferentType_checkBox != null)
+                this.extrasBigWeaponDifferentType_checkBox.Checked = RandomizerBig.weaponDonorsDifferInType;
             if (this.extrasBigBossRemix_checkBox != null)
                 this.extrasBigBossRemix_checkBox.Checked = RandomizerBig.bossRemix;
 

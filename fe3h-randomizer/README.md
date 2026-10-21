@@ -167,6 +167,31 @@ no value can leave its range, but the archetypes are gone:
 They run after the protection and tidy-up passes and before the blocklist safety
 pass, so a remixed boss still cannot be handed a blocked ability.
 
+### Weapon effects remix
+
+Weapons, gambits and combat arts store their effect in the **same id space**
+(weapon and gambit effect = byte +12 of a 24-byte block, combat art effect =
+byte +7 of an 18-byte block, 0..93 with 96 meaning "none"), which makes a real
+crossover possible without inventing anything:
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| Graft another weapon's effects onto each weapon | off | Copies the status effect, the effectiveness bits and the property bits (double attack, magic damage, ignore defence, leave at 1 HP) from another weapon. |
+| ...only take effects from weapons of a different type | off | The donor must be a different weapon type, so a sword can end up behaving like a bow. |
+| Give each weapon a random combat art effect | off | The weapon's status effect is replaced by one drawn from the combat-art effect range. Experimental. |
+| Give each weapon a gambit's effects | off | The same, with a gambit as the donor. Experimental. |
+| No two weapons share the same effect set | off | Duplicate effect combinations are re-rolled. |
+
+Only the **effects** move - might, hit, crit, weight, range and durability stay
+exactly as the normal weapon randomization set them, so these stack with
+`randAtk*` instead of replacing it. The three graft options do not stack with each
+other (weapon, then combat art, then gambit), and a weapon with no donor that has
+an effect is left alone.
+
+The changelog gets a `---WEAPON EFFECT REMIX---` section with the counts and the
+first 40 renamed effects, because the normal changelog is built before these
+passes run.
+
 ### Quick setup for testing
 
 Two buttons at the top of the Extra options tab:
