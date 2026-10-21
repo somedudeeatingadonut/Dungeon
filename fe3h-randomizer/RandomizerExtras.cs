@@ -71,6 +71,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statBlockedAbilitiesRemoved;
         public static List<int>[] statTypesServedByTier = new List<int>[8];
         public static List<int> statTypesServedGlobal = new List<int>();
+        // How many weapon types were actually dealt per tier. The report needs
+        // this to judge the spread fairly: a tier that was only dealt 4 types
+        // cannot serve 8, whatever the safety level says.
+        public static int[] statTypeDrawsByTier = new int[8];
+
+        public static int typeDrawsForTier(int tier)
+        {
+            if (tier < 0 || tier >= statTypeDrawsByTier.Length)
+                return 0;
+            return statTypeDrawsByTier[tier];
+        }
 
         public static void beginRandomization()
         {
@@ -91,6 +102,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             for (int i = 0; i < statTypesServedByTier.Length; i++)
                 statTypesServedByTier[i] = new List<int>();
             statTypesServedGlobal = new List<int>();
+            for (int i = 0; i < statTypeDrawsByTier.Length; i++)
+                statTypeDrawsByTier[i] = 0;
             resetClassVariety();
         }
 
@@ -407,6 +420,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 return;
             if (tier >= 0 && tier < statTypesServedByTier.Length)
             {
+                if (tier < statTypeDrawsByTier.Length)
+                    statTypeDrawsByTier[tier]++;
                 if (statTypesServedByTier[tier] == null)
                     statTypesServedByTier[tier] = new List<int>();
                 if (!statTypesServedByTier[tier].Contains(type))

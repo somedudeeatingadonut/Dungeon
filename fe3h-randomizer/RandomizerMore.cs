@@ -70,6 +70,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statStatBoostsClamped;
         public static int statStatBasesClamped;
         public static int statBossScalingBonus;
+        public static int statBossScalingBoostBonus;
+        public static int statBossScalingClassCount;
         public static int statTierMasteryArtRerolled;
         public static int statGrowthIdentityKept;
         public static int statStatTotalsEvened;
@@ -86,6 +88,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statStatBoostsClamped = 0;
             statStatBasesClamped = 0;
             statBossScalingBonus = 0;
+            statBossScalingBoostBonus = 0;
+            statBossScalingClassCount = 0;
             statTierMasteryArtRerolled = 0;
             statGrowthIdentityKept = 0;
             statStatTotalsEvened = 0;
@@ -222,6 +226,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)index;
                 if (block + 94 >= Randomizer.classData.Length)
                     continue;
+
+                int raisedHere = 0;
                 for (int i = 0; i < classBaseStatOffsets.Length; i++)
                 {
                     int offset = (int)(block + classBaseStatOffsets[i]);
@@ -235,8 +241,36 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     if (raised > 255)
                         raised = 255;
                     Randomizer.classData[offset] = (byte)raised;
-                    statBossScalingBonus++;
+                    raisedHere++;
                 }
+                statBossScalingBonus += raisedHere;
+
+                // Some entries have no base stats in the class table at all (the
+                // game reads those from elsewhere). Rather than do nothing, fall
+                // back to the class stat boosts, which every class has.
+                if (raisedHere == 0)
+                {
+                    for (int i = 0; i < classStatBoostOffsets.Length; i++)
+                    {
+                        int offset = (int)(block + classStatBoostOffsets[i]);
+                        int value = (sbyte)Randomizer.classData[offset];
+                        if (value == 0)
+                            continue;
+                        int bonus = Math.Abs(value) * extraPercent / 100;
+                        if (bonus < 1)
+                            bonus = 1;
+                        int raised = value > 0 ? value + bonus : value - bonus;
+                        if (raised > 127)
+                            raised = 127;
+                        if (raised < -128)
+                            raised = -128;
+                        Randomizer.classData[offset] = (byte)(sbyte)raised;
+                        raisedHere++;
+                        statBossScalingBoostBonus++;
+                    }
+                }
+                if (raisedHere > 0)
+                    statBossScalingClassCount++;
             }
         }
 
@@ -459,9 +493,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             {
                 bool playerOn = settings == null || settings.randPlayerGrowthBoosts;
                 bool enemyOn = settings == null || settings.randEnemyGrowthBoosts;
-                for (int index = 0; index < 100; index++)
+                // Only the classes the rest of the tool randomizes. The monster
+                // / boss rows keep their own data (that is what the boss option
+                // is for), and some of their slots do not hold growths at all.
+                List<int> classes = collectSpreads();
+                for (int c = 0; c < classes.Count; c++)
                 {
-                    long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)index;
+                    long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)classes[c];
                     if (block + 40 >= Randomizer.classData.Length)
                         break;
                     if (playerOn)
@@ -948,38 +986,56 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // Worst and best growth value in the finished class data.
         public static void growthValues(out int lowest, out int highest)
         {
+            int ignoredClass;
+            bool playerSide;
+            growthValues(out lowest, out highest, out ignoredClass, out playerSide);
+        }
+
+        // Same, but also says where the highest growth sits, so an out of range
+        // value can be tracked down from the report alone.
+        public static void growthValues(out int lowest, out int highest, out int highestClass, out bool highestIsPlayer)
+        {
             lowest = 0;
             highest = 0;
+            highestClass = -1;
+            highestIsPlayer = false;
             if (Randomizer.classData == null)
                 return;
+
+            List<int> classes = collectSpreads();
             int low = 255;
-            for (int index = 0; index < 100; index++)
+            int high = 0;
+            for (int c = 0; c < classes.Count; c++)
             {
-                long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)index;
+                long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)classes[c];
                 if (block + 40 >= Randomizer.classData.Length)
                     break;
                 for (int i = 0; i < classPlayerGrowthOffsets.Length; i++)
-                    if (Randomizer.classData[block + classPlayerGrowthOffsets[i]] < low)
-                        low = Randomizer.classData[block + classPlayerGrowthOffsets[i]];
+                {
+                    int value = Randomizer.classData[block + classPlayerGrowthOffsets[i]];
+                    if (value < low)
+                        low = value;
+                    if (value > high)
+                    {
+                        high = value;
+                        highestClass = classes[c];
+                        highestIsPlayer = true;
+                    }
+                }
                 for (int i = 0; i < classEnemyGrowthOffsets.Length; i++)
-                    if (Randomizer.classData[block + classEnemyGrowthOffsets[i]] < low)
-                        low = Randomizer.classData[block + classEnemyGrowthOffsets[i]];
+                {
+                    int value = Randomizer.classData[block + classEnemyGrowthOffsets[i]];
+                    if (value < low)
+                        low = value;
+                    if (value > high)
+                    {
+                        high = value;
+                        highestClass = classes[c];
+                        highestIsPlayer = false;
+                    }
+                }
             }
             lowest = low == 255 ? 0 : low;
-
-            int high = 0;
-            for (int index = 0; index < 100; index++)
-            {
-                long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)index;
-                if (block + 40 >= Randomizer.classData.Length)
-                    break;
-                for (int i = 0; i < classPlayerGrowthOffsets.Length; i++)
-                    if (Randomizer.classData[block + classPlayerGrowthOffsets[i]] > high)
-                        high = Randomizer.classData[block + classPlayerGrowthOffsets[i]];
-                for (int i = 0; i < classEnemyGrowthOffsets.Length; i++)
-                    if (Randomizer.classData[block + classEnemyGrowthOffsets[i]] > high)
-                        high = Randomizer.classData[block + classEnemyGrowthOffsets[i]];
-            }
             highest = high;
         }
 
@@ -1045,9 +1101,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             int bHigh = -128;
             int sLow = 255;
             int sHigh = 0;
-            for (int index = 0; index < 100; index++)
+            // Only the classes the range limits are meant to constrain. Monster
+            // and boss rows keep their own numbers on purpose, so including them
+            // would report the vanilla values as a limit failure.
+            List<int> classes = collectSpreads();
+            for (int c = 0; c < classes.Count; c++)
             {
-                long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)index;
+                long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)classes[c];
                 if (block + 94 >= Randomizer.classData.Length)
                     break;
                 for (int i = 0; i < classStatBoostOffsets.Length; i++)
@@ -1061,6 +1121,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 for (int i = 0; i < classBaseStatOffsets.Length; i++)
                 {
                     int value = Randomizer.classData[block + classBaseStatOffsets[i]];
+                    if (value == 0)
+                        continue; // a class with no base in this stat, not a zero base
                     if (value < sLow)
                         sLow = value;
                     if (value > sHigh)

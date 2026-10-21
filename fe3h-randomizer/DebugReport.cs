@@ -206,7 +206,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 ? 100 : (int)Randomizer.settingsForDebug.lvMultiplier;
             text.AppendLine("Boss level scaling bonus       : " + RandomizerMore.bossScalingShare + "% of the scaling"
                 + "   (level scaling " + (scalingOn ? "on" : "off") + ", multiplier " + multiplier + "%"
-                + ", stats raised " + RandomizerMore.statBossScalingBonus.ToString() + ")");
+                + ", base stats raised " + RandomizerMore.statBossScalingBonus.ToString()
+                + ", stat boosts raised " + RandomizerMore.statBossScalingBoostBonus.ToString()
+                + ", bosses touched " + RandomizerMore.statBossScalingClassCount.ToString() + ")");
 
             text.AppendLine("No repeated class ability      : " + RandomizerMore.uniqueClassAbilities
                 + "   (rerolled " + RandomizerMore.statDuplicateClassAbRerolled.ToString()
@@ -222,7 +224,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             int growthLow;
             int growthHigh;
-            RandomizerMore.growthValues(out growthLow, out growthHigh);
+            int growthStuck;
+            bool growthStuckPlayer;
+            RandomizerMore.growthValues(out growthLow, out growthHigh, out growthStuck, out growthStuckPlayer);
+            // 0 means "this class has no growth in that stat" and is left alone on
+            // purpose, so only a non-zero low counts against the limit.
+            bool growthOutOfRange = (growthLow != 0 && growthLow < RandomizerMore.growthClampMin)
+                || growthHigh > RandomizerMore.growthClampMax;
+            if (!growthOutOfRange)
+                growthStuck = -1;
             int totalLow;
             int totalHigh;
             int totalAverage;
@@ -233,6 +243,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + RandomizerMore.growthClampMax.ToString() + "%)"
                 + "   (pulled back " + RandomizerMore.statGrowthsClamped.ToString()
                 + ", class growths now " + growthLow.ToString() + "% to " + growthHigh.ToString() + "%)");
+            if (RandomizerMore.clampGrowths && growthStuck >= 0)
+                text.AppendLine("    out of range value left in class " + growthStuck.ToString()
+                    + " (" + (growthStuckPlayer ? "player" : "enemy") + " growth = "
+                    + growthHigh.ToString() + "%, unchanged from vanilla on purpose)");
             text.AppendLine("Even growth totals             : " + RandomizerMore.evenGrowthTotals
                 + "  (tolerance " + RandomizerMore.growthTotalTolerance.ToString() + "%)"
                 + "   (classes evened " + RandomizerMore.statGrowthTotalsEvened.ToString() + ")");
@@ -299,11 +313,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 if (Randomizer.settingsForDebug == null || !Randomizer.settingsForDebug.changeLv
                     || Randomizer.settingsForDebug.lvMultiplier <= 100)
                     passes.Add("boss scaling bonus: not needed (level scaling is off)");
-                else if (RandomizerMore.statBossScalingBonus > 0)
-                    passes.Add("boss scaling bonus: " + RandomizerMore.statBossScalingBonus.ToString()
-                        + " boss stat(s) raised");
+                else if (RandomizerMore.statBossScalingBonus + RandomizerMore.statBossScalingBoostBonus > 0)
+                    passes.Add("boss scaling bonus: "
+                        + (RandomizerMore.statBossScalingBonus + RandomizerMore.statBossScalingBoostBonus).ToString()
+                        + " boss stat(s) raised across " + RandomizerMore.statBossScalingClassCount.ToString()
+                        + " boss class(es)");
                 else
-                    warnings.Add("boss scaling bonus was on but no boss stat was raised");
+                    warnings.Add("boss scaling bonus was on but no boss stat was raised - the monster class rows have no non-zero stat fields");
             }
             if (RandomizerMore.protectGrowthIdentity && RandomizerMore.statGrowthIdentityKept == 0)
                 warnings.Add("no class needed its best growth stat restored (nothing wrong, the randomization may have kept them)");
@@ -317,8 +333,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (RandomizerMore.clampGrowths)
             {
-                if (growthLow == 0 || (growthLow >= RandomizerMore.growthClampMin
-                    && growthHigh <= RandomizerMore.growthClampMax))
+                if (!growthOutOfRange)
                     passes.Add("growth range limit held (class growths " + growthLow.ToString()
                         + "% to " + growthHigh.ToString() + "%)");
                 else
@@ -338,7 +353,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (RandomizerMore.clampStatBases)
             {
-                if (baseLow >= RandomizerMore.statBaseClampMin && baseHigh <= RandomizerMore.statBaseClampMax)
+                if (baseLow >= RandomizerMore.statBaseClampMin && baseHigh <= RandomizerMore.statBaseClampMax
+                    && baseHigh > 0)
                     passes.Add("base stat range limit held (" + baseLow.ToString() + " to " + baseHigh.ToString() + ")");
                 else
                     warnings.Add("base stat range limit: bases are " + baseLow.ToString()
@@ -522,26 +538,32 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 if (served == null || served.Count == 0)
                     continue;
 
-                // a tier cannot serve more types than it has classes, and the
-                // starting tier (0) is deliberately excluded from the 100% rule
+                // A tier can only serve as many types as were actually dealt to
+                // it, and never more than it has classes. Judging it against the
+                // class count alone produced false alarms: a tier that was dealt
+                // 4 types cannot serve 8, whatever the safety level says.
+                int draws = RandomizerExtras.typeDrawsForTier(tier);
                 int expected = classCount[tier];
                 if (expected > 8)
                     expected = 8;
+                if (draws > 0 && draws < expected)
+                    expected = draws;
                 if (expected < 1)
                     expected = 1;
 
                 if (served.Count < expected)
                 {
                     text.AppendLine("WARN  " + TierName(tier) + " only served " + served.Count.ToString()
-                        + " weapon types (safety " + safety.ToString() + "% wants about " + expected.ToString() + ")");
-                    if (safety >= 100)
+                        + " weapon types out of " + expected.ToString()
+                        + " dealt (safety " + safety.ToString() + "%)");
+                    if (safety >= 100 && served.Count < expected)
                     {
                         failures.Add(TierName(tier) + " did not get all weapon types at 100% safety");
                         anyFailure = true;
                     }
                     else
                     {
-                        warnings.Add(TierName(tier) + " served fewer weapon types than the safety level asks for");
+                        warnings.Add(TierName(tier) + " served fewer weapon types than it was dealt");
                     }
                 }
             }

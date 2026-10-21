@@ -164,7 +164,12 @@ what they limit, instead of being buried in the extra tab:
 Each one is a single row docked to the bottom of its page, so nothing the
 original tool put there has been moved. Like the other passes they only touch
 values the randomization changed - a growth the class does not have (0%) or a
-stat that is still vanilla is left alone.
+stat that is still vanilla is left alone. They also skip the monster / boss
+class rows on purpose: those are covered by the boss options, and some of their
+slots do not hold growths or stats at all.
+
+The **Stat Boosts** range is signed (-3 to 10 by default) because class stat
+boosts can be negative.
 
 The order the passes run in matters: boss abilities and stats are restored first,
 then the ability uniqueness passes, then growths, then stats, then the range
