@@ -4029,7 +4029,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     MessageBox.Show("The randomization stopped with an error:\n\n"
                         + exception.Message
                         + "\n\nA debug report with the full details was written to:\n"
-                        + RandomizerDebug.lastReportPath,
+                        + (RandomizerDebug.lastReportPath == null ? "(could not be written)" : RandomizerDebug.lastReportPath),
                         "Randomization failed", MessageBoxButtons.OK, MessageBoxIcon.Hand);
                     Randomizer.warnings = "";
                     return;

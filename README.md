@@ -14,12 +14,16 @@ these features added to the program:
   straight into the `romfs` patch layout (`nx\sound`, `patch1\common\common`,
   `patch3\nx\data`, `patch4`, `patch4\common\common`, `patch4\nx\data`).
 * **Extra options** - even spread of random classes across weapon types (with a
-  safety dial), an ability blocklist for dragon/monster abilities, an enemy
-  siege tome / long range limit, and a level scaling growth shift from
+  safety dial, applied to the class weapon types themselves), an ability
+  blocklist for dragon/monster abilities, an enemy siege tome / spell range
+  limit with a bypass chance, and a level scaling growth shift from
   Str/Mag/Def/Res into HP.
+* **Debug report** - `FE3H Randomizer Debug.txt` with the loaded files, active
+  options, per-feature run counters and PASS/WARN/FAIL checks of the output data.
+* Layout and painting tweaks so switching tabs is no longer laggy.
 
 Download the whole project in one file from the
-[v1.2.0 release](https://github.com/somedudeeatingadonut/Dungeon/releases/tag/v1.2.0)
+[v1.2.0 release](https://github.com/somedudeeatingadonut/Dungeon/releases/latest)
 ("Source code (zip)").
 
 Run `fe3h-randomizer\build.bat` on Windows (Visual Studio 2022 Community or the
