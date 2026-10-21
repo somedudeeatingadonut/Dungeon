@@ -85,6 +85,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             AppendHeader(text, reason);
             AppendEnvironment(text);
+            AppendPerformance(text, warnings);
             AppendOptions(text);
             AppendInputs(text, warnings);
             AppendCounters(text, passes, warnings);
@@ -130,6 +131,33 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             {
                 text.AppendLine("(environment could not be read: " + exception.Message + ")");
             }
+            text.AppendLine();
+        }
+
+        // -------------------------------------------------------- performance
+        private static void AppendPerformance(StringBuilder text, List<string> warnings)
+        {
+            text.AppendLine("--- PERFORMANCE ------------------------------------------------");
+            text.AppendLine("window build (all controls) : " + RandomizerForm.perfWindowBuildMs.ToString() + " ms");
+            text.AppendLine("extra tabs built            : " + RandomizerForm.perfExtrasBuildMs.ToString() + " ms");
+            if (RandomizerForm.perfDisplayCalls > 0)
+            {
+                long average = RandomizerForm.perfDisplayTotalMs / RandomizerForm.perfDisplayCalls;
+                text.AppendLine("display refresh             : " + RandomizerForm.perfDisplayCalls.ToString()
+                    + " calls, " + RandomizerForm.perfDisplayTotalMs.ToString() + " ms total, "
+                    + average.ToString() + " ms average, " + RandomizerForm.perfDisplayMaxMs.ToString() + " ms worst");
+            }
+            text.AppendLine("last tab switch             : " + RandomizerForm.perfLastSwitch);
+            text.AppendLine("worst tab switch            : " + RandomizerForm.perfWorstSwitch);
+            text.AppendLine("tab switches over 250 ms    : " + RandomizerForm.perfSlowSwitches.ToString());
+            if (RandomizerForm.perfNotes.Count > 0)
+            {
+                text.AppendLine("startup / layout timings:");
+                foreach (string note in RandomizerForm.perfNotes)
+                    text.AppendLine("    " + note);
+            }
+            if (RandomizerForm.perfSlowSwitches > 0)
+                warnings.Add("tab switching is still slow (" + RandomizerForm.perfWorstSwitch + ")");
             text.AppendLine();
         }
 
@@ -565,9 +593,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     long block = Randomizer.charLearnStart + Randomizer.charLearnLen * (long)row;
                     if (block + Randomizer.charLearnLen > Randomizer.personData.Length)
                         break;
-                    for (int slot = 0; slot < 5; slot++)
-                        ScanAbility(text, Randomizer.personData, Randomizer.personDataV, (int)(block + slot),
-                            ref checkedSlots, ref vanillaHits, ref newHits);
+                    // slots 0..4 hold combat arts, not abilities, so they are not
+                    // checked here (the same id means something else there).
                     for (int slot = 11; slot < 19; slot++)
                         ScanAbility(text, Randomizer.personData, Randomizer.personDataV, (int)(block + slot),
                             ref checkedSlots, ref vanillaHits, ref newHits);
@@ -578,6 +605,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("blocked abilities found: " + (vanillaHits + newHits).ToString()
                 + "  (" + vanillaHits.ToString() + " already in the vanilla file, "
                 + newHits.ToString() + " new)");
+            text.AppendLine("blocked abilities replaced by the safety pass: "
+                + RandomizerExtras.statBlockedAbilitiesRemoved.ToString());
             if (newHits > 0)
             {
                 text.AppendLine("FAIL  the randomization introduced blocked abilities, they are listed above");

@@ -68,6 +68,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statSpellsFiltered;
         public static int statGrowthShiftedClasses;
         public static int statSpreadPasses;
+        public static int statBlockedAbilitiesRemoved;
         public static List<int>[] statTypesServedByTier = new List<int>[8];
         public static List<int> statTypesServedGlobal = new List<int>();
 
@@ -622,6 +623,90 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 spreadClassStats();
                 spreadClassAbilities();
             }
+            // Runs last, after every other pass has written its values.
+            enforceAbilityBlocklist();
+        }
+
+        // ------------------------------------------------- blocklist safety net
+        // A blocked ability can still end up in a new slot when a later pass
+        // *moves* values around instead of picking them (the even-variety
+        // ability spread does exactly that, and the Dancer class gets Dance
+        // written by hand). This pass looks at every ability slot that belongs
+        // to the randomization and puts a different ability there if a blocked
+        // one was moved in.
+        //
+        // Placements that were already in the vanilla file (the monster
+        // classes' own abilities, for example) are left alone on purpose - the
+        // blocklist only stops the randomizer from *introducing* them.
+        public static void enforceAbilityBlocklist()
+        {
+            if (!blockAbilities || blockedAbilities.Count == 0)
+                return;
+
+            if (Randomizer.classData != null)
+            {
+                for (int index = 0; index < 100; index++)
+                {
+                    long block = Randomizer.classAbStart + Randomizer.classAbLen * (long)index;
+                    if (block + 5 >= Randomizer.classData.Length)
+                        break;
+                    for (int slot = 0; slot < 5; slot++)
+                        replaceIntroducedAbility(Randomizer.classData, Randomizer.classDataV, (int)(block + slot));
+                }
+
+                for (int index = 0; index < 100; index++)
+                {
+                    long block = Randomizer.classMonsterStart + Randomizer.classMonsterLen * (long)index;
+                    if (block + 70 >= Randomizer.classData.Length)
+                        break;
+                    for (int offsetInBlock = 64; offsetInBlock <= 69; offsetInBlock++)
+                        replaceIntroducedAbility(Randomizer.classData, Randomizer.classDataV, (int)(block + offsetInBlock));
+                }
+            }
+
+            if (Randomizer.personData != null)
+            {
+                int rowCount = Randomizer.personData.Length / (int)Randomizer.charLearnLen;
+                if (rowCount > 1201 * 12)
+                    rowCount = 1201 * 12;
+                for (int row = 0; row < rowCount; row++)
+                {
+                    long block = Randomizer.charLearnStart + Randomizer.charLearnLen * (long)row;
+                    if (block + Randomizer.charLearnLen > Randomizer.personData.Length)
+                        break;
+                    // 0..4 are combat arts, 11..18 are the learned abilities.
+                    for (int slot = 11; slot < 19; slot++)
+                        replaceIntroducedAbility(Randomizer.personData, Randomizer.personDataV, (int)(block + slot));
+                }
+            }
+        }
+
+        private static void replaceIntroducedAbility(byte[] data, byte[] vanilla, int offset)
+        {
+            if (data == null || offset < 0 || offset >= data.Length)
+                return;
+            int ability = data[offset];
+            if (!isAbilityBlocked(ability))
+                return;
+            if (vanilla != null && offset < vanilla.Length && vanilla[offset] == ability)
+                return; // it was there before the randomization, leave it
+            data[offset] = (byte)replacementAbility();
+            statBlockedAbilitiesRemoved++;
+        }
+
+        private static int replacementAbility()
+        {
+            if (Randomizer.genericAbilities != null && Randomizer.genericAbilities.Length > 0)
+            {
+                for (int attempt = 0; attempt < 40; attempt++)
+                {
+                    int candidate = Randomizer.genericAbilities[
+                        Randomizer.rng.Next(0, Randomizer.genericAbilities.Length)];
+                    if (!isAbilityBlocked(candidate))
+                        return candidate;
+                }
+            }
+            return 255; // no ability
         }
 
         // Moves part of the Str/Mag/Def/Res enemy growths into HP. Enemy stats
@@ -786,6 +871,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         int target = classes[i];
                         int source = values[(i + rotation) % classes.Count];
                         long block = Randomizer.classAbStart + Randomizer.classAbLen * (long)target;
+                        // Never rotate a blocked ability into a slot that did not
+                        // already have it - that would slip past the blocklist.
+                        if (isAbilityBlocked(source) && Randomizer.classData[block + offsetInBlock] != source)
+                            continue;
                         Randomizer.classData[block + offsetInBlock] = (byte)source;
                     }
                 }

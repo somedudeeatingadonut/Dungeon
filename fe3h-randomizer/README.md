@@ -87,6 +87,14 @@ Horn**, **Giant Wings**, **Dragon Effect Null** and **Monster Effect Null** -
 are ticked by default. "Add the abilities the randomizer already avoids" brings
 in the tool's own `badAbilities` list as well.
 
+As a last step of every run the randomizer re-reads every class ability slot, the
+monster latent/barrier slots and every character learnset, and replaces a blocked
+ability that was *moved* into a slot by a later pass (the even-variety ability
+spread rotates values around, and the Dancer class is given Dance by hand).
+Placements that were already in the vanilla file - the monster classes' own
+abilities, for example - are left alone; the blocklist only stops the randomizer
+from introducing them.
+
 ### Enemy siege tomes and long range weapons
 
 Tick it and set the maximum range: weapons above that range are removed from the
@@ -164,17 +172,30 @@ received files.
 
 Small, paint-and-layout-only changes - no randomization logic is touched:
 
-* the form, the tab control and every tab page are double buffered (this is what
-  makes tab switching look laggy: the page repaints several times while it is
-  being shown)
-* layout is suspended during a tab switch and resumed once, so the ~2,700
-  controls of a page are laid out in one pass instead of many partial ones
+* **Composited painting (`WS_EX_COMPOSITED`).** The window holds about 1,300
+  controls and, without this, every one of them paints itself the moment it
+  becomes visible - which is why a tab change looked like it was being drawn in
+  strips, top to bottom. With composited painting the whole window is drawn into
+  an off-screen buffer and appears in one go.
+* **Every tab page is sized once, up front.** A page keeps its small designer
+  size until the first time you click it - and *then* Windows resizes it and lays
+  out hundreds of controls while you wait. Right after the window opens, each
+  hidden page is given its real size, one page per message so the window stays
+  responsive, so the first visit to any tab is instant.
+* double buffering on the form, the tab control and every tab page.
 * `updateAllDisplay()`, which re-fills thousands of controls after loading a file
-  or toggling an option, now batches its layout work into a single pass
-* the two added tabs suspend their layout while they are being built
+  or toggling an option, batches its layout work into a single pass.
+* the two added tabs suspend their layout while they are being built.
 
-If a switch is ever cancelled, the suspended page is released on the next
-switch, so a page can never get stuck in suspended layout.
+> Note for anyone comparing with the previous build: the tab-switch
+> `SuspendLayout`/`ResumeLayout` pair that v1.3.0 added has been removed. It
+> forced a **full** re-layout of the incoming page on every switch, which cost
+> more than it saved.
+
+The debug report now has a **PERFORMANCE** section (window build time, display
+refresh time, page pre-layout times, last/worst tab switch, and how many
+switches took over 250 ms), so if switching still feels slow the numbers say
+where the time goes.
 
 ## Debug report
 
@@ -192,11 +213,12 @@ The report is plain text and contains:
 | Section | Contents |
 | --- | --- |
 | Environment | exe path, assembly/file version, OS, .NET version, 32/64-bit |
+| Performance | window build time, display-refresh time, page pre-layout times, last/worst tab switch, switches over 250 ms |
 | New options | every extra option and the full blocked ability list with names |
 | Loaded files | all 20 possible inputs: loaded or not, path, size, size mismatch warnings |
 | Did it run? | counters for every new code path (class picks, weapon type draws, blocked ability picks, range filters, bypass rolls, growth shifts), with warnings when an enabled option never fired |
 | Class variety | weapon type spread per class tier, before vs after, the types the balancer served, and a PASS/FAIL against the safety level |
-| Ability blocklist | scans class abilities, monster latent/barrier abilities and character learnsets; lists blocked abilities the randomization *introduced* (vanilla ones are reported separately, they are intentional) |
+| Ability blocklist | scans class abilities, monster latent/barrier abilities and character learnset ability slots (combat arts are skipped - the same id means something else there); lists blocked abilities the randomization *introduced* (vanilla ones are reported separately, they are intentional) and how many the safety pass replaced |
 | Siege limit | out of range weapons and spells on every map unit, marked as "same as vanilla" or "NEW" |
 | Growth shift | per stat growth totals before and after, plus the number of classes changed |
 | Summary | every PASS / WARN / FAIL line and a final count |

@@ -1337,7 +1337,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private FileStream data1FileStream;
         public RandomizerForm()
         {
+            // Timed so the debug report can show how long the window takes to
+            // build (see PerformanceTweaks.cs).
+            var perfBuildWatch = System.Diagnostics.Stopwatch.StartNew();
             this.InitializeComponent();
+            perfBuildWatch.Stop();
+            RandomizerForm.perfWindowBuildMs = perfBuildWatch.ElapsedMilliseconds;
             settings = new Settings();
             updateAllDisplay();
         }
@@ -1350,6 +1355,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                 // Performance tweak: batch the layout work of the thousands of
                 // property changes below into one pass.
+                var perfDisplayWatch = System.Diagnostics.Stopwatch.StartNew();
                 this.SuspendLayout();
                 try
                 {
@@ -1395,6 +1401,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 {
                     this.ResumeLayout();
                     updateInProgress = false;
+                    perfDisplayWatch.Stop();
+                    RandomizerForm.perfDisplay(perfDisplayWatch.ElapsedMilliseconds);
                 }
             }
         }

@@ -5575,8 +5575,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 }
                             }
                         }
-                        if (index == 43)
-                            classAbilities[0] = 158;
+                        if (index == 43 && !RandomizerExtras.isAbilityBlocked(158))
+                            classAbilities[0] = 158; // Dance, unless the user blocked it
                         classData[classAbStart + abMod + 2L] = (byte)classAbilities[0]; // Class Abilities
                         classData[classAbStart + abMod + 3L] = (byte)classAbilities[1];
                         classData[classAbStart + abMod + 4L] = (byte)classAbilities[2];

@@ -91,9 +91,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
+            var perfLoadWatch = System.Diagnostics.Stopwatch.StartNew();
             this.applyPerformanceTweaks();
             this.buildBatchTab();
             this.buildExtrasTab();
+            perfLoadWatch.Stop();
+            RandomizerForm.perfExtrasBuildMs = perfLoadWatch.ElapsedMilliseconds;
         }
 
         private void buildBatchTab()
