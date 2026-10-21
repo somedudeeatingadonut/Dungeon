@@ -201,7 +201,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + ", still changed " + changedBossSlots.ToString() + ")");
             text.AppendLine("Boss stats kept as they are    : " + RandomizerMore.protectBossStats
                 + "   (slots restored " + RandomizerMore.statBossStatSlotsRestored.ToString()
-                + ", still changed " + changedBossStats.ToString() + ")");
+                + ", still changed " + changedBossStats.ToString()
+                + (RandomizerMore.bossScalingSlots.Count > 0
+                    ? ", plus " + RandomizerMore.bossScalingSlots.Count.ToString()
+                      + " raised on purpose by the scaling bonus)"
+                    : ")"));
             bool scalingOn = Randomizer.settingsForDebug != null && Randomizer.settingsForDebug.changeLv;
             int multiplier = Randomizer.settingsForDebug == null
                 ? 100 : (int)Randomizer.settingsForDebug.lvMultiplier;
@@ -243,11 +247,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + "  (" + RandomizerMore.growthClampMin.ToString() + "% to "
                 + RandomizerMore.growthClampMax.ToString() + "%)"
                 + "   (pulled back " + RandomizerMore.statGrowthsClamped.ToString()
-                + ", class growths now " + growthLow.ToString() + "% to " + growthHigh.ToString() + "%)");
+                + ", changed growths now " + growthLow.ToString() + "% to " + growthHigh.ToString() + "%)");
             if (RandomizerMore.clampGrowths && growthStuck >= 0)
-                text.AppendLine("    out of range value left in class " + growthStuck.ToString()
+                text.AppendLine("    highest out of range growth: class " + growthStuck.ToString()
                     + " (" + (growthStuckPlayer ? "player" : "enemy") + " growth = "
-                    + growthHigh.ToString() + "%, unchanged from vanilla on purpose)");
+                    + growthHigh.ToString() + "%, written by the randomization)");
             text.AppendLine("Even growth totals             : " + RandomizerMore.evenGrowthTotals
                 + "  (tolerance " + RandomizerMore.growthTotalTolerance.ToString() + "%)"
                 + "   (classes evened " + RandomizerMore.statGrowthTotalsEvened.ToString() + ")");
@@ -265,7 +269,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + "  (" + RandomizerMore.statBoostClampMin.ToString() + " to "
                 + RandomizerMore.statBoostClampMax.ToString() + ")"
                 + "   (pulled back " + RandomizerMore.statStatBoostsClamped.ToString()
-                + ", boosts now " + boostLow.ToString() + " to " + boostHigh.ToString() + ")");
+                + ", changed boosts now " + boostLow.ToString() + " to " + boostHigh.ToString() + ")"
+                + vanillaNote(RandomizerMore.statVanillaBoostOutliers));
             text.AppendLine("Even base stat totals          : " + RandomizerMore.evenStatTotals
                 + "  (tolerance " + RandomizerMore.statTotalTolerance.ToString() + "%)"
                 + "   (classes evened " + RandomizerMore.statStatTotalsEvened.ToString() + ")");
@@ -273,7 +278,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + "  (" + RandomizerMore.statBaseClampMin.ToString() + " to "
                 + RandomizerMore.statBaseClampMax.ToString() + ")"
                 + "   (pulled back " + RandomizerMore.statStatBasesClamped.ToString()
-                + ", bases now " + baseLow.ToString() + " to " + baseHigh.ToString() + ")");
+                + ", changed bases now " + baseLow.ToString() + " to " + baseHigh.ToString() + ")"
+                + vanillaNote(RandomizerMore.statVanillaBaseOutliers));
             text.AppendLine();
 
             if (RandomizerMore.protectBossAbilities)
@@ -288,7 +294,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (RandomizerMore.protectBossStats)
             {
                 if (changedBossStats == 0)
-                    passes.Add("boss / monster stats are untouched");
+                    passes.Add("boss / monster stats are untouched"
+                        + (RandomizerMore.bossScalingSlots.Count > 0
+                            ? " (the " + RandomizerMore.bossScalingSlots.Count.ToString()
+                              + " slot(s) raised by the scaling bonus are expected and not counted)"
+                            : ""));
                 else
                     failures.Add(changedBossStats.ToString() + " boss stat slot(s) still differ from vanilla");
             }
@@ -336,9 +346,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (RandomizerMore.clampGrowths)
             {
-                if (!growthOutOfRange)
-                    passes.Add("growth range limit held (class growths " + growthLow.ToString()
-                        + "% to " + growthHigh.ToString() + "%)");
+                if (!RandomizerMore.statGrowthValuesChanged)
+                    passes.Add("growth range limit: no class growth was changed, nothing to clamp");
+                else if (!growthOutOfRange)
+                    passes.Add("growth range limit held (changed class growths " + growthLow.ToString()
+                        + "% to " + growthHigh.ToString() + "%)"
+                        + vanillaNote(RandomizerMore.statVanillaGrowthOutliers));
                 else
                     warnings.Add("growth range limit: class growths are " + growthLow.ToString()
                         + "% to " + growthHigh.ToString() + "% after the run");
@@ -348,17 +361,22 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + " class(es) scaled, totals now " + totalLow.ToString() + " to " + totalHigh.ToString());
             if (RandomizerMore.clampStatBoosts)
             {
-                if (boostLow >= RandomizerMore.statBoostClampMin && boostHigh <= RandomizerMore.statBoostClampMax)
-                    passes.Add("stat boost range limit held (" + boostLow.ToString() + " to " + boostHigh.ToString() + ")");
+                if (!RandomizerMore.statBoostValuesChanged)
+                    passes.Add("stat boost range limit: no class boost was changed, nothing to clamp");
+                else if (boostLow >= RandomizerMore.statBoostClampMin && boostHigh <= RandomizerMore.statBoostClampMax)
+                    passes.Add("stat boost range limit held (" + boostLow.ToString() + " to " + boostHigh.ToString() + ")"
+                        + vanillaNote(RandomizerMore.statVanillaBoostOutliers));
                 else
                     warnings.Add("stat boost range limit: boosts are " + boostLow.ToString()
                         + " to " + boostHigh.ToString() + " after the run");
             }
             if (RandomizerMore.clampStatBases)
             {
-                if (baseLow >= RandomizerMore.statBaseClampMin && baseHigh <= RandomizerMore.statBaseClampMax
-                    && baseHigh > 0)
-                    passes.Add("base stat range limit held (" + baseLow.ToString() + " to " + baseHigh.ToString() + ")");
+                if (!RandomizerMore.statBaseValuesChanged)
+                    passes.Add("base stat range limit: no class base was changed, nothing to clamp");
+                else if (baseLow >= RandomizerMore.statBaseClampMin && baseHigh <= RandomizerMore.statBaseClampMax)
+                    passes.Add("base stat range limit held (" + baseLow.ToString() + " to " + baseHigh.ToString() + ")"
+                        + vanillaNote(RandomizerMore.statVanillaBaseOutliers));
                 else
                     warnings.Add("base stat range limit: bases are " + baseLow.ToString()
                         + " to " + baseHigh.ToString() + " after the run");
@@ -450,8 +468,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (RandomizerBig.uniqueWeaponEffects)
             {
                 int duplicates = RandomizerBig.countDuplicateWeaponEffects();
+                int withEffect = RandomizerBig.countWeaponsWithEffects();
                 if (duplicates == 0)
-                    passes.Add("no two weapons share an effect set");
+                    passes.Add("no two weapons share an effect set (" + withEffect.ToString()
+                        + " weapon(s) with an effect)");
+                else if (withEffect > RandomizerBig.weaponEffectIdSpace)
+                    passes.Add("unique weapon effect sets: " + duplicates.ToString()
+                        + " weapon(s) share a set, unavoidable - " + withEffect.ToString()
+                        + " weapons have an effect but only "
+                        + RandomizerBig.weaponEffectIdSpace.ToString() + " effect ids exist");
                 else
                     warnings.Add(duplicates.ToString() + " weapon(s) still share an effect set");
             }
@@ -483,11 +508,23 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 warnings.Add(what + ": nothing grafted at " + chance.ToString() + "% (no eligible donor)");
         }
 
+        // " (12 vanilla value(s) outside the limit kept)" - vanilla data is never
+        // clamped, so the report should not treat it as a limit failure.
+        private static string vanillaNote(int count)
+        {
+            if (count <= 0)
+                return "";
+            return "   " + count.ToString() + " vanilla value(s) outside the limit kept on purpose";
+        }
+
         private static void AppendInputs(StringBuilder text, List<string> warnings)
         {
             text.AppendLine("--- LOADED FILES -----------------------------------------------");
+            // Only the battalion section of DATA1.bin is kept in memory, so the
+            // size cannot be compared with the file on disk - doing that warned
+            // about a "change" on every run.
             AppendFile(text, "DATA1.bin", Randomizer.data1Loaded, Randomizer.data1Filename,
-                Randomizer.baiSectionDataV, warnings);
+                null, warnings, "only the battalion section is held in memory");
             AppendFile(text, "fixed_persondata.bin", Randomizer.personLoaded, Randomizer.personFilename,
                 Randomizer.personDataV, warnings);
             AppendFile(text, "fixed_classdata.bin", Randomizer.classLoaded, Randomizer.classFilename,
@@ -532,6 +569,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private static void AppendFile(StringBuilder text, string label, bool loaded, string path,
             byte[] loadedData, List<string> warnings)
         {
+            AppendFile(text, label, loaded, path, loadedData, warnings, null);
+        }
+
+        private static void AppendFile(StringBuilder text, string label, bool loaded, string path,
+            byte[] loadedData, List<string> warnings, string note)
+        {
             if (!loaded)
             {
                 text.AppendLine(label + " : not loaded");
@@ -546,6 +589,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     {
                         long size = new FileInfo(path).Length;
                         state = path + "  [file " + size.ToString() + " bytes]";
+                        if (note != null)
+                            state += "  [" + note + "]";
                         if (loadedData != null && loadedData.Length > 0 && size != loadedData.Length)
                         {
                             state += "  [WARNING: loaded " + loadedData.Length.ToString()
@@ -997,7 +1042,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             {
                 int scanned = 0;
                 int offenders = 0;
+                int newOffenders = 0;
                 int spellOffenders = 0;
+                int newSpellOffenders = 0;
                 List<string> samples = new List<string>();
                 List<string> spellSamples = new List<string>();
 
@@ -1040,17 +1087,19 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 if (RandomizerExtras.weaponRangeAllowed(weaponId))
                                     continue;
                                 offenders++;
+                                int range = RandomizerExtras.weaponRange(weaponId);
+                                bool wasThere = false;
+                                int vanillaOffset = unitStart + 6 + 2 * slot;
+                                if (vanillaOffset + 2 <= Randomizer.baiSectionDataV.Length)
+                                {
+                                    int vanillaRaw = BitConverter.ToUInt16(Randomizer.baiSectionDataV, vanillaOffset);
+                                    if (vanillaRaw == raw)
+                                        wasThere = true;
+                                }
+                                if (!wasThere)
+                                    newOffenders++;
                                 if (samples.Count < 15)
                                 {
-                                    int range = RandomizerExtras.weaponRange(weaponId);
-                                    bool wasThere = false;
-                                    int vanillaOffset = unitStart + 6 + 2 * slot;
-                                    if (vanillaOffset + 2 <= Randomizer.baiSectionDataV.Length)
-                                    {
-                                        int vanillaRaw = BitConverter.ToUInt16(Randomizer.baiSectionDataV, vanillaOffset);
-                                        if (vanillaRaw == raw)
-                                            wasThere = true;
-                                    }
                                     samples.Add("  scenario " + scenario.ToString() + " unit " + unit.ToString()
                                         + " : weapon " + weaponId.ToString() + " range " + range.ToString()
                                         + (wasThere ? " (same as vanilla)" : " (NEW)"));
@@ -1067,29 +1116,44 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 if (RandomizerExtras.spellRangeAllowed(spellId))
                                     continue;
                                 spellOffenders++;
+                                int spellVanillaOffset = unitStart + slot;
+                                bool spellWasThere = spellVanillaOffset < Randomizer.baiSectionDataV.Length
+                                    && Randomizer.baiSectionDataV[spellVanillaOffset] == rawSpell;
+                                if (!spellWasThere)
+                                    newSpellOffenders++;
                                 if (spellSamples.Count < 10)
                                     spellSamples.Add("  scenario " + scenario.ToString() + " unit " + unit.ToString()
                                         + " : spell " + spellId.ToString() + " range "
-                                        + RandomizerExtras.spellRange(spellId).ToString());
+                                        + RandomizerExtras.spellRange(spellId).ToString()
+                                        + (spellWasThere ? " (same as vanilla)" : " (NEW)"));
                             }
                         }
                     }
                 }
 
                 text.AppendLine("map units scanned          : " + scanned.ToString());
-                text.AppendLine("out of range spell slots   : " + spellOffenders.ToString());
+                text.AppendLine("out of range spell slots   : " + spellOffenders.ToString()
+                    + "   (" + newSpellOffenders.ToString() + " new, "
+                    + (spellOffenders - newSpellOffenders).ToString() + " same as vanilla)");
                 foreach (string spellSample in spellSamples)
                     text.AppendLine(spellSample);
                 text.AppendLine("out of range weapon slots  : " + offenders.ToString()
-                    + "   (bypass chance " + RandomizerExtras.siegeChance.ToString() + "%, bypass rolls won "
-                    + RandomizerExtras.statSiegeBypassRolls.ToString() + ")");
+                    + "   (" + newOffenders.ToString() + " new, "
+                    + (offenders - newOffenders).ToString() + " same as vanilla"
+                    + ", bypass chance " + RandomizerExtras.siegeChance.ToString()
+                    + "%, bypass rolls won " + RandomizerExtras.statSiegeBypassRolls.ToString() + ")");
                 foreach (string sample in samples)
                     text.AppendLine(sample);
 
-                if (RandomizerExtras.siegeChance <= 0 && offenders > 0)
-                    warnings.Add("out of range weapons on map units while the bypass chance is 0%");
+                if (newOffenders > 0 && RandomizerExtras.siegeChance <= 0)
+                    warnings.Add(newOffenders.ToString()
+                        + " new out of range weapon(s) on map units while the bypass chance is 0%");
+                else if (newOffenders == 0)
+                    passes.Add("siege limit: no new out of range weapon on a map unit"
+                        + (offenders > 0 ? " (" + offenders.ToString() + " were already there in vanilla)" : ""));
                 else
-                    passes.Add("siege limit: map unit weapons are within range (or a bypass roll allowed them)");
+                    passes.Add("siege limit: " + newOffenders.ToString()
+                        + " new out of range weapon(s) allowed by the bypass chance");
             }
             catch (Exception exception)
             {

@@ -75,6 +75,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statTierMasteryArtRerolled;
         public static int statGrowthIdentityKept;
         public static int statStatTotalsEvened;
+        // slots the boss scaling bonus raised on purpose, so the "boss stats are
+        // untouched" check does not count them as randomizer damage
+        public static readonly List<int> bossScalingSlots = new List<int>();
+        // values left outside a range limit because they are vanilla values
+        public static int statVanillaGrowthOutliers;
+        public static int statVanillaBoostOutliers;
+        public static int statVanillaBaseOutliers;
+        public static bool statBoostValuesChanged;
+        public static bool statBaseValuesChanged;
+        public static bool statGrowthValuesChanged;
 
         public static void resetCounters()
         {
@@ -93,6 +103,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statTierMasteryArtRerolled = 0;
             statGrowthIdentityKept = 0;
             statStatTotalsEvened = 0;
+            bossScalingSlots.Clear();
+            statVanillaGrowthOutliers = 0;
+            statVanillaBoostOutliers = 0;
+            statVanillaBaseOutliers = 0;
+            statBoostValuesChanged = false;
+            statBaseValuesChanged = false;
+            statGrowthValuesChanged = false;
         }
 
         // ------------------------------------------------------------- the run
@@ -117,6 +134,22 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             // Last, so a range limit can never clamp the boss bonus back off the
             // restored vanilla values.
             applyBossScalingBonus();
+        }
+
+        // The large scale passes in RandomizerBig.cs move whole stat and growth
+        // vectors between classes, which happens *after* the clamps above and can
+        // carry an out of range value back in (a swapped growth profile, for
+        // example). Running the same clamps again at the end of the run means the
+        // limits describe the data that is actually written, not the data as it
+        // looked halfway through. Values that are equal to vanilla are still left
+        // alone, and the boss rows are skipped so the scaling bonus survives.
+        public static void reapplyRangeLimits()
+        {
+            if (Randomizer.classData == null)
+                return;
+            clampAllGrowths();
+            clampAllStatBoosts();
+            clampAllStatBases();
         }
 
         // ---------------------------------------------------------- offsets
@@ -241,6 +274,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     if (raised > 255)
                         raised = 255;
                     Randomizer.classData[offset] = (byte)raised;
+                    if (!bossScalingSlots.Contains(offset))
+                        bossScalingSlots.Add(offset);
                     raisedHere++;
                 }
                 statBossScalingBonus += raisedHere;
@@ -265,6 +300,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         if (raised < -128)
                             raised = -128;
                         Randomizer.classData[offset] = (byte)(sbyte)raised;
+                        if (!bossScalingSlots.Contains(offset))
+                            bossScalingSlots.Add(offset);
                         raisedHere++;
                         statBossScalingBoostBonus++;
                     }
@@ -681,6 +718,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             for (int index = 0; index < 100; index++)
             {
+                // monster / boss rows keep their own numbers, and the boss
+                // scaling bonus deliberately raises them above the limit
+                if (isMonsterClass(index))
+                    continue;
                 long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)index;
                 if (block + 48 >= Randomizer.classData.Length)
                     break;
@@ -708,6 +749,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             for (int index = 0; index < 100; index++)
             {
+                // see clampAllStatBoosts: bosses are left alone on purpose
+                if (isMonsterClass(index))
+                    continue;
                 long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)index;
                 if (block + 94 >= Randomizer.classData.Length)
                     break;
@@ -1005,38 +1049,23 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             List<int> classes = collectSpreads();
             int low = 255;
             int high = 0;
+            bool anyChange = false;
+            statVanillaGrowthOutliers = 0;
             for (int c = 0; c < classes.Count; c++)
             {
                 long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)classes[c];
                 if (block + 40 >= Randomizer.classData.Length)
                     break;
                 for (int i = 0; i < classPlayerGrowthOffsets.Length; i++)
-                {
-                    int value = Randomizer.classData[block + classPlayerGrowthOffsets[i]];
-                    if (value < low)
-                        low = value;
-                    if (value > high)
-                    {
-                        high = value;
-                        highestClass = classes[c];
-                        highestIsPlayer = true;
-                    }
-                }
+                    examineGrowth((int)(block + classPlayerGrowthOffsets[i]), classes[c], true,
+                        ref low, ref high, ref anyChange, ref highestClass, ref highestIsPlayer);
                 for (int i = 0; i < classEnemyGrowthOffsets.Length; i++)
-                {
-                    int value = Randomizer.classData[block + classEnemyGrowthOffsets[i]];
-                    if (value < low)
-                        low = value;
-                    if (value > high)
-                    {
-                        high = value;
-                        highestClass = classes[c];
-                        highestIsPlayer = false;
-                    }
-                }
+                    examineGrowth((int)(block + classEnemyGrowthOffsets[i]), classes[c], false,
+                        ref low, ref high, ref anyChange, ref highestClass, ref highestIsPlayer);
             }
-            lowest = low == 255 ? 0 : low;
-            highest = high;
+            statGrowthValuesChanged = anyChange;
+            lowest = anyChange ? low : 0;
+            highest = anyChange ? high : 0;
         }
 
         // How many monster class ability slots differ from vanilla right now.
@@ -1078,16 +1107,53 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 if (block + 94 >= Randomizer.classData.Length || block + 94 >= Randomizer.classDataV.Length)
                     continue;
                 for (int i = 0; i < classStatBoostOffsets.Length; i++)
-                    if (Randomizer.classData[block + classStatBoostOffsets[i]] != Randomizer.classDataV[block + classStatBoostOffsets[i]])
+                    if (Randomizer.classData[block + classStatBoostOffsets[i]] != Randomizer.classDataV[block + classStatBoostOffsets[i]]
+                        && !bossScalingSlots.Contains((int)(block + classStatBoostOffsets[i])))
                         changed++;
                 for (int i = 0; i < classBaseStatOffsets.Length; i++)
-                    if (Randomizer.classData[block + classBaseStatOffsets[i]] != Randomizer.classDataV[block + classBaseStatOffsets[i]])
+                    if (Randomizer.classData[block + classBaseStatOffsets[i]] != Randomizer.classDataV[block + classBaseStatOffsets[i]]
+                        && !bossScalingSlots.Contains((int)(block + classBaseStatOffsets[i])))
                         changed++;
             }
             return changed;
         }
 
         // Stat boost / base stat extremes in the finished data, for the report.
+        // One growth slot for the report above. Values that are still the vanilla
+        // value are not part of the limits - the clamps keep them on purpose, and
+        // counting them would warn about data the randomizer never wrote.
+        private static void examineGrowth(int offset, int classIndex, bool playerSide,
+            ref int low, ref int high, ref bool anyChange, ref int highestClass, ref bool highestIsPlayer)
+        {
+            if (offset < 0 || offset >= Randomizer.classData.Length)
+                return;
+            if (Randomizer.classDataV != null && offset < Randomizer.classDataV.Length
+                && Randomizer.classData[offset] == Randomizer.classDataV[offset])
+            {
+                int vanilla = Randomizer.classData[offset];
+                if (clampGrowths && vanilla != 0
+                    && (vanilla < growthClampMin || vanilla > growthClampMax))
+                    statVanillaGrowthOutliers++;
+                return;
+            }
+            int value = Randomizer.classData[offset];
+            anyChange = true;
+            if (value < low)
+                low = value;
+            if (value > high)
+            {
+                high = value;
+                highestClass = classIndex;
+                highestIsPlayer = playerSide;
+            }
+        }
+
+        private static bool classDataIsVanilla(int offset)
+        {
+            return Randomizer.classDataV != null && offset < Randomizer.classDataV.Length
+                && Randomizer.classData[offset] == Randomizer.classDataV[offset];
+        }
+
         public static void statValues(out int boostLow, out int boostHigh, out int baseLow, out int baseHigh)
         {
             boostLow = 0;
@@ -1101,6 +1167,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             int bHigh = -128;
             int sLow = 255;
             int sHigh = 0;
+            bool boostChanged = false;
+            bool baseChanged = false;
+            statVanillaBoostOutliers = 0;
+            statVanillaBaseOutliers = 0;
             // Only the classes the range limits are meant to constrain. Monster
             // and boss rows keep their own numbers on purpose, so including them
             // would report the vanilla values as a limit failure.
@@ -1112,7 +1182,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     break;
                 for (int i = 0; i < classStatBoostOffsets.Length; i++)
                 {
-                    int value = (sbyte)Randomizer.classData[block + classStatBoostOffsets[i]];
+                    int offset = (int)(block + classStatBoostOffsets[i]);
+                    int value = (sbyte)Randomizer.classData[offset];
+                    if (classDataIsVanilla(offset))
+                    {
+                        if (clampStatBoosts && (value < statBoostClampMin || value > statBoostClampMax))
+                            statVanillaBoostOutliers++;
+                        continue;
+                    }
+                    boostChanged = true;
                     if (value < bLow)
                         bLow = value;
                     if (value > bHigh)
@@ -1120,15 +1198,29 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 }
                 for (int i = 0; i < classBaseStatOffsets.Length; i++)
                 {
-                    int value = Randomizer.classData[block + classBaseStatOffsets[i]];
+                    int offset = (int)(block + classBaseStatOffsets[i]);
+                    int value = Randomizer.classData[offset];
                     if (value == 0)
                         continue; // a class with no base in this stat, not a zero base
+                    if (classDataIsVanilla(offset))
+                    {
+                        if (clampStatBases && (value < statBaseClampMin || value > statBaseClampMax))
+                            statVanillaBaseOutliers++;
+                        continue;
+                    }
+                    baseChanged = true;
                     if (value < sLow)
                         sLow = value;
                     if (value > sHigh)
                         sHigh = value;
                 }
             }
+            statBoostValuesChanged = boostChanged;
+            statBaseValuesChanged = baseChanged;
+            if (!boostChanged)
+                bLow = 127;
+            if (!baseChanged)
+                sLow = 255;
             if (bLow != 127)
             {
                 boostLow = bLow;

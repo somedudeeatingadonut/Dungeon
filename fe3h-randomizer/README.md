@@ -188,7 +188,7 @@ shown below, and stops at the first graft that succeeds.
 | Gambits take another gambit's effects (%) | 0 | The gambit's whole effect set comes from another gambit. |
 | Gambits take a weapon's effects (%) | 0 | The gambit's whole effect set comes from a weapon. |
 | Weapon donors must be a different weapon type | off | Applies to the three weapon grafts: the donor must be a different weapon type, so a sword can genuinely behave like a bow. |
-| No two weapons share the same effect set | off | Duplicate effect combinations are re-rolled. |
+| No two weapons share the same effect set | off | Duplicate effect combinations are re-rolled. Effect ids are 0..95, so a run with more than 96 weapons that have an effect cannot make every one of them unique - the report says how many had to share in that case instead of calling it a failure. |
 
 Only the **effects** move - might, hit, crit, weight, range and durability stay
 exactly as the normal weapon randomization set them, so these stack with
@@ -235,6 +235,17 @@ The order the passes run in matters: boss abilities and stats are restored first
 then the ability uniqueness passes, then growths, then stats, then the range
 limits, and the boss level-scaling bonus last - so a range limit can never clamp
 the boss bonus back off.
+
+The clamps run a **second time** once the large scale passes are done. Those
+passes move whole stat and growth vectors between classes, which would otherwise
+carry an out of range value back in after the limits had already been applied
+(a swapped growth profile is the usual culprit). The second run is the one that
+decides what gets written, and it still leaves vanilla values and boss rows
+alone.
+
+The report only measures values the randomization actually changed, so a vanilla
+growth or base stat that sits outside the range is listed once as "kept on
+purpose" instead of turning the whole check into a warning.
 
 The debug report gets a **BIG OPTIONS** section too: how many classes and
 characters were swapped, the swap scope, and a PASS / WARN line per pass (a swap

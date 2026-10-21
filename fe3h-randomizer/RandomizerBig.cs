@@ -473,10 +473,21 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         }
 
         // ------------------------------------------------------- uniqueness
+        // Effect ids are 0..95 (96 means "none"), so a run with more than 96
+        // weapons that have an effect cannot give every one of them its own
+        // combination. The pass still does the best it can: it walks the whole id
+        // space in random order for each duplicate instead of guessing, which is
+        // what leaves only the unavoidable repetitions behind.
+        public const int weaponEffectIdSpace = effectNone;
+
         private static void makeWeaponEffectsUnique()
         {
             byte[] data = Randomizer.itemData;
             List<string> seen = new List<string>();
+            int[] candidates = new int[weaponEffectIdSpace];
+            for (int i = 0; i < candidates.Length; i++)
+                candidates[i] = i;
+
             for (int index = 0; index < weaponCount; index++)
             {
                 int target = weaponBlock(index);
@@ -491,16 +502,36 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     seen.Add(key);
                     continue;
                 }
-                for (int attempt = 0; attempt < 20; attempt++)
+
+                // Shuffle the id space with the seeded rng, then take the first
+                // effect that gives this weapon a combination nobody has yet.
+                for (int i = candidates.Length - 1; i > 0; i--)
                 {
-                    data[target + weaponSlotEffect] = (byte)Randomizer.rng.Next(0, effectNone);
-                    string candidate = weaponEffectKey(data, target);
-                    if (!seen.Contains(candidate))
+                    int swap = Randomizer.rng.Next(0, i + 1);
+                    int hold = candidates[i];
+                    candidates[i] = candidates[swap];
+                    candidates[swap] = hold;
+                }
+
+                byte original = data[target + weaponSlotEffect];
+                int found = -1;
+                for (int i = 0; i < candidates.Length; i++)
+                {
+                    data[target + weaponSlotEffect] = (byte)candidates[i];
+                    if (!seen.Contains(weaponEffectKey(data, target)))
                     {
-                        seen.Add(candidate);
-                        statWeaponEffectsRerolled++;
+                        found = candidates[i];
                         break;
                     }
+                }
+                if (found < 0)
+                {
+                    data[target + weaponSlotEffect] = original;
+                }
+                else
+                {
+                    seen.Add(weaponEffectKey(data, target));
+                    statWeaponEffectsRerolled++;
                 }
             }
         }

@@ -656,6 +656,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             if (classesLoaded)
             {
+                // The passes above move whole stat / growth vectors between
+                // classes, which can carry a value that the range limits had
+                // already clamped back in. Clamping again here means the limits
+                // hold for the data that is actually written out.
+                RandomizerMore.reapplyRangeLimits();
+
                 // Runs last, after every other pass has written its values.
                 enforceAbilityBlocklist();
             }
