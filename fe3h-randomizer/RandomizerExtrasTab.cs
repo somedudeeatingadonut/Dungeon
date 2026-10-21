@@ -28,8 +28,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private CheckBox extrasUniquePersonal_checkBox;
         private CheckBox extrasUniqueClassAb_checkBox;
         private CheckBox extrasUniqueTierMastery_checkBox;
+        private CheckBox extrasUniqueTierMasteryArt_checkBox;
         private CheckBox extrasEvenGrowthTotals_checkBox;
+        private CheckBox extrasGrowthIdentity_checkBox;
+        private CheckBox extrasEvenStatTotals_checkBox;
         private NumericUpDown extrasGrowthTolerance_numericUpDown;
+        private NumericUpDown extrasBossScaling_numericUpDown;
+        private NumericUpDown extrasStatTotalTolerance_numericUpDown;
         private CheckBox extrasDebugAuto_checkBox;
         private Label extrasDebugPath_label;
         private bool extrasBuilding;
@@ -251,26 +256,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 // --------------------------------- more randomization options
                 addFullRow(layout, sectionLabel("More randomization options"));
 
+                addFullRow(layout, sectionLabel("Bosses and monsters"));
+
                 this.extrasBossAb_checkBox = new CheckBox();
                 this.extrasBossAb_checkBox.AutoSize = true;
                 this.extrasBossAb_checkBox.Checked = RandomizerMore.protectBossAbilities;
                 this.extrasBossAb_checkBox.Text = "Keep boss and monster class abilities as they are (recommended)";
                 this.extrasBossAb_checkBox.CheckedChanged += new EventHandler(this.extrasBossAb_checkBox_CheckedChanged);
                 addFullRow(layout, this.extrasBossAb_checkBox);
-
-                this.extrasUniqueClassAb_checkBox = new CheckBox();
-                this.extrasUniqueClassAb_checkBox.AutoSize = true;
-                this.extrasUniqueClassAb_checkBox.Checked = RandomizerMore.uniqueClassAbilities;
-                this.extrasUniqueClassAb_checkBox.Text = "Never give the same class the same ability twice";
-                this.extrasUniqueClassAb_checkBox.CheckedChanged += new EventHandler(this.extrasUniqueClassAb_checkBox_CheckedChanged);
-                addFullRow(layout, this.extrasUniqueClassAb_checkBox);
-
-                this.extrasUniquePersonal_checkBox = new CheckBox();
-                this.extrasUniquePersonal_checkBox.AutoSize = true;
-                this.extrasUniquePersonal_checkBox.Checked = RandomizerMore.uniquePersonalAbilities;
-                this.extrasUniquePersonal_checkBox.Text = "Give every character a different personal ability";
-                this.extrasUniquePersonal_checkBox.CheckedChanged += new EventHandler(this.extrasUniquePersonal_checkBox_CheckedChanged);
-                addFullRow(layout, this.extrasUniquePersonal_checkBox);
 
                 this.extrasBossStats_checkBox = new CheckBox();
                 this.extrasBossStats_checkBox.AutoSize = true;
@@ -279,12 +272,47 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasBossStats_checkBox.CheckedChanged += new EventHandler(this.extrasBossStats_checkBox_CheckedChanged);
                 addFullRow(layout, this.extrasBossStats_checkBox);
 
+                this.extrasBossScaling_numericUpDown = new NumericUpDown();
+                this.extrasBossScaling_numericUpDown.Minimum = 0;
+                this.extrasBossScaling_numericUpDown.Maximum = 100;
+                this.extrasBossScaling_numericUpDown.Increment = 5;
+                this.extrasBossScaling_numericUpDown.Value = RandomizerMore.bossScalingShare;
+                this.extrasBossScaling_numericUpDown.Width = 70;
+                this.extrasBossScaling_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasBossScaling_numericUpDown.ValueChanged += new EventHandler(this.extrasBossScaling_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Share of the level scaling bonus bosses get (%):"), this.extrasBossScaling_numericUpDown);
+
+                addFullRow(layout, sectionLabel("Abilities"));
+
+                this.extrasUniqueClassAb_checkBox = new CheckBox();
+                this.extrasUniqueClassAb_checkBox.AutoSize = true;
+                this.extrasUniqueClassAb_checkBox.Checked = RandomizerMore.uniqueClassAbilities;
+                this.extrasUniqueClassAb_checkBox.Text = "Never give the same class the same ability twice";
+                this.extrasUniqueClassAb_checkBox.CheckedChanged += new EventHandler(this.extrasUniqueClassAb_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasUniqueClassAb_checkBox);
+
                 this.extrasUniqueTierMastery_checkBox = new CheckBox();
                 this.extrasUniqueTierMastery_checkBox.AutoSize = true;
                 this.extrasUniqueTierMastery_checkBox.Checked = RandomizerMore.uniqueTierMastery;
                 this.extrasUniqueTierMastery_checkBox.Text = "Give every class in a tier a different mastery ability";
                 this.extrasUniqueTierMastery_checkBox.CheckedChanged += new EventHandler(this.extrasUniqueTierMastery_checkBox_CheckedChanged);
                 addFullRow(layout, this.extrasUniqueTierMastery_checkBox);
+
+                this.extrasUniqueTierMasteryArt_checkBox = new CheckBox();
+                this.extrasUniqueTierMasteryArt_checkBox.AutoSize = true;
+                this.extrasUniqueTierMasteryArt_checkBox.Checked = RandomizerMore.uniqueTierMasteryArt;
+                this.extrasUniqueTierMasteryArt_checkBox.Text = "Give every class in a tier a different mastery combat art";
+                this.extrasUniqueTierMasteryArt_checkBox.CheckedChanged += new EventHandler(this.extrasUniqueTierMasteryArt_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasUniqueTierMasteryArt_checkBox);
+
+                this.extrasUniquePersonal_checkBox = new CheckBox();
+                this.extrasUniquePersonal_checkBox.AutoSize = true;
+                this.extrasUniquePersonal_checkBox.Checked = RandomizerMore.uniquePersonalAbilities;
+                this.extrasUniquePersonal_checkBox.Text = "Give every character a different personal ability";
+                this.extrasUniquePersonal_checkBox.CheckedChanged += new EventHandler(this.extrasUniquePersonal_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasUniquePersonal_checkBox);
+
+                addFullRow(layout, sectionLabel("Growths and stats"));
 
                 this.extrasEvenGrowthTotals_checkBox = new CheckBox();
                 this.extrasEvenGrowthTotals_checkBox.AutoSize = true;
@@ -301,21 +329,51 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasGrowthTolerance_numericUpDown.Width = 70;
                 this.extrasGrowthTolerance_numericUpDown.Margin = new Padding(0, 3, 0, 3);
                 this.extrasGrowthTolerance_numericUpDown.ValueChanged += new EventHandler(this.extrasGrowthTolerance_numericUpDown_ValueChanged);
-                addSplitRow(layout, indentedLabel("Allowed difference from the average (%):"), this.extrasGrowthTolerance_numericUpDown);
+                addSplitRow(layout, indentedLabel("Allowed growth difference from the average (%):"), this.extrasGrowthTolerance_numericUpDown);
+
+                this.extrasGrowthIdentity_checkBox = new CheckBox();
+                this.extrasGrowthIdentity_checkBox.AutoSize = true;
+                this.extrasGrowthIdentity_checkBox.Checked = RandomizerMore.protectGrowthIdentity;
+                this.extrasGrowthIdentity_checkBox.Text = "Keep each class's best growth stat as its best stat";
+                this.extrasGrowthIdentity_checkBox.CheckedChanged += new EventHandler(this.extrasGrowthIdentity_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasGrowthIdentity_checkBox);
+
+                this.extrasEvenStatTotals_checkBox = new CheckBox();
+                this.extrasEvenStatTotals_checkBox.AutoSize = true;
+                this.extrasEvenStatTotals_checkBox.Checked = RandomizerMore.evenStatTotals;
+                this.extrasEvenStatTotals_checkBox.Text = "Even out the base stat totals of every class (keeps each class's shape)";
+                this.extrasEvenStatTotals_checkBox.CheckedChanged += new EventHandler(this.extrasEvenStatTotals_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasEvenStatTotals_checkBox);
+
+                this.extrasStatTotalTolerance_numericUpDown = new NumericUpDown();
+                this.extrasStatTotalTolerance_numericUpDown.Minimum = 0;
+                this.extrasStatTotalTolerance_numericUpDown.Maximum = 90;
+                this.extrasStatTotalTolerance_numericUpDown.Increment = 5;
+                this.extrasStatTotalTolerance_numericUpDown.Value = RandomizerMore.statTotalTolerance;
+                this.extrasStatTotalTolerance_numericUpDown.Width = 70;
+                this.extrasStatTotalTolerance_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasStatTotalTolerance_numericUpDown.ValueChanged += new EventHandler(this.extrasStatTotalTolerance_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Allowed base stat difference from the average (%):"), this.extrasStatTotalTolerance_numericUpDown);
 
                 addFullRow(layout, helpLabel(
                     "Boss and monster classes keep their own abilities (class abilities, latent abilities\r\n"
                     + "and barrier abilities) and stats (stat boosts and base stats), so a boss is still a\r\n"
                     + "boss. The even class variety spread never touches them either, and the Dancer always\r\n"
                     + "keeps Dance.\r\n"
+                    + "If level scaling is on, bosses get a share of it as a flat boost to their base stats -\r\n"
+                    + "25% by default, so 150% scaling gives them about 12% more base stats. That is far less\r\n"
+                    + "than a normal enemy gains from the same scaling, so they stay beatable.\r\n"
                     + "Unique personal abilities stops the same personal skill being handed to several\r\n"
                     + "characters - it only does anything when personal abilities are randomized.\r\n"
                     + "The no repeats option stops one class ending up with the same ability in two slots, and\r\n"
-                    + "the tier option does the same for mastery abilities inside one class tier.\r\n"
+                    + "the tier options do the same for mastery abilities and mastery combat arts inside one\r\n"
+                    + "class tier.\r\n"
                     + "Even growth totals scales a class's growths up or down so every class grows about the\r\n"
                     + "same amount per level, while keeping the ratio between its stats - a slow tanky class\r\n"
-                    + "stays slow and tanky. The percentage is how far from the average a class may sit\r\n"
-                    + "before it is touched.\r\n"
+                    + "stays slow and tanky. The percentage is how far from the average a class may sit before\r\n"
+                    + "it is touched. Even base stat totals does the same for the class base stats.\r\n"
+                    + "Keeping each class's best growth stat swaps two growths around when the randomization\r\n"
+                    + "buried the stat the class is known for, so the classes stay readable.\r\n"
                     + "The range limits for growths, stat boosts and base stats live on their own tabs in the\r\n"
                     + "Classes page, next to the randomization they apply to."));
 
@@ -475,6 +533,43 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             RandomizerMore.evenGrowthTotals = this.extrasEvenGrowthTotals_checkBox.Checked;
             if (this.extrasGrowthTolerance_numericUpDown != null)
                 this.extrasGrowthTolerance_numericUpDown.Enabled = this.extrasEvenGrowthTotals_checkBox.Checked;
+        }
+
+        private void extrasBossScaling_numericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasBossScaling_numericUpDown == null)
+                return;
+            RandomizerMore.bossScalingShare = (int)this.extrasBossScaling_numericUpDown.Value;
+        }
+
+        private void extrasUniqueTierMasteryArt_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasUniqueTierMasteryArt_checkBox == null)
+                return;
+            RandomizerMore.uniqueTierMasteryArt = this.extrasUniqueTierMasteryArt_checkBox.Checked;
+        }
+
+        private void extrasGrowthIdentity_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasGrowthIdentity_checkBox == null)
+                return;
+            RandomizerMore.protectGrowthIdentity = this.extrasGrowthIdentity_checkBox.Checked;
+        }
+
+        private void extrasEvenStatTotals_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasEvenStatTotals_checkBox == null)
+                return;
+            RandomizerMore.evenStatTotals = this.extrasEvenStatTotals_checkBox.Checked;
+            if (this.extrasStatTotalTolerance_numericUpDown != null)
+                this.extrasStatTotalTolerance_numericUpDown.Enabled = this.extrasEvenStatTotals_checkBox.Checked;
+        }
+
+        private void extrasStatTotalTolerance_numericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasStatTotalTolerance_numericUpDown == null)
+                return;
+            RandomizerMore.statTotalTolerance = (int)this.extrasStatTotalTolerance_numericUpDown.Value;
         }
 
         private void extrasGrowthTolerance_numericUpDown_ValueChanged(object sender, EventArgs e)

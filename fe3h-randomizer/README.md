@@ -133,10 +133,14 @@ options* section of the tab:
 | --- | --- | --- |
 | Keep boss and monster class abilities as they are | on | Monster and boss classes get their class ability, latent ability and barrier ability slots back from the vanilla file. A boss stays a boss even when the monster tiers are being randomized, and the even-variety spread never touches monster classes either. |
 | Keep boss and monster class stats as they are | on | Same idea for the stat boosts and base stats of monster classes, so a boss is not turned into a glass cannon. |
+| Share of the level scaling bonus bosses get (%) | 25 | When level scaling is on, bosses keep their vanilla stats and would fall behind every other enemy in the run. They get a share of the scaling as a flat bump to their base stats - 25% by default, so a 150% multiplier gives them about 12% more base stats. That is a fraction of what a normal enemy gains, so they stay beatable; capped at 50% of the scaling. |
 | Never give the same class the same ability twice | on | A class cannot end up with one ability in two of its slots (which just wastes a slot). |
 | Give every class in a tier a different mastery ability | off | Inside one class tier, no two classes share a mastery ability. |
+| Give every class in a tier a different mastery combat art | off | The same for the mastery combat art slot. |
 | Give every character a different personal ability | off | No two characters share a personal ability. Only does anything when personal abilities are being randomized. |
 | Even out the growth totals of every class | off | Scales a class's growths up or down so every class grows roughly the same amount per level, while keeping the ratio between its stats - a slow tanky class stays slow and tanky. The percentage is how far from the average a class may sit before it is touched (default 15%). |
+| Keep each class's best growth stat as its best stat | off | If the randomization buries the stat a class is known for, two growth values are swapped so that stat is still the class's highest. Totals are unchanged. |
+| Even out the base stat totals of every class | off | The same idea as the growth totals, for base stats: every class ends up with a similar stat total while keeping the ratio between its stats (default 15% tolerance). |
 
 Like the other extra options, these are not saved between runs - set them each
 time you start the tool.
@@ -161,6 +165,11 @@ Each one is a single row docked to the bottom of its page, so nothing the
 original tool put there has been moved. Like the other passes they only touch
 values the randomization changed - a growth the class does not have (0%) or a
 stat that is still vanilla is left alone.
+
+The order the passes run in matters: boss abilities and stats are restored first,
+then the ability uniqueness passes, then growths, then stats, then the range
+limits, and the boss level-scaling bonus last - so a range limit can never clamp
+the boss bonus back off.
 
 The debug report gets a **MORE OPTIONS** section for all of this: how many slots
 each pass changed, how many duplicates are left, the class growth range and

@@ -33,10 +33,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // bosses
         public static bool protectBossAbilities = true;
         public static bool protectBossStats = true;
+        public static int bossScalingShare = 25;
 
         // abilities
         public static bool uniqueClassAbilities = true;
         public static bool uniqueTierMastery = false;
+        public static bool uniqueTierMasteryArt = false;
         public static bool uniquePersonalAbilities = false;
 
         // growths
@@ -45,6 +47,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int growthClampMax = 70;
         public static bool evenGrowthTotals = false;
         public static int growthTotalTolerance = 15;
+        public static bool protectGrowthIdentity = false;
 
         // stats
         public static bool clampStatBoosts = false;
@@ -53,6 +56,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static bool clampStatBases = false;
         public static int statBaseClampMin = 3;
         public static int statBaseClampMax = 30;
+        public static bool evenStatTotals = false;
+        public static int statTotalTolerance = 15;
 
         // ------------------------------------------------------------ counters
         public static int statBossSlotsRestored;
@@ -64,6 +69,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statGrowthTotalsEvened;
         public static int statStatBoostsClamped;
         public static int statStatBasesClamped;
+        public static int statBossScalingBonus;
+        public static int statTierMasteryArtRerolled;
+        public static int statGrowthIdentityKept;
+        public static int statStatTotalsEvened;
 
         public static void resetCounters()
         {
@@ -76,6 +85,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statGrowthTotalsEvened = 0;
             statStatBoostsClamped = 0;
             statStatBasesClamped = 0;
+            statBossScalingBonus = 0;
+            statTierMasteryArtRerolled = 0;
+            statGrowthIdentityKept = 0;
+            statStatTotalsEvened = 0;
         }
 
         // ------------------------------------------------------------- the run
@@ -87,12 +100,19 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             removeDuplicateClassAbilities();
             makeTierMasteryUnique();
+            makeTierMasteryArtUnique();
             makePersonalAbilitiesUnique();
 
-            evenGrowthTotals();
+            applyGrowthIdentity();
+            applyEvenGrowthTotals();
             clampAllGrowths();
+            applyEvenStatTotals();
             clampAllStatBoosts();
             clampAllStatBases();
+
+            // Last, so a range limit can never clamp the boss bonus back off the
+            // restored vanilla values.
+            applyBossScalingBonus();
         }
 
         // ---------------------------------------------------------- offsets
@@ -167,6 +187,56 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     restoreClassSlot((int)(block + classStatBoostOffsets[i]), ref statBossStatSlotsRestored);
                 for (int i = 0; i < classBaseStatOffsets.Length; i++)
                     restoreClassSlot((int)(block + classBaseStatOffsets[i]), ref statBossStatSlotsRestored);
+            }
+        }
+
+        // Level scaling raises enemy levels by the level multiplier. Bosses keep
+        // their vanilla stats (above), so without this they would fall behind
+        // every other enemy in the run. They get a share of that scaling as a
+        // flat bump to their base stats - a quarter of it by default, which is
+        // far less than a normal enemy gets, but enough that a boss does not
+        // become a pushover in the late game.
+        private static void applyBossScalingBonus()
+        {
+            if (!protectBossStats || bossScalingShare <= 0)
+                return;
+            if (Randomizer.classData == null)
+                return;
+            Settings current = settings;
+            if (current == null || !current.changeLv || current.lvMultiplier <= 100)
+                return;
+
+            int share = Math.Max(0, Math.Min(100, bossScalingShare));
+            // lvMultiplier is a double (150.0 = 150%); keep the math in ints so
+            // the result cannot pick up stray decimals.
+            int extraPercent = (int)((current.lvMultiplier - 100.0) * share / 100.0);
+            if (extraPercent <= 0)
+                return;
+            if (extraPercent > 50)
+                extraPercent = 50; // a boss is still meant to be beatable
+
+            for (int index = 0; index < 100; index++)
+            {
+                if (!isMonsterClass(index))
+                    continue;
+                long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)index;
+                if (block + 94 >= Randomizer.classData.Length)
+                    continue;
+                for (int i = 0; i < classBaseStatOffsets.Length; i++)
+                {
+                    int offset = (int)(block + classBaseStatOffsets[i]);
+                    int value = Randomizer.classData[offset];
+                    if (value == 0)
+                        continue; // no base in this stat, do not invent one
+                    int bonus = value * extraPercent / 100;
+                    if (bonus < 1)
+                        bonus = 1;
+                    int raised = value + bonus;
+                    if (raised > 255)
+                        raised = 255;
+                    Randomizer.classData[offset] = (byte)raised;
+                    statBossScalingBonus++;
+                }
             }
         }
 
@@ -262,6 +332,67 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     statTierMasteryRerolled++;
                 }
             }
+        }
+
+        // The same idea for the mastery combat art (slot 1 of the class ability
+        // block). Combat arts are not abilities, so the blocklist does not apply.
+        private static void makeTierMasteryArtUnique()
+        {
+            if (!uniqueTierMasteryArt)
+                return;
+            if (Randomizer.classData == null || Randomizer.combatArtNames == null)
+                return;
+
+            List<int>[] tiers = new List<int>[8];
+            for (int i = 0; i < tiers.Length; i++)
+                tiers[i] = new List<int>();
+            collectTiers(tiers);
+
+            for (int tier = 0; tier < tiers.Length; tier++)
+            {
+                List<int> seen = new List<int>();
+                List<int> classes = tiers[tier];
+                for (int i = 0; i < classes.Count; i++)
+                {
+                    long block = Randomizer.classAbStart + Randomizer.classAbLen * (long)classes[i];
+                    if (block + 1 >= Randomizer.classData.Length)
+                        continue;
+                    int offset = (int)(block + 1L);
+                    int art = Randomizer.classData[offset];
+                    if (art == 255)
+                        continue;
+                    if (!seen.Contains(art))
+                    {
+                        seen.Add(art);
+                        continue;
+                    }
+                    if (isVanillaValue(Randomizer.classDataV, offset, art))
+                        continue;
+                    int replacement = pickUnusedCombatArt(seen);
+                    if (replacement == 255)
+                        continue;
+                    Randomizer.classData[offset] = (byte)replacement;
+                    seen.Add(replacement);
+                    statTierMasteryArtRerolled++;
+                }
+            }
+        }
+
+        private static int pickUnusedCombatArt(List<int> used)
+        {
+            string[] names = Randomizer.combatArtNames;
+            if (names == null || names.Length == 0)
+                return 255;
+            for (int attempt = 0; attempt < 120; attempt++)
+            {
+                int candidate = Randomizer.rng.Next(1, names.Length);
+                if (candidate >= names.Length || names[candidate] == null || names[candidate].Length == 0)
+                    continue;
+                if (used != null && used.Contains(candidate))
+                    continue;
+                return candidate;
+            }
+            return 255;
         }
 
         // ------------------------------------------------- 3. one skill each
@@ -361,7 +492,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // Every class grows the same total per level, give or take the tolerance.
         // The ratio between a class's growths is kept, so a slow, tanky class
         // stays slow and tanky - it just grows the same amount overall.
-        private static void evenGrowthTotals()
+        private static void applyEvenGrowthTotals()
         {
             if (!evenGrowthTotals)
                 return;
@@ -433,6 +564,66 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
         }
 
+        // Every class keeps the shape it is known for: whichever growth stat was
+        // its best in the vanilla file is still its best afterwards. Values are
+        // only swapped between two stats, so the growth total is unchanged.
+        private static void applyGrowthIdentity()
+        {
+            if (!protectGrowthIdentity)
+                return;
+            if (Randomizer.classData == null || Randomizer.classDataV == null)
+                return;
+            Settings current = settings;
+            if (current != null && !current.randPlayerGrowthBoosts)
+                return;
+
+            List<int> classes = collectSpreads();
+            for (int i = 0; i < classes.Count; i++)
+            {
+                int classIndex = classes[i];
+                long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)classIndex;
+                if (block + 40 >= Randomizer.classData.Length || block + 40 >= Randomizer.classDataV.Length)
+                    continue;
+
+                int vanillaBest = -1;
+                int vanillaBestValue = -1;
+                for (int stat = 0; stat < classPlayerGrowthOffsets.Length; stat++)
+                {
+                    int value = Randomizer.classDataV[block + classPlayerGrowthOffsets[stat]];
+                    if (value > vanillaBestValue)
+                    {
+                        vanillaBestValue = value;
+                        vanillaBest = stat;
+                    }
+                }
+                if (vanillaBest < 0 || vanillaBestValue <= 0)
+                    continue;
+
+                int currentBest = -1;
+                int currentBestValue = -1;
+                for (int stat = 0; stat < classPlayerGrowthOffsets.Length; stat++)
+                {
+                    int value = Randomizer.classData[block + classPlayerGrowthOffsets[stat]];
+                    if (value > currentBestValue)
+                    {
+                        currentBestValue = value;
+                        currentBest = stat;
+                    }
+                }
+                if (currentBest < 0 || currentBest == vanillaBest)
+                    continue;
+
+                int keep = (int)(block + classPlayerGrowthOffsets[vanillaBest]);
+                int give = (int)(block + classPlayerGrowthOffsets[currentBest]);
+                if (Randomizer.classData[keep] > Randomizer.classData[give])
+                    continue;
+                byte swap = Randomizer.classData[keep];
+                Randomizer.classData[keep] = Randomizer.classData[give];
+                Randomizer.classData[give] = swap;
+                statGrowthIdentityKept++;
+            }
+        }
+
         // ----------------------------------------------------------- 5. stats
         private static void clampAllStatBoosts()
         {
@@ -485,6 +676,82 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 for (int i = 0; i < classBaseStatOffsets.Length; i++)
                     clampValue(Randomizer.classData, Randomizer.classDataV,
                         (int)(block + classBaseStatOffsets[i]), low, high, false, ref statStatBasesClamped);
+            }
+        }
+
+        // Same idea as the growth totals, for base stats: every class ends up
+        // with roughly the same stat total, keeping the ratio between its stats
+        // so the class still feels like itself.
+        private static void applyEvenStatTotals()
+        {
+            if (!evenStatTotals)
+                return;
+            if (Randomizer.classData == null)
+                return;
+            Settings current = settings;
+            if (current != null && !current.randClassBases)
+                return;
+
+            List<int> classes = collectSpreads();
+            if (classes.Count < 2)
+                return;
+
+            long total = 0;
+            int counted = 0;
+            for (int i = 0; i < classes.Count; i++)
+            {
+                int sum = baseStatSum(classes[i]);
+                if (sum <= 0)
+                    continue;
+                total += sum;
+                counted++;
+            }
+            if (counted < 2)
+                return;
+            int target = (int)(total / counted);
+            if (target <= 0)
+                return;
+
+            int tolerance = Math.Max(0, Math.Min(90, statTotalTolerance));
+            for (int i = 0; i < classes.Count; i++)
+            {
+                int sum = baseStatSum(classes[i]);
+                if (sum <= 0 || sum == target)
+                    continue;
+                int allowed = Math.Max(1, target * tolerance / 100);
+                if (Math.Abs(sum - target) <= allowed)
+                    continue;
+                scaleBaseStats(classes[i], sum, target);
+                statStatTotalsEvened++;
+            }
+        }
+
+        private static int baseStatSum(int classIndex)
+        {
+            long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)classIndex;
+            if (block + 94 >= Randomizer.classData.Length)
+                return 0;
+            int sum = 0;
+            for (int i = 0; i < classBaseStatOffsets.Length; i++)
+                sum += Randomizer.classData[block + classBaseStatOffsets[i]];
+            return sum;
+        }
+
+        private static void scaleBaseStats(int classIndex, int currentTotal, int target)
+        {
+            long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)classIndex;
+            for (int i = 0; i < classBaseStatOffsets.Length; i++)
+            {
+                int offset = (int)(block + classBaseStatOffsets[i]);
+                int value = Randomizer.classData[offset];
+                if (value == 0)
+                    continue; // the class has no base in this stat, leave it
+                int scaled = (int)Math.Round((double)value * target / currentTotal);
+                if (scaled < 1)
+                    scaled = 1;
+                if (scaled > 255)
+                    scaled = 255;
+                Randomizer.classData[offset] = (byte)scaled;
             }
         }
 

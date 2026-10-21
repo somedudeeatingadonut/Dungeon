@@ -201,6 +201,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("Boss stats kept as they are    : " + RandomizerMore.protectBossStats
                 + "   (slots restored " + RandomizerMore.statBossStatSlotsRestored.ToString()
                 + ", still changed " + changedBossStats.ToString() + ")");
+            bool scalingOn = Randomizer.settingsForDebug != null && Randomizer.settingsForDebug.changeLv;
+            int multiplier = Randomizer.settingsForDebug == null
+                ? 100 : (int)Randomizer.settingsForDebug.lvMultiplier;
+            text.AppendLine("Boss level scaling bonus       : " + RandomizerMore.bossScalingShare + "% of the scaling"
+                + "   (level scaling " + (scalingOn ? "on" : "off") + ", multiplier " + multiplier + "%"
+                + ", stats raised " + RandomizerMore.statBossScalingBonus.ToString() + ")");
 
             text.AppendLine("No repeated class ability      : " + RandomizerMore.uniqueClassAbilities
                 + "   (rerolled " + RandomizerMore.statDuplicateClassAbRerolled.ToString()
@@ -208,6 +214,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("One mastery ability per tier   : " + RandomizerMore.uniqueTierMastery
                 + "   (rerolled " + RandomizerMore.statTierMasteryRerolled.ToString()
                 + ", left " + RandomizerMore.countDuplicateTierMastery().ToString() + ")");
+            text.AppendLine("One mastery art per tier       : " + RandomizerMore.uniqueTierMasteryArt
+                + "   (rerolled " + RandomizerMore.statTierMasteryArtRerolled.ToString() + ")");
             text.AppendLine("Unique personal abilities      : " + RandomizerMore.uniquePersonalAbilities
                 + "   (rerolled " + RandomizerMore.statDuplicatePersonalRerolled.ToString()
                 + ", left " + RandomizerMore.countDuplicatePersonalAbilities().ToString() + ")");
@@ -228,6 +236,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("Even growth totals             : " + RandomizerMore.evenGrowthTotals
                 + "  (tolerance " + RandomizerMore.growthTotalTolerance.ToString() + "%)"
                 + "   (classes evened " + RandomizerMore.statGrowthTotalsEvened.ToString() + ")");
+            text.AppendLine("Keep each class's best growth  : " + RandomizerMore.protectGrowthIdentity
+                + "   (classes kept " + RandomizerMore.statGrowthIdentityKept.ToString() + ")");
             text.AppendLine("    class growth totals now   : " + totalLow.ToString() + " to "
                 + totalHigh.ToString() + ", average " + totalAverage.ToString());
 
@@ -241,6 +251,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + RandomizerMore.statBoostClampMax.ToString() + ")"
                 + "   (pulled back " + RandomizerMore.statStatBoostsClamped.ToString()
                 + ", boosts now " + boostLow.ToString() + " to " + boostHigh.ToString() + ")");
+            text.AppendLine("Even base stat totals          : " + RandomizerMore.evenStatTotals
+                + "  (tolerance " + RandomizerMore.statTotalTolerance.ToString() + "%)"
+                + "   (classes evened " + RandomizerMore.statStatTotalsEvened.ToString() + ")");
             text.AppendLine("Base stat range limit          : " + RandomizerMore.clampStatBases
                 + "  (" + RandomizerMore.statBaseClampMin.ToString() + " to "
                 + RandomizerMore.statBaseClampMax.ToString() + ")"
@@ -278,6 +291,22 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 else
                     warnings.Add(duplicates.ToString() + " repeated mastery abilit(ies) inside a tier (vanilla ones are kept)");
             }
+            if (RandomizerMore.uniqueTierMasteryArt)
+                passes.Add("mastery combat arts: " + RandomizerMore.statTierMasteryArtRerolled.ToString()
+                    + " re-rolled to keep the tier unique");
+            if (RandomizerMore.protectBossStats && RandomizerMore.bossScalingShare > 0)
+            {
+                if (Randomizer.settingsForDebug == null || !Randomizer.settingsForDebug.changeLv
+                    || Randomizer.settingsForDebug.lvMultiplier <= 100)
+                    passes.Add("boss scaling bonus: not needed (level scaling is off)");
+                else if (RandomizerMore.statBossScalingBonus > 0)
+                    passes.Add("boss scaling bonus: " + RandomizerMore.statBossScalingBonus.ToString()
+                        + " boss stat(s) raised");
+                else
+                    warnings.Add("boss scaling bonus was on but no boss stat was raised");
+            }
+            if (RandomizerMore.protectGrowthIdentity && RandomizerMore.statGrowthIdentityKept == 0)
+                warnings.Add("no class needed its best growth stat restored (nothing wrong, the randomization may have kept them)");
             if (RandomizerMore.uniquePersonalAbilities)
             {
                 int duplicates = RandomizerMore.countDuplicatePersonalAbilities();
