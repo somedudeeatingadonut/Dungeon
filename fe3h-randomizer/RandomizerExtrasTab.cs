@@ -20,6 +20,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private CheckedListBox extrasAbilities_checkedListBox;
         private CheckBox extrasSiege_checkBox;
         private NumericUpDown extrasMaxRange_numericUpDown;
+        private NumericUpDown extrasSiegeChance_numericUpDown;
         private NumericUpDown extrasGrowthShift_numericUpDown;
         private bool extrasBuilding;
 
@@ -200,10 +201,22 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasMaxRange_numericUpDown.ValueChanged += new EventHandler(this.extrasMaxRange_numericUpDown_ValueChanged);
                 addSplitRow(layout, indentedLabel("Max attack range:"), this.extrasMaxRange_numericUpDown);
 
+                this.extrasSiegeChance_numericUpDown = new NumericUpDown();
+                this.extrasSiegeChance_numericUpDown.Minimum = 0;
+                this.extrasSiegeChance_numericUpDown.Maximum = 100;
+                this.extrasSiegeChance_numericUpDown.Increment = 5;
+                this.extrasSiegeChance_numericUpDown.Value = RandomizerExtras.siegeChance;
+                this.extrasSiegeChance_numericUpDown.Width = 70;
+                this.extrasSiegeChance_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasSiegeChance_numericUpDown.ValueChanged += new EventHandler(this.extrasSiegeChance_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Chance an enemy still gets one (%):"), this.extrasSiegeChance_numericUpDown);
+
                 addFullRow(layout, helpLabel(
                     "Weapons above this range are dropped from the pools that random map enemies draw\r\n"
                     + "from, so no more Meteor, Bolting or 4+ range longbows. 2 keeps the usual melee\r\n"
-                    + "and 2 range setup. Player side weapons and shops are not touched."));
+                    + "and 2 range setup. Player side weapons and shops are not touched.\r\n"
+                    + "The chance lets that percentage of enemies ignore the limit - they still have to\r\n"
+                    + "roll the siege weapon afterwards, so it is a chance on a chance."));
 
                 // ------------------------------------------------- level scaling
                 addFullRow(layout, sectionLabel("Level scaling"));
@@ -271,6 +284,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 return;
             RandomizerExtras.maxEnemyWeaponRange = (int)this.extrasMaxRange_numericUpDown.Value;
             RandomizerExtras.notifyBlocklistChanged();
+        }
+
+        private void extrasSiegeChance_numericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasSiegeChance_numericUpDown == null)
+                return;
+            RandomizerExtras.siegeChance = (int)this.extrasSiegeChance_numericUpDown.Value;
         }
 
         private void extrasGrowthShift_numericUpDown_ValueChanged(object sender, EventArgs e)

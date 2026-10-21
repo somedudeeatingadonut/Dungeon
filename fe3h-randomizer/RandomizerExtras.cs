@@ -33,6 +33,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
         public static bool limitSiegeTomes = false;
         public static int maxEnemyWeaponRange = 2;
+        public static int siegeChance = 5;
 
         public static int growthShift = 0;
 
@@ -163,6 +164,27 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             return range <= maxEnemyWeaponRange;
         }
 
+        // True when this enemy is allowed to ignore the limit. The siege weapon
+        // still has to be rolled from the pool afterwards, so it is a chance on
+        // a chance and does not guarantee one.
+        public static bool siegeAllowedThisTime()
+        {
+            if (!limitSiegeTomes || maxEnemyWeaponRange <= 0 || siegeChance <= 0)
+                return false;
+            if (siegeChance >= 100)
+                return true;
+            return Randomizer.rng.Next(0, 100) < siegeChance;
+        }
+
+        // Same as filterRanges, but rolled once per enemy so a small percentage
+        // of enemies can still end up with a siege tome.
+        public static void filterRangesForEnemy(List<int> pool)
+        {
+            if (siegeAllowedThisTime())
+                return;
+            filterRanges(pool);
+        }
+
         // Removes out-of-range weapons from a pool of weapon ids.
         public static void filterRanges(List<int> pool)
         {
@@ -183,7 +205,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int pickEnemyWeapon()
         {
             int[] pool = Randomizer.obtainableWeapons;
-            if (limitSiegeTomes && maxEnemyWeaponRange > 0)
+            if (limitSiegeTomes && maxEnemyWeaponRange > 0 && !siegeAllowedThisTime())
             {
                 if (filteredObtainableWeapons == null)
                     filteredObtainableWeapons = filterRanges(Randomizer.obtainableWeapons);
@@ -390,7 +412,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 if (block + 40 >= Randomizer.classData.Length)
                     break;
 
-                int hpOffset = block + enemyGrowthOffsets[0];
+                int hpOffset = (int)(block + enemyGrowthOffsets[0]);
                 if (Randomizer.classData[hpOffset] == 0)
                     continue;
 
@@ -398,7 +420,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 int[] shiftedStats = { 1, 2, 6, 7 }; // Str, Mag, Def, Res
                 for (int i = 0; i < shiftedStats.Length; i++)
                 {
-                    int offset = block + enemyGrowthOffsets[shiftedStats[i]];
+                    int offset = (int)(block + enemyGrowthOffsets[shiftedStats[i]]);
                     int value = Randomizer.classData[offset];
                     int reduce = value * shift / 100;
                     moved += reduce;

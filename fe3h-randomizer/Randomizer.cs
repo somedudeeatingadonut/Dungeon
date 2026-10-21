@@ -11009,7 +11009,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                                 for (int i = 0; i < physWeaponTypes.Count; i++)
                                                     for (int j = 0; j <= weaponPoolTier; j++)
                                                         weaponPool.AddRange(availableWeapons[physWeaponTypes[i]][j]);
-                                                RandomizerExtras.filterRanges(weaponPool);
+                                                RandomizerExtras.filterRangesForEnemy(weaponPool);
 
                                                 for (int i = 0; i < physWeaponTypes.Count && weaponPool.Count > 0; i++)
                                                     newInventory.Add((ushort)(weaponPool[rng.Next(0, weaponPool.Count)] + itemTypeIdOffsets[0]));

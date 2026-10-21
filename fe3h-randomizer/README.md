@@ -86,6 +86,14 @@ pools that random map enemies draw their weapons from, so no more Meteor,
 Bolting or 4+ range bows on random enemies. Range 2 keeps the usual melee / 2
 range setup. Player weapons and shop stock are untouched.
 
+**Chance an enemy still gets one (%)** lets a percentage of enemies ignore the
+limit. It is rolled once per enemy, and the siege weapon still has to come out of
+the pool afterwards, so it is a chance on a chance - at 5% roughly a twentieth of
+enemies are allowed to roll one, and most of those still end up with something
+normal because the siege tome is a small part of the weapon pool. Set it to 0 to
+never allow them, 100 to only limit the pool (the old behaviour before this
+option existed).
+
 ### Level scaling
 
 Moves a percentage of the enemy Str / Mag / Def / Res growths into HP. Enemy
