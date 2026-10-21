@@ -95,6 +95,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             this.applyPerformanceTweaks();
             this.buildBatchTab();
             this.buildExtrasTab();
+            // Range limits on the Stat Boosts / Growth Boosts / Stat Bases tabs.
+            this.installMoreOptionsOnTabs();
             perfLoadWatch.Stop();
             RandomizerForm.perfExtrasBuildMs = perfLoadWatch.ElapsedMilliseconds;
         }

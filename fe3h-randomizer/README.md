@@ -126,27 +126,46 @@ is a noticeable but fair change, 60% is the maximum.
 
 ### More randomization options
 
-Four extra passes that run after the normal randomization, in the *More
-randomization options* section of the tab:
+Extra passes that run after the normal randomization, in the *More randomization
+options* section of the tab:
 
 | Option | Default | What it does |
 | --- | --- | --- |
 | Keep boss and monster class abilities as they are | on | Monster and boss classes get their class ability, latent ability and barrier ability slots back from the vanilla file. A boss stays a boss even when the monster tiers are being randomized, and the even-variety spread never touches monster classes either. |
-| Never give the same class the same ability twice | on | A class cannot end up with one ability in two of its slots (which just wastes a slot). Only values the randomization put there are re-rolled. |
-| Give every character a different personal ability | off | No two characters share a personal ability. Only does anything when personal abilities are being randomized, and it never overrides a vanilla placement. |
-| Keep randomized growths inside this range | off | Pulls extreme class and character growths back inside the two values (default 10% to 70%). A stat with no growth at all (0%) is left alone, so nothing is invented. |
+| Keep boss and monster class stats as they are | on | Same idea for the stat boosts and base stats of monster classes, so a boss is not turned into a glass cannon. |
+| Never give the same class the same ability twice | on | A class cannot end up with one ability in two of its slots (which just wastes a slot). |
+| Give every class in a tier a different mastery ability | off | Inside one class tier, no two classes share a mastery ability. |
+| Give every character a different personal ability | off | No two characters share a personal ability. Only does anything when personal abilities are being randomized. |
+| Even out the growth totals of every class | off | Scales a class's growths up or down so every class grows roughly the same amount per level, while keeping the ratio between its stats - a slow tanky class stays slow and tanky. The percentage is how far from the average a class may sit before it is touched (default 15%). |
 
 Like the other extra options, these are not saved between runs - set them each
 time you start the tool.
 
-All four are *post passes*: they work on the finished file, after everything else
+They are all *post passes*: they work on the finished file, after everything else
 has been decided, and each one only replaces a value the randomization
-**introduced**. Vanilla data - Dancer's Dance, a boss's own abilities, a stat the
-class simply does not grow in - is never taken away.
+**introduced**. Vanilla data - Dancer's Dance, a boss's own abilities and stats, a
+stat the class simply does not grow in - is never taken away.
 
-The debug report gets a **MORE OPTIONS** section for them: how many slots each
-pass changed, how many duplicates are left, and the class growth range after the
-run, with a PASS / WARN / FAIL line per option.
+### Range limits, next to the thing they limit
+
+The three "keep it inside this range" options live on the tab that randomizes
+what they limit, instead of being buried in the extra tab:
+
+| Tab | Option | Default range |
+| --- | --- | --- |
+| Classes > **Stat Boosts** | Keep randomized class stat boosts inside this range | off, -3 to 10 (negatives allowed) |
+| Classes > **Growth Boosts** | Keep randomized growths inside this range | off, 10% to 70% |
+| Classes > **Stat Bases** | Keep randomized base stats inside this range | off, 3 to 30 |
+
+Each one is a single row docked to the bottom of its page, so nothing the
+original tool put there has been moved. Like the other passes they only touch
+values the randomization changed - a growth the class does not have (0%) or a
+stat that is still vanilla is left alone.
+
+The debug report gets a **MORE OPTIONS** section for all of this: how many slots
+each pass changed, how many duplicates are left, the class growth range and
+growth totals after the run, the stat boost and base stat extremes, with a
+PASS / WARN / FAIL line per option.
 
 ## Use it
 

@@ -186,30 +186,81 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             List<string> warnings, List<string> failures)
         {
             text.AppendLine("--- MORE OPTIONS -----------------------------------------------");
-            text.AppendLine("Boss / monster abilities kept : " + RandomizerMore.protectBossAbilities);
-            text.AppendLine("    slots restored            : " + RandomizerMore.statBossSlotsRestored.ToString());
+            if (Randomizer.classData == null && Randomizer.personData == null)
+            {
+                text.AppendLine("nothing randomized yet - the passes run when you press Randomize");
+                text.AppendLine();
+                return;
+            }
+
             int changedBossSlots = RandomizerMore.countChangedBossSlots();
-            text.AppendLine("    boss slots still changed  : " + changedBossSlots.ToString());
-            text.AppendLine("Unique personal abilities     : " + RandomizerMore.uniquePersonalAbilities);
-            text.AppendLine("    duplicates rerolled       : " + RandomizerMore.statDuplicatePersonalRerolled.ToString());
-            text.AppendLine("    duplicates left in output : " + RandomizerMore.countDuplicatePersonalAbilities().ToString());
-            text.AppendLine("No repeated class abilities   : " + RandomizerMore.uniqueClassAbilities);
-            text.AppendLine("    duplicates rerolled       : " + RandomizerMore.statDuplicateClassAbRerolled.ToString());
-            text.AppendLine("    duplicates left in output : " + RandomizerMore.countDuplicateClassAbilities().ToString());
-            text.AppendLine("Growth clamp                  : " + RandomizerMore.clampGrowths
+            int changedBossStats = RandomizerMore.countChangedBossStats();
+            text.AppendLine("Boss abilities kept as they are: " + RandomizerMore.protectBossAbilities
+                + "   (slots restored " + RandomizerMore.statBossSlotsRestored.ToString()
+                + ", still changed " + changedBossSlots.ToString() + ")");
+            text.AppendLine("Boss stats kept as they are    : " + RandomizerMore.protectBossStats
+                + "   (slots restored " + RandomizerMore.statBossStatSlotsRestored.ToString()
+                + ", still changed " + changedBossStats.ToString() + ")");
+
+            text.AppendLine("No repeated class ability      : " + RandomizerMore.uniqueClassAbilities
+                + "   (rerolled " + RandomizerMore.statDuplicateClassAbRerolled.ToString()
+                + ", left " + RandomizerMore.countDuplicateClassAbilities().ToString() + ")");
+            text.AppendLine("One mastery ability per tier   : " + RandomizerMore.uniqueTierMastery
+                + "   (rerolled " + RandomizerMore.statTierMasteryRerolled.ToString()
+                + ", left " + RandomizerMore.countDuplicateTierMastery().ToString() + ")");
+            text.AppendLine("Unique personal abilities      : " + RandomizerMore.uniquePersonalAbilities
+                + "   (rerolled " + RandomizerMore.statDuplicatePersonalRerolled.ToString()
+                + ", left " + RandomizerMore.countDuplicatePersonalAbilities().ToString() + ")");
+
+            int growthLow;
+            int growthHigh;
+            RandomizerMore.growthValues(out growthLow, out growthHigh);
+            int totalLow;
+            int totalHigh;
+            int totalAverage;
+            RandomizerMore.growthTotals(out totalLow, out totalHigh, out totalAverage);
+
+            text.AppendLine("Growth range limit             : " + RandomizerMore.clampGrowths
                 + "  (" + RandomizerMore.growthClampMin.ToString() + "% to "
-                + RandomizerMore.growthClampMax.ToString() + "%)");
-            text.AppendLine("    growths pulled back       : " + RandomizerMore.statGrowthsClamped.ToString());
-            text.AppendLine("    class growth range now    : " + RandomizerMore.lowestClassGrowth().ToString()
-                + "% to " + RandomizerMore.highestClassGrowth().ToString() + "%");
+                + RandomizerMore.growthClampMax.ToString() + "%)"
+                + "   (pulled back " + RandomizerMore.statGrowthsClamped.ToString()
+                + ", class growths now " + growthLow.ToString() + "% to " + growthHigh.ToString() + "%)");
+            text.AppendLine("Even growth totals             : " + RandomizerMore.evenGrowthTotals
+                + "  (tolerance " + RandomizerMore.growthTotalTolerance.ToString() + "%)"
+                + "   (classes evened " + RandomizerMore.statGrowthTotalsEvened.ToString() + ")");
+            text.AppendLine("    class growth totals now   : " + totalLow.ToString() + " to "
+                + totalHigh.ToString() + ", average " + totalAverage.ToString());
+
+            int boostLow;
+            int boostHigh;
+            int baseLow;
+            int baseHigh;
+            RandomizerMore.statValues(out boostLow, out boostHigh, out baseLow, out baseHigh);
+            text.AppendLine("Stat boost range limit         : " + RandomizerMore.clampStatBoosts
+                + "  (" + RandomizerMore.statBoostClampMin.ToString() + " to "
+                + RandomizerMore.statBoostClampMax.ToString() + ")"
+                + "   (pulled back " + RandomizerMore.statStatBoostsClamped.ToString()
+                + ", boosts now " + boostLow.ToString() + " to " + boostHigh.ToString() + ")");
+            text.AppendLine("Base stat range limit          : " + RandomizerMore.clampStatBases
+                + "  (" + RandomizerMore.statBaseClampMin.ToString() + " to "
+                + RandomizerMore.statBaseClampMax.ToString() + ")"
+                + "   (pulled back " + RandomizerMore.statStatBasesClamped.ToString()
+                + ", bases now " + baseLow.ToString() + " to " + baseHigh.ToString() + ")");
             text.AppendLine();
 
             if (RandomizerMore.protectBossAbilities)
             {
                 if (changedBossSlots == 0)
-                    passes.Add("boss / monster class abilities are untouched");
+                    passes.Add("boss / monster abilities are untouched");
                 else
                     failures.Add(changedBossSlots.ToString() + " boss ability slot(s) still differ from vanilla");
+            }
+            if (RandomizerMore.protectBossStats)
+            {
+                if (changedBossStats == 0)
+                    passes.Add("boss / monster stats are untouched");
+                else
+                    failures.Add(changedBossStats.ToString() + " boss stat slot(s) still differ from vanilla");
             }
             if (RandomizerMore.uniqueClassAbilities)
             {
@@ -218,6 +269,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     passes.Add("no class has the same ability twice");
                 else
                     warnings.Add(duplicates.ToString() + " class(es) still have a repeated ability (vanilla ones are kept)");
+            }
+            if (RandomizerMore.uniqueTierMastery)
+            {
+                int duplicates = RandomizerMore.countDuplicateTierMastery();
+                if (duplicates == 0)
+                    passes.Add("every class in a tier has a different mastery ability");
+                else
+                    warnings.Add(duplicates.ToString() + " repeated mastery abilit(ies) inside a tier (vanilla ones are kept)");
             }
             if (RandomizerMore.uniquePersonalAbilities)
             {
@@ -229,13 +288,32 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (RandomizerMore.clampGrowths)
             {
-                int lowest = RandomizerMore.lowestClassGrowth();
-                int highest = RandomizerMore.highestClassGrowth();
-                if (lowest == 0 || (lowest >= RandomizerMore.growthClampMin && highest <= RandomizerMore.growthClampMax))
-                    passes.Add("growth clamp held (class growths " + lowest.ToString() + "% to " + highest.ToString() + "%)");
+                if (growthLow == 0 || (growthLow >= RandomizerMore.growthClampMin
+                    && growthHigh <= RandomizerMore.growthClampMax))
+                    passes.Add("growth range limit held (class growths " + growthLow.ToString()
+                        + "% to " + growthHigh.ToString() + "%)");
                 else
-                    warnings.Add("growth clamp: class growths are " + lowest.ToString() + "% to "
-                        + highest.ToString() + "% after the run");
+                    warnings.Add("growth range limit: class growths are " + growthLow.ToString()
+                        + "% to " + growthHigh.ToString() + "% after the run");
+            }
+            if (RandomizerMore.evenGrowthTotals)
+                passes.Add("growth totals evened: " + RandomizerMore.statGrowthTotalsEvened.ToString()
+                    + " class(es) scaled, totals now " + totalLow.ToString() + " to " + totalHigh.ToString());
+            if (RandomizerMore.clampStatBoosts)
+            {
+                if (boostLow >= RandomizerMore.statBoostClampMin && boostHigh <= RandomizerMore.statBoostClampMax)
+                    passes.Add("stat boost range limit held (" + boostLow.ToString() + " to " + boostHigh.ToString() + ")");
+                else
+                    warnings.Add("stat boost range limit: boosts are " + boostLow.ToString()
+                        + " to " + boostHigh.ToString() + " after the run");
+            }
+            if (RandomizerMore.clampStatBases)
+            {
+                if (baseLow >= RandomizerMore.statBaseClampMin && baseHigh <= RandomizerMore.statBaseClampMax)
+                    passes.Add("base stat range limit held (" + baseLow.ToString() + " to " + baseHigh.ToString() + ")");
+                else
+                    warnings.Add("base stat range limit: bases are " + baseLow.ToString()
+                        + " to " + baseHigh.ToString() + " after the run");
             }
         }
 
