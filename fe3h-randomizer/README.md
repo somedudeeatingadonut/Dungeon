@@ -150,6 +150,34 @@ has been decided, and each one only replaces a value the randomization
 **introduced**. Vanilla data - Dancer's Dance, a boss's own abilities and stats, a
 stat the class simply does not grow in - is never taken away.
 
+### Large scale randomization
+
+The options above tidy things up. These break the class lineup apart - each one is
+a **permutation** of the numbers already in the file, so nothing is invented and
+no value can leave its range, but the archetypes are gone:
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| Swap class stat profiles between classes | off | Base stats and stat boosts are dealt out again between the classes of a tier, so a Fortress Knight can end up with a Pegasus stat line. |
+| Swap class growth profiles between classes | off | The same for the nine class growths - the class you pick for its growths becomes a gamble. |
+| Swap across the whole game instead of inside one tier | off | The two swaps above then ignore tier boundaries, so a beginner class can receive a master class's numbers. |
+| Shuffle character stat sheets between characters | off | Base stats and growths are permuted between the playable characters, so "who is the fast one" changes every run. Character caps are not moved, so nobody is permanently capped out. |
+| Boss remix | off | Every boss / monster class receives another boss's whole ability kit (class abilities, latent abilities and barriers) instead of its own. Takes precedence over the boss protection options. |
+
+They run after the protection and tidy-up passes and before the blocklist safety
+pass, so a remixed boss still cannot be handed a blocked ability.
+
+### Quick setup for testing
+
+Two buttons at the top of the Extra options tab:
+
+* **Enable every option (debug)** - ticks every randomization switch at once
+  (all of `Settings`, plus the extra options on this tab and the range limits on
+  the Classes tabs). The interpolation styles (binomial / linear / proportional /
+  exponential) are deliberately left alone: they are alternatives to each other,
+  not features.
+* **Turn every option off** - back to a clean slate without restarting the tool.
+
 ### Range limits, next to the thing they limit
 
 The three "keep it inside this range" options live on the tab that randomizes
@@ -175,6 +203,10 @@ The order the passes run in matters: boss abilities and stats are restored first
 then the ability uniqueness passes, then growths, then stats, then the range
 limits, and the boss level-scaling bonus last - so a range limit can never clamp
 the boss bonus back off.
+
+The debug report gets a **BIG OPTIONS** section too: how many classes and
+characters were swapped, the swap scope, and a PASS / WARN line per pass (a swap
+that was on but changed nothing is a warning, not a silent success).
 
 The debug report gets a **MORE OPTIONS** section for all of this: how many slots
 each pass changed, how many duplicates are left, the class growth range and

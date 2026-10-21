@@ -35,6 +35,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private NumericUpDown extrasGrowthTolerance_numericUpDown;
         private NumericUpDown extrasBossScaling_numericUpDown;
         private NumericUpDown extrasStatTotalTolerance_numericUpDown;
+        private CheckBox extrasBigStatSwap_checkBox;
+        private CheckBox extrasBigGrowthSwap_checkBox;
+        private CheckBox extrasBigScope_checkBox;
+        private CheckBox extrasBigCharSheets_checkBox;
+        private CheckBox extrasBigBossRemix_checkBox;
         private CheckBox extrasDebugAuto_checkBox;
         private Label extrasDebugPath_label;
         private bool extrasBuilding;
@@ -120,6 +125,31 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                 addFullRow(layout, sectionLabel("Extra randomizer options"));
                 addFullRow(layout, helpLabel("These options are used when you press Randomize and Save, together with everything on the other tabs."));
+
+                // --------------------------------------------------- quick setup
+                FlowLayoutPanel quickButtons = new FlowLayoutPanel();
+                quickButtons.AutoSize = true;
+                quickButtons.WrapContents = true;
+                quickButtons.Margin = new Padding(0, 4, 0, 4);
+
+                Button enableAllButton = new Button();
+                enableAllButton.AutoSize = true;
+                enableAllButton.Text = "Enable every option (debug)";
+                enableAllButton.Click += new EventHandler(this.quickEnableAll_button_Click);
+                quickButtons.Controls.Add(enableAllButton);
+
+                Button disableAllButton = new Button();
+                disableAllButton.AutoSize = true;
+                disableAllButton.Text = "Turn every option off";
+                disableAllButton.Click += new EventHandler(this.quickDisableAll_button_Click);
+                quickButtons.Controls.Add(disableAllButton);
+
+                addFullRow(layout, quickButtons);
+                addFullRow(layout, helpLabel(
+                    "Enable every option ticks every randomization switch (including the extra ones on\r\n"
+                    + "this tab and the range limits on the Classes tabs) in one click, for stress testing.\r\n"
+                    + "The interpolation styles (binomial / linear / proportional / exponential) are left\r\n"
+                    + "alone - they are alternatives to each other, not extra features."));
 
                 // ------------------------------------------------ class variety
                 addFullRow(layout, sectionLabel("Random classes - even variety"));
@@ -377,6 +407,54 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "The range limits for growths, stat boosts and base stats live on their own tabs in the\r\n"
                     + "Classes page, next to the randomization they apply to."));
 
+                // ------------------------------------------- large scale options
+                addFullRow(layout, sectionLabel("Large scale randomization"));
+                addFullRow(layout, helpLabel(
+                    "These break the class lineup apart instead of tidying it up. Each one is a\r\n"
+                    + "permutation of the numbers already in the file, so nothing is invented and no\r\n"
+                    + "value can leave its range - but the archetypes are gone."));
+
+                this.extrasBigStatSwap_checkBox = new CheckBox();
+                this.extrasBigStatSwap_checkBox.AutoSize = true;
+                this.extrasBigStatSwap_checkBox.Checked = RandomizerBig.swapClassStatProfiles;
+                this.extrasBigStatSwap_checkBox.Text = "Swap class stat profiles between classes (a Fortress Knight can get a Pegasus stat line)";
+                this.extrasBigStatSwap_checkBox.CheckedChanged += new EventHandler(this.extrasBigStatSwap_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasBigStatSwap_checkBox);
+
+                this.extrasBigGrowthSwap_checkBox = new CheckBox();
+                this.extrasBigGrowthSwap_checkBox.AutoSize = true;
+                this.extrasBigGrowthSwap_checkBox.Checked = RandomizerBig.swapClassGrowthProfiles;
+                this.extrasBigGrowthSwap_checkBox.Text = "Swap class growth profiles between classes (a mage can grow like a Wyvern Rider)";
+                this.extrasBigGrowthSwap_checkBox.CheckedChanged += new EventHandler(this.extrasBigGrowthSwap_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasBigGrowthSwap_checkBox);
+
+                this.extrasBigScope_checkBox = new CheckBox();
+                this.extrasBigScope_checkBox.AutoSize = true;
+                this.extrasBigScope_checkBox.Checked = RandomizerBig.swapScope == 1;
+                this.extrasBigScope_checkBox.Text = "Swap across the whole game instead of inside one tier";
+                this.extrasBigScope_checkBox.CheckedChanged += new EventHandler(this.extrasBigScope_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasBigScope_checkBox);
+
+                this.extrasBigCharSheets_checkBox = new CheckBox();
+                this.extrasBigCharSheets_checkBox.AutoSize = true;
+                this.extrasBigCharSheets_checkBox.Checked = RandomizerBig.shuffleCharacterSheets;
+                this.extrasBigCharSheets_checkBox.Text = "Shuffle character stat sheets between characters (who is the fast one changes every run)";
+                this.extrasBigCharSheets_checkBox.CheckedChanged += new EventHandler(this.extrasBigCharSheets_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasBigCharSheets_checkBox);
+
+                this.extrasBigBossRemix_checkBox = new CheckBox();
+                this.extrasBigBossRemix_checkBox.AutoSize = true;
+                this.extrasBigBossRemix_checkBox.Checked = RandomizerBig.bossRemix;
+                this.extrasBigBossRemix_checkBox.Text = "Boss remix: every boss gets another boss's ability kit (overrides the boss protection)";
+                this.extrasBigBossRemix_checkBox.CheckedChanged += new EventHandler(this.extrasBigBossRemix_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasBigBossRemix_checkBox);
+
+                addFullRow(layout, helpLabel(
+                    "Swapping happens inside one class tier by default, so an advanced class still has\r\n"
+                    + "advanced numbers - just not its own. Boss remix hands each boss / monster class the\r\n"
+                    + "whole ability kit of another one, and takes precedence over the boss protection\r\n"
+                    + "options above."));
+
                 // ------------------------------------------------------- debug
                 addFullRow(layout, sectionLabel("Debug report"));
 
@@ -588,6 +666,41 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             {
                 this.syncBlockedAbilities();
             });
+        }
+
+        private void extrasBigStatSwap_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasBigStatSwap_checkBox == null)
+                return;
+            RandomizerBig.swapClassStatProfiles = this.extrasBigStatSwap_checkBox.Checked;
+        }
+
+        private void extrasBigGrowthSwap_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasBigGrowthSwap_checkBox == null)
+                return;
+            RandomizerBig.swapClassGrowthProfiles = this.extrasBigGrowthSwap_checkBox.Checked;
+        }
+
+        private void extrasBigScope_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasBigScope_checkBox == null)
+                return;
+            RandomizerBig.swapScope = this.extrasBigScope_checkBox.Checked ? 1 : 0;
+        }
+
+        private void extrasBigCharSheets_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasBigCharSheets_checkBox == null)
+                return;
+            RandomizerBig.shuffleCharacterSheets = this.extrasBigCharSheets_checkBox.Checked;
+        }
+
+        private void extrasBigBossRemix_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasBigBossRemix_checkBox == null)
+                return;
+            RandomizerBig.bossRemix = this.extrasBigBossRemix_checkBox.Checked;
         }
 
         private void extrasDebugAuto_checkBox_CheckedChanged(object sender, EventArgs e)

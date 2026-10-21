@@ -88,6 +88,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             AppendPerformance(text, warnings);
             AppendOptions(text);
             AppendMoreOptions(text, passes, warnings, failures);
+            AppendBigOptions(text, passes, warnings, failures);
             AppendInputs(text, warnings);
             AppendCounters(text, passes, warnings);
             AppendClassVarietyCheck(text, passes, warnings, failures);
@@ -277,7 +278,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             if (RandomizerMore.protectBossAbilities)
             {
-                if (changedBossSlots == 0)
+                if (RandomizerBig.bossRemix)
+                    text.AppendLine("note: boss remix is on, so the boss ability slots are intentionally shuffled");
+                else if (changedBossSlots == 0)
                     passes.Add("boss / monster abilities are untouched");
                 else
                     failures.Add(changedBossSlots.ToString() + " boss ability slot(s) still differ from vanilla");
@@ -359,6 +362,65 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 else
                     warnings.Add("base stat range limit: bases are " + baseLow.ToString()
                         + " to " + baseHigh.ToString() + " after the run");
+            }
+        }
+
+        // ------------------------------------------------------ big options
+        private static void AppendBigOptions(StringBuilder text, List<string> passes,
+            List<string> warnings, List<string> failures)
+        {
+            text.AppendLine("--- BIG OPTIONS ------------------------------------------------");
+            if (Randomizer.classData == null && Randomizer.personData == null)
+            {
+                text.AppendLine("nothing randomized yet - these passes run when you press Randomize");
+                text.AppendLine();
+                return;
+            }
+
+            text.AppendLine("Swap class stat profiles       : " + RandomizerBig.swapClassStatProfiles
+                + "   (classes swapped " + RandomizerBig.statClassStatsSwapped.ToString()
+                + ", scope " + (RandomizerBig.swapScope == 1 ? "whole game" : "per tier") + ")");
+            text.AppendLine("Swap class growth profiles     : " + RandomizerBig.swapClassGrowthProfiles
+                + "   (classes swapped " + RandomizerBig.statClassGrowthsSwapped.ToString() + ")");
+            text.AppendLine("Shuffle character sheets       : " + RandomizerBig.shuffleCharacterSheets
+                + "   (characters swapped " + RandomizerBig.statCharSheetsSwapped.ToString() + ")");
+            text.AppendLine("Boss remix                     : " + RandomizerBig.bossRemix
+                + "   (bosses remixed " + RandomizerBig.statBossRemixed.ToString() + ")");
+            text.AppendLine("    classes differing from vanilla : " + RandomizerBig.countChangedClasses().ToString());
+            text.AppendLine("    characters differing from vanilla : " + RandomizerBig.countChangedCharacters().ToString());
+            text.AppendLine();
+
+            if (RandomizerBig.swapClassStatProfiles)
+            {
+                if (RandomizerBig.statClassStatsSwapped > 0)
+                    passes.Add("class stat profiles swapped: " + RandomizerBig.statClassStatsSwapped.ToString()
+                        + " class(es) got another class's stat line");
+                else
+                    warnings.Add("class stat profile swap was on but no class changed - a tier needs at least two classes");
+            }
+            if (RandomizerBig.swapClassGrowthProfiles)
+            {
+                if (RandomizerBig.statClassGrowthsSwapped > 0)
+                    passes.Add("class growth profiles swapped: " + RandomizerBig.statClassGrowthsSwapped.ToString()
+                        + " class(es) got another class's growths");
+                else
+                    warnings.Add("class growth profile swap was on but no class changed");
+            }
+            if (RandomizerBig.shuffleCharacterSheets)
+            {
+                if (RandomizerBig.statCharSheetsSwapped > 0)
+                    passes.Add("character sheets shuffled: " + RandomizerBig.statCharSheetsSwapped.ToString()
+                        + " character(s) got another character's bases and growths");
+                else
+                    warnings.Add("character sheet shuffle was on but no character changed");
+            }
+            if (RandomizerBig.bossRemix)
+            {
+                if (RandomizerBig.statBossRemixed > 0)
+                    passes.Add("boss remix: " + RandomizerBig.statBossRemixed.ToString()
+                        + " boss class(es) took another boss's ability kit");
+                else
+                    warnings.Add("boss remix was on but no boss class changed");
             }
         }
 

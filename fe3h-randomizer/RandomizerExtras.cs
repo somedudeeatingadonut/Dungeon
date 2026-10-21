@@ -99,6 +99,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statGrowthShiftedClasses = 0;
             statSpreadPasses = 0;
             RandomizerMore.resetCounters();
+            RandomizerBig.resetCounters();
             for (int i = 0; i < statTypesServedByTier.Length; i++)
                 statTypesServedByTier[i] = new List<int>();
             statTypesServedGlobal = new List<int>();
@@ -647,6 +648,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             // guard their own data, so they run even if only the character file
             // was loaded.
             RandomizerMore.applyAfterRandomization();
+
+            // Large scale passes from RandomizerBig.cs: class stat / growth
+            // swaps, character sheet shuffle and the boss remix. They run after
+            // the protection passes so a remix can intentionally override them.
+            RandomizerBig.applyAfterRandomization();
 
             if (classesLoaded)
             {
