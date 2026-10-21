@@ -90,10 +90,16 @@ in the tool's own `badAbilities` list as well.
 As a last step of every run the randomizer re-reads every class ability slot, the
 monster latent/barrier slots and every character learnset, and replaces a blocked
 ability that was *moved* into a slot by a later pass (the even-variety ability
-spread rotates values around, and the Dancer class is given Dance by hand).
-Placements that were already in the vanilla file - the monster classes' own
-abilities, for example - are left alone; the blocklist only stops the randomizer
-from introducing them.
+spread rotates values around). Placements that were already in the vanilla file -
+the monster classes' own abilities, for example - are left alone; the blocklist
+only stops the randomizer from introducing them.
+
+Two things are deliberately exempt from the blocklist:
+
+* **Dance (158) always goes to the Dancer class.** Writing 158 there is the only
+  way to get Dance, and that is the point of the class, so blocking it does not
+  remove it. The variety spread will not copy it to another class either.
+* **Boss and monster classes keep their own abilities** (see below).
 
 ### Enemy siege tomes and long range weapons
 
@@ -117,6 +123,30 @@ Moves a percentage of the enemy Str / Mag / Def / Res growths into HP. Enemy
 stats grow per level from the class enemy growths, so this makes level scaling
 produce tankier enemies instead of harder hitting ones. 0% leaves it alone, 20%
 is a noticeable but fair change, 60% is the maximum.
+
+### More randomization options
+
+Four extra passes that run after the normal randomization, in the *More
+randomization options* section of the tab:
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| Keep boss and monster class abilities as they are | on | Monster and boss classes get their class ability, latent ability and barrier ability slots back from the vanilla file. A boss stays a boss even when the monster tiers are being randomized, and the even-variety spread never touches monster classes either. |
+| Never give the same class the same ability twice | on | A class cannot end up with one ability in two of its slots (which just wastes a slot). Only values the randomization put there are re-rolled. |
+| Give every character a different personal ability | off | No two characters share a personal ability. Only does anything when personal abilities are being randomized, and it never overrides a vanilla placement. |
+| Keep randomized growths inside this range | off | Pulls extreme class and character growths back inside the two values (default 10% to 70%). A stat with no growth at all (0%) is left alone, so nothing is invented. |
+
+Like the other extra options, these are not saved between runs - set them each
+time you start the tool.
+
+All four are *post passes*: they work on the finished file, after everything else
+has been decided, and each one only replaces a value the randomization
+**introduced**. Vanilla data - Dancer's Dance, a boss's own abilities, a stat the
+class simply does not grow in - is never taken away.
+
+The debug report gets a **MORE OPTIONS** section for them: how many slots each
+pass changed, how many duplicates are left, and the class growth range after the
+run, with a PASS / WARN / FAIL line per option.
 
 ## Use it
 

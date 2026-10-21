@@ -87,6 +87,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statSpellsFiltered = 0;
             statGrowthShiftedClasses = 0;
             statSpreadPasses = 0;
+            RandomizerMore.resetCounters();
             for (int i = 0; i < statTypesServedByTier.Length; i++)
                 statTypesServedByTier[i] = new List<int>();
             statTypesServedGlobal = new List<int>();
@@ -614,24 +615,35 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // ------------------------------------------------------ post passes
         public static void applyAfterRandomization()
         {
-            if (!Randomizer.classLoaded || Randomizer.classData == null)
-                return;
-            if (growthShift > 0)
-                shiftEnemyGrowths();
-            if (evenClassVariety)
+            bool classesLoaded = Randomizer.classLoaded && Randomizer.classData != null;
+            if (classesLoaded)
             {
-                spreadClassStats();
-                spreadClassAbilities();
+                if (growthShift > 0)
+                    shiftEnemyGrowths();
+                if (evenClassVariety)
+                {
+                    spreadClassStats();
+                    spreadClassAbilities();
+                }
             }
-            // Runs last, after every other pass has written its values.
-            enforceAbilityBlocklist();
+
+            // The extra options in RandomizerMore.cs: boss abilities, unique
+            // personal abilities, no repeats on one class, growth clamp. They
+            // guard their own data, so they run even if only the character file
+            // was loaded.
+            RandomizerMore.applyAfterRandomization();
+
+            if (classesLoaded)
+            {
+                // Runs last, after every other pass has written its values.
+                enforceAbilityBlocklist();
+            }
         }
 
         // ------------------------------------------------- blocklist safety net
         // A blocked ability can still end up in a new slot when a later pass
         // *moves* values around instead of picking them (the even-variety
-        // ability spread does exactly that, and the Dancer class gets Dance
-        // written by hand). This pass looks at every ability slot that belongs
+        // ability spread does exactly that). This pass looks at every ability slot that belongs
         // to the randomization and puts a different ability there if a blocked
         // one was moved in.
         //

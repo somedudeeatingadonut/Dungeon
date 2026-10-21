@@ -23,6 +23,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private NumericUpDown extrasMaxRange_numericUpDown;
         private NumericUpDown extrasSiegeChance_numericUpDown;
         private NumericUpDown extrasGrowthShift_numericUpDown;
+        private CheckBox extrasBossAb_checkBox;
+        private CheckBox extrasUniquePersonal_checkBox;
+        private CheckBox extrasUniqueClassAb_checkBox;
+        private CheckBox extrasClampGrowths_checkBox;
+        private NumericUpDown extrasClampMin_numericUpDown;
+        private NumericUpDown extrasClampMax_numericUpDown;
         private CheckBox extrasDebugAuto_checkBox;
         private Label extrasDebugPath_label;
         private bool extrasBuilding;
@@ -241,6 +247,86 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "enemies a little tankier instead of hitting much harder. 0% leaves it alone,\r\n"
                     + "20% is a noticeable but fair change."));
 
+                // --------------------------------- more randomization options
+                addFullRow(layout, sectionLabel("More randomization options"));
+
+                this.extrasBossAb_checkBox = new CheckBox();
+                this.extrasBossAb_checkBox.AutoSize = true;
+                this.extrasBossAb_checkBox.Checked = RandomizerMore.protectBossAbilities;
+                this.extrasBossAb_checkBox.Text = "Keep boss and monster class abilities as they are (recommended)";
+                this.extrasBossAb_checkBox.CheckedChanged += new EventHandler(this.extrasBossAb_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasBossAb_checkBox);
+
+                this.extrasUniqueClassAb_checkBox = new CheckBox();
+                this.extrasUniqueClassAb_checkBox.AutoSize = true;
+                this.extrasUniqueClassAb_checkBox.Checked = RandomizerMore.uniqueClassAbilities;
+                this.extrasUniqueClassAb_checkBox.Text = "Never give the same class the same ability twice";
+                this.extrasUniqueClassAb_checkBox.CheckedChanged += new EventHandler(this.extrasUniqueClassAb_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasUniqueClassAb_checkBox);
+
+                this.extrasUniquePersonal_checkBox = new CheckBox();
+                this.extrasUniquePersonal_checkBox.AutoSize = true;
+                this.extrasUniquePersonal_checkBox.Checked = RandomizerMore.uniquePersonalAbilities;
+                this.extrasUniquePersonal_checkBox.Text = "Give every character a different personal ability";
+                this.extrasUniquePersonal_checkBox.CheckedChanged += new EventHandler(this.extrasUniquePersonal_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasUniquePersonal_checkBox);
+
+                this.extrasClampGrowths_checkBox = new CheckBox();
+                this.extrasClampGrowths_checkBox.AutoSize = true;
+                this.extrasClampGrowths_checkBox.Checked = RandomizerMore.clampGrowths;
+                this.extrasClampGrowths_checkBox.Text = "Keep randomized growths inside this range (%)";
+                this.extrasClampGrowths_checkBox.CheckedChanged += new EventHandler(this.extrasClampGrowths_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasClampGrowths_checkBox);
+
+                FlowLayoutPanel clampPanel = new FlowLayoutPanel();
+                clampPanel.AutoSize = true;
+                clampPanel.WrapContents = true;
+                clampPanel.Margin = new Padding(20, 2, 0, 2);
+
+                Label clampFrom = new Label();
+                clampFrom.AutoSize = true;
+                clampFrom.Margin = new Padding(0, 6, 6, 6);
+                clampFrom.Text = "Lowest:";
+                clampPanel.Controls.Add(clampFrom);
+
+                this.extrasClampMin_numericUpDown = new NumericUpDown();
+                this.extrasClampMin_numericUpDown.Minimum = 0;
+                this.extrasClampMin_numericUpDown.Maximum = 100;
+                this.extrasClampMin_numericUpDown.Increment = 5;
+                this.extrasClampMin_numericUpDown.Value = RandomizerMore.growthClampMin;
+                this.extrasClampMin_numericUpDown.Width = 70;
+                this.extrasClampMin_numericUpDown.Margin = new Padding(0, 3, 12, 3);
+                this.extrasClampMin_numericUpDown.ValueChanged += new EventHandler(this.extrasClampGrowth_numericUpDown_ValueChanged);
+                clampPanel.Controls.Add(this.extrasClampMin_numericUpDown);
+
+                Label clampTo = new Label();
+                clampTo.AutoSize = true;
+                clampTo.Margin = new Padding(0, 6, 6, 6);
+                clampTo.Text = "Highest:";
+                clampPanel.Controls.Add(clampTo);
+
+                this.extrasClampMax_numericUpDown = new NumericUpDown();
+                this.extrasClampMax_numericUpDown.Minimum = 0;
+                this.extrasClampMax_numericUpDown.Maximum = 255;
+                this.extrasClampMax_numericUpDown.Increment = 5;
+                this.extrasClampMax_numericUpDown.Value = RandomizerMore.growthClampMax;
+                this.extrasClampMax_numericUpDown.Width = 70;
+                this.extrasClampMax_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasClampMax_numericUpDown.ValueChanged += new EventHandler(this.extrasClampGrowth_numericUpDown_ValueChanged);
+                clampPanel.Controls.Add(this.extrasClampMax_numericUpDown);
+
+                addFullRow(layout, clampPanel);
+
+                addFullRow(layout, helpLabel(
+                    "Boss and monster classes keep their own abilities (class abilities, latent abilities\r\n"
+                    + "and barrier abilities), so a boss is still a boss. The even class variety spread never\r\n"
+                    + "touches them either, and the Dancer always keeps Dance.\r\n"
+                    + "Unique personal abilities stops the same personal skill being handed to several\r\n"
+                    + "characters - it only does anything when personal abilities are randomized.\r\n"
+                    + "The no repeats option stops one class ending up with the same ability in two slots.\r\n"
+                    + "The growth range pulls extreme class and character growths back inside it; a stat a\r\n"
+                    + "class or character has no growth in at all (0%) is left alone, so nothing is invented."));
+
                 // ------------------------------------------------------- debug
                 addFullRow(layout, sectionLabel("Debug report"));
 
@@ -353,6 +439,47 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasBuilding || this.extrasGrowthShift_numericUpDown == null)
                 return;
             RandomizerExtras.growthShift = (int)this.extrasGrowthShift_numericUpDown.Value;
+        }
+
+        private void extrasBossAb_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasBossAb_checkBox == null)
+                return;
+            RandomizerMore.protectBossAbilities = this.extrasBossAb_checkBox.Checked;
+        }
+
+        private void extrasUniqueClassAb_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasUniqueClassAb_checkBox == null)
+                return;
+            RandomizerMore.uniqueClassAbilities = this.extrasUniqueClassAb_checkBox.Checked;
+        }
+
+        private void extrasUniquePersonal_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasUniquePersonal_checkBox == null)
+                return;
+            RandomizerMore.uniquePersonalAbilities = this.extrasUniquePersonal_checkBox.Checked;
+        }
+
+        private void extrasClampGrowths_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasClampGrowths_checkBox == null)
+                return;
+            RandomizerMore.clampGrowths = this.extrasClampGrowths_checkBox.Checked;
+            if (this.extrasClampMin_numericUpDown != null)
+                this.extrasClampMin_numericUpDown.Enabled = this.extrasClampGrowths_checkBox.Checked;
+            if (this.extrasClampMax_numericUpDown != null)
+                this.extrasClampMax_numericUpDown.Enabled = this.extrasClampGrowths_checkBox.Checked;
+        }
+
+        private void extrasClampGrowth_numericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasClampMin_numericUpDown == null
+                || this.extrasClampMax_numericUpDown == null)
+                return;
+            RandomizerMore.growthClampMin = (int)this.extrasClampMin_numericUpDown.Value;
+            RandomizerMore.growthClampMax = (int)this.extrasClampMax_numericUpDown.Value;
         }
 
         private void extrasAbilities_checkedListBox_ItemCheck(object sender, ItemCheckEventArgs e)
