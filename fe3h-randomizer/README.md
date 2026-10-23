@@ -294,11 +294,25 @@ has one at row 89, and those rows are deliberately left alone.
 **Use the mod-safe preset** applies the 1.8.1 stress configuration with the 35
 options the mod owns removed, and switches mod mode on.
 
-**Where the files have to go:** load the files from the mod's own `romfs` folder,
-not from the game dump, and write the output back into that same `romfs` folder.
+**Where the files have to go:** load the files the game actually reads and write
+the output back over that same set. Two setups work:
+
+| Setup | What to load | Where the output goes |
+| --- | --- | --- |
+| Mod in a load-path overlay (normal) | the mod's copies (`load\<game id>\...\romfs\patch4\nx\data`), not the game dump | the same overlay folder |
+| Mod copied over the game's own files | the modded game folder - the files there are the mod's | the same folder (they are already the mod's) |
+
 A romfs overlay wins over the dump, so a randomized file written anywhere else is
 ignored by the game. `DATA1.bin` is patched in place and is not part of the
 overlay.
+
+**The one mistake to avoid:** randomizing the *unmodified* dump while the game
+runs a mod. The output is rebuilt from the originals, so copying it over the
+game puts the original tables back and wipes the mod out of every file it
+overwrites. The tool now notices that case: if mod mode is on and every loaded
+file is the exact original size, it says so in the debug report and asks before
+the run. The debug report's file list names every file as either "the game
+dump's copy" or "the mod's copy" so it is obvious which one you loaded.
 
 **What the offsets cannot answer:** they describe the `fixed_*.bin` files the
 randomizer writes. `DATA1.bin` is patched in place by section offset and No

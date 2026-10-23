@@ -713,6 +713,26 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             dancerLookedUp = false;
         }
 
+        // True when the randomizer is holding the game dump's copies and none of
+        // the mod's: the run would then rebuild the original tables.
+        public static bool loadedOnlyOriginals()
+        {
+            bool anyLoaded = false;
+            List<TableGroup> list = tableGroups();
+            for (int i = 0; i < list.Count; i++)
+            {
+                TableGroup group = list[i];
+                if (!group.IsLoaded())
+                    continue;
+                byte[] data = group.Data();
+                long original = originalSize(group.FileName);
+                if (data == null || original <= 0 || data.Length != original)
+                    return false;
+                anyLoaded = true;
+            }
+            return anyLoaded;
+        }
+
         // Files that grew or shrank but have no map: their internal layout was
         // not checked, so a write could land in the wrong table.
         public static List<string> unverifiedFiles()
@@ -854,6 +874,34 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             { "fixed_scenario.bin", "4784" }
         };
 
+        // Sizes that a known mod release gives a file. Only used to recognise
+        // the mod's copies when a folder is scanned, so an expected-size check
+        // does not complain about the file being the wrong size when it is
+        // simply the mod's version of it.
+        private static readonly string[,] modSizes = new string[,]
+        {
+            { "fixed_classdata.bin", "23956" },
+            { "fixed_data.bin", "39648" },
+            { "fixed_persondata.bin", "145776" },
+            { "fixed_act_data.bin", "172924" },
+            { "fixed_shopdata.bin", "18988" },
+            { "fixed_scenario.bin", "4795" }
+        };
+
+        // True when this file at this size is a mod's copy of it, which the
+        // offset maps know how to handle.
+        public static bool isKnownModSize(string name, long size)
+        {
+            for (int i = 0; i < modSizes.GetLength(0); i++)
+            {
+                if (!string.Equals(modSizes[i, 0], name, StringComparison.Ordinal))
+                    continue;
+                if (long.Parse(modSizes[i, 1]) == size)
+                    return true;
+            }
+            return false;
+        }
+
         private static long originalSize(string name)
         {
             for (int i = 0; i < originalSizes.GetLength(0); i++)
@@ -908,6 +956,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 List<LoadedFile> files = loadedFiles();
                 int replaced = 0;
                 int loaded = 0;
+                int modCopies = 0;
                 for (int i = 0; i < files.Count; i++)
                 {
                     if (!files[i].Loaded)
@@ -920,20 +969,25 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         lines.Add(files[i].Name + " : loaded, size unknown");
                         continue;
                     }
+                    bool modCopy = isKnownModSize(files[i].Name, actual);
+                    if (modCopy)
+                        modCopies++;
                     long delta = actual - original;
                     if (delta == 0)
-                        lines.Add(files[i].Name + " : same size as the original (" + original.ToString() + " bytes)");
+                        lines.Add(files[i].Name + " : same size as the original (" + original.ToString() + " bytes) - the game dump's copy");
                     else
                     {
                         replaced++;
                         lines.Add(files[i].Name + " : " + actual.ToString() + " bytes, "
                             + (delta > 0 ? "+" : "") + delta.ToString() + " vs the original "
                             + original.ToString());
-                        if (files[i].Name == "fixed_classdata.bin" || files[i].Name == "fixed_data.bin"
-                            || files[i].Name == "fixed_persondata.bin")
-                            lines.Add("    the tables in this file are laid out differently from the original -\r\n"
-                                + "    the offset map moves the randomizer's offsets to match (read the\r\n"
-                                + "    original files in first, or the run falls back to the compiled-in ones)");
+                        if (modCopy)
+                            lines.Add("    the mod's copy: its tables sit where the mod put them, and the\r\n"
+                                + "    offset map moves the randomizer to match (built-in profile or the\r\n"
+                                + "    originals folder)");
+                        else
+                            lines.Add("    not a size this tool knows - it is neither the game dump's copy nor\r\n"
+                                + "    a No Monastery one, so its table offsets can only be guessed at");
                     }
                 }
                 if (loaded == 0)
@@ -941,7 +995,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                 lines.Add("");
                 lines.Add("files that differ from the original data: " + replaced.ToString()
-                    + " of " + loaded.ToString());
+                    + " of " + loaded.ToString()
+                    + (modCopies > 0 ? "   (" + modCopies.ToString() + " are the mod's copies)" : ""));
                 if (replaced == 0)
                     lines.Add("    nothing here came from a mod - if a total conversion is installed, the");
                 if (replaced == 0)
@@ -1145,9 +1200,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             if (!hasOffsets() && anyLoaded && modMode)
             {
-                if (open.Count == 0)
-                    text.AppendLine("no map needed: every loaded file is the original size, so the "
-                        + "compiled-in offsets are correct");
+                if (loadedOnlyOriginals())
+                {
+                    text.AppendLine("no map needed: every loaded file is the original size, so the");
+                    text.AppendLine("compiled-in offsets are correct for these files");
+                    warnings.Add("mod mode is on, but every loaded file is the unmodified original "
+                        + "- those are the game dump's copies, not the mod's. If the game really runs "
+                        + "a mod, load that mod's copies (or the folder the game loads) and randomize "
+                        + "those: output built from the originals would undo the mod's changes in "
+                        + "every file it overwrites");
+                }
                 else
                     warnings.Add("mod mode is on but no table map could be built, so the compiled-in "
                         + "offsets were used - that is only right for an unmodified game");
@@ -1197,10 +1259,30 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // every write land somewhere else, so this asks instead of quietly
         // writing into the neighbouring table.
         private static bool offsetsAcknowledged;
+        private static bool originalsAcknowledged;
 
         public static bool confirmOffsets()
         {
-            if (!modMode || offsetsAcknowledged)
+            if (!modMode)
+                return true;
+            if (!originalsAcknowledged && loadedOnlyOriginals())
+            {
+                originalsAcknowledged = true;
+                DialogResult originalAnswer = MessageBox.Show(
+                    "Mod mode is on, but every loaded file is the unmodified original - these are\r\n"
+                    + "the game dump's copies, not the mod's.\r\n\r\n"
+                    + "Randomizing them and writing the result over the game would put the original\r\n"
+                    + "data back and undo the mod in every file it overwrites (its classes, items,\r\n"
+                    + "characters, shops and so on).\r\n\r\n"
+                    + "Load the mod's own copies instead - the folder the game actually loads, or the\r\n"
+                    + "unzipped mod - and randomize those.\r\n\r\n"
+                    + "Randomize the originals anyway?",
+                    "These are the original files", MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
+                    MessageBoxDefaultButton.Button2);
+                if (originalAnswer != DialogResult.Yes)
+                    return false;
+            }
+            if (offsetsAcknowledged)
                 return true;
 
             List<string> open = unverifiedFiles();

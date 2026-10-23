@@ -1,4 +1,4 @@
-// -----------------------------------------------------------------------------
+﻿// -----------------------------------------------------------------------------
 //  BatchTools.cs
 //
 //  Adds two things to the Fire Emblem Three Houses Randomizer:
@@ -431,6 +431,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 loadedNames.Add(spec.FileName);
                 if (sizeLooksRight)
                     this.batchWriteLog("  loaded    " + spec.FileName + "  ->  " + chosen);
+                else if (modCopy)
+                    this.batchWriteLog("  loaded    " + spec.FileName + "  ->  " + chosen
+                        + "  [the mod's copy, offsets handled]");
                 else
                     this.batchWriteLog("  loaded    " + spec.FileName + "  ->  " + chosen
                         + "  [unexpected size, check this is the right file]");
@@ -472,7 +475,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 {
                     try
                     {
-                        if (new FileInfo(candidate).Length == spec.ExpectedSize)
+                        long length = new FileInfo(candidate).Length;
+                        if (length == spec.ExpectedSize
+                            || (ModSupport.modMode && ModSupport.isKnownModSize(spec.FileName, length)))
                             exactSize.Add(candidate);
                     }
                     catch
@@ -510,7 +515,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private bool batchLoadInput(BatchInputSpec spec, string path)
         {
             long length = new FileInfo(path).Length;
-            bool sizeLooksRight = spec.ExpectedSize <= 0 || length == spec.ExpectedSize;
+            // A mod's copy of a file is bigger than the game's, and in mod mode
+            // the offset maps move the tables to match - that is not a wrong file.
+            bool modCopy = ModSupport.modMode && ModSupport.isKnownModSize(spec.FileName, length);
+            bool sizeLooksRight = spec.ExpectedSize <= 0 || length == spec.ExpectedSize || modCopy;
 
             switch (spec.Key)
             {
