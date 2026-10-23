@@ -47,6 +47,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // map below is built from them; without it the map cannot be verified.
         public static string originalFolder = "";
 
+        // The folder the last "scan folder and load all files" used, so the
+        // report can point at other copies of a file found in there.
+        public static string lastScanFolder = "";
+
         // Result of the last readOffsets() call, for the tab and the report.
         public static string offsetsStatus = "not read yet";
         public static int statOffsetsApplied;
@@ -713,6 +717,97 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             dancerLookedUp = false;
         }
 
+        // Other copies of the six files No Monastery ships, found in the folder
+        // that was scanned, that are the mod's size. A mod unzipped one level too
+        // high leaves its copies somewhere the game never reads - and the scan
+        // would have taken the game's own copies from patch4\nx\data.
+        public static List<string> otherModCopies()
+        {
+            List<string> lines = new List<string>();
+            if (lastScanFolder == null || lastScanFolder.Trim().Length == 0)
+                return lines;
+
+            string folder = lastScanFolder.Trim();
+            string[] names = new string[]
+            {
+                "fixed_classdata.bin", "fixed_data.bin", "fixed_persondata.bin",
+                "fixed_act_data.bin", "fixed_shopdata.bin", "fixed_scenario.bin"
+            };
+
+            for (int i = 0; i < names.Length; i++)
+            {
+                List<string> found = new List<string>();
+                try
+                {
+                    found.AddRange(System.IO.Directory.GetFiles(folder, names[i],
+                        System.IO.SearchOption.AllDirectories));
+                }
+                catch
+                {
+                }
+
+                // The scanned folder is usually ...\patch4\nx\data, so the mod's
+                // own copies - if it was unzipped one level too high - sit in a
+                // data folder next to a parent, not underneath. Look one and two
+                // levels up, at their data folders only, so this stays quick.
+                string up = folder;
+                for (int level = 0; level < 2 && up != null; level++)
+                {
+                    int cut = up.LastIndexOfAny(new char[] { '\\', '/' });
+                    if (cut <= 2)
+                        break;
+                    up = up.Substring(0, cut);
+                    string dataFolder = System.IO.Path.Combine(up, "data");
+                    try
+                    {
+                        if (System.IO.Directory.Exists(dataFolder))
+                            found.Add(System.IO.Path.Combine(dataFolder, names[i]));
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                for (int f = 0; f < found.Count && lines.Count < 10; f++)
+                {
+                    long size;
+                    try
+                    {
+                        if (!System.IO.File.Exists(found[f]))
+                            continue;
+                        size = new System.IO.FileInfo(found[f]).Length;
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                    if (!isKnownModSize(names[i], size))
+                        continue;
+                    string path = found[f];
+                    string shown = path;
+                    if (path.StartsWith(folder, StringComparison.OrdinalIgnoreCase))
+                        shown = path.Substring(folder.Length).TrimStart('\\', '/');
+                    string line = "  " + names[i] + "  " + size.ToString() + " bytes  " + shown;
+                    bool listed = false;
+                    for (int l = 0; l < lines.Count; l++)
+                        if (lines[l].StartsWith(line, StringComparison.OrdinalIgnoreCase))
+                            listed = true;
+                    if (listed)
+                        continue;
+                    if (!looksLikeGamePath(path))
+                        line += "   <- not under patch4\\nx\\data";
+                    lines.Add(line);
+                }
+            }
+            return lines;
+        }
+
+        private static bool looksLikeGamePath(string path)
+        {
+            string lower = path.Replace('/', '\\').ToLowerInvariant();
+            return lower.Contains("patch4\\nx\\data") || lower.Contains("patch3\\nx\\data");
+        }
+
         // True when the randomizer is holding the game dump's copies and none of
         // the mod's: the run would then rebuild the original tables.
         public static bool loadedOnlyOriginals()
@@ -1152,6 +1247,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("original files folder          : "
                 + (originalFolder == null || originalFolder.Trim().Length == 0
                     ? "(not set)" : originalFolder.Trim()));
+            text.AppendLine("folder the last scan read      : "
+                + (lastScanFolder == null || lastScanFolder.Trim().Length == 0
+                    ? "(not scanned yet)" : lastScanFolder.Trim()));
             text.AppendLine("offset maps                    : " + offsetsStatus);
             text.AppendLine("table offsets adjusted         : " + statOffsetsApplied);
 
@@ -1204,6 +1302,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 {
                     text.AppendLine("no map needed: every loaded file is the original size, so the");
                     text.AppendLine("compiled-in offsets are correct for these files");
+                    List<string> other = otherModCopies();
+                    if (other.Count > 0)
+                    {
+                        text.AppendLine("");
+                        text.AppendLine("copies of those files near the scanned folder that ARE the mod's:");
+                        for (int i = 0; i < other.Count; i++)
+                            text.AppendLine(other[i]);
+                        text.AppendLine("    the game reads patch4\\nx\\data - a mod extracted somewhere else is");
+                        text.AppendLine("    never loaded. Unzip No Monastery so that its data folder ends up as");
+                        text.AppendLine("    <romfs>\\patch4\\nx\\data, then scan that folder again");
+                    }
                     warnings.Add("mod mode is on, but every loaded file is the unmodified original "
                         + "- those are the game dump's copies, not the mod's. If the game really runs "
                         + "a mod, load that mod's copies (or the folder the game loads) and randomize "

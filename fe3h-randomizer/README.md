@@ -314,6 +314,21 @@ file is the exact original size, it says so in the debug report and asks before
 the run. The debug report's file list names every file as either "the game
 dump's copy" or "the mod's copy" so it is obvious which one you loaded.
 
+**When the report still says the loaded files are the game dump's**, the mod's
+copies are somewhere else on disk. The report now prints the folder the last scan
+read and, under the no-map-needed note, every mod-sized copy of those six files it
+could find at or just above that folder, each marked `<- not under
+patch4\nx\data` when the game would never read it. That is the usual cause: the
+mod zip stores `data\...` with no `nx\` or `romfs\` in front, so unzipping it one
+level too high leaves `...\data\fixed_*.bin` beside the real `patch4\nx\data`
+instead of inside it, and the scan legitimately loads the game's own copies. Move
+that `data` folder to `<romfs>\patch4\nx\data` and scan again.
+
+**The same zip carries a stray `fixed_persondata.bin` at its root**, which is a
+different build of the file (13,159 bytes differ from the copy in `data`). The
+folder scan ignores it: a copy inside a `data` folder always wins over one that is
+not.
+
 **What the offsets cannot answer:** they describe the `fixed_*.bin` files the
 randomizer writes. `DATA1.bin` is patched in place by section offset and No
 Monastery does not ship it, so nothing there moves. The randomizer writes class

@@ -366,6 +366,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
         private void batchScanFolder(string folder)
         {
+            // Remembered for the debug report, which uses it to point at other
+            // copies of a data file (a mod unzipped one level too high, say).
+            ModSupport.lastScanFolder = folder;
             SearchOption searchOption = this.batchIncludeSubfolders_checkBox.Checked
                 ? SearchOption.AllDirectories
                 : SearchOption.TopDirectoryOnly;
@@ -487,9 +490,25 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
 
             List<string> pool = exactSize.Count > 0 ? exactSize : candidates;
+
+            // The game only ever reads these out of a "data" folder inside the
+            // patch trees. A mod's zip also carries a stray copy of one of them
+            // at its root, and that copy is a different build - so a copy in a
+            // data folder always wins over one that is not.
+            bool anyInData = false;
+            foreach (string candidate in pool)
+                if (batchPathHasDataFolder(candidate))
+                    anyInData = true;
+
             string best = pool[0];
             foreach (string candidate in pool)
             {
+                if (anyInData && batchPathHasDataFolder(candidate) != batchPathHasDataFolder(best))
+                {
+                    if (batchPathHasDataFolder(candidate))
+                        best = candidate;
+                    continue;
+                }
                 int candidateDepth = batchPathDepth(candidate);
                 int bestDepth = batchPathDepth(best);
                 if (candidateDepth < bestDepth
@@ -497,6 +516,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     best = candidate;
             }
             return best;
+        }
+
+        private static bool batchPathHasDataFolder(string path)
+        {
+            string[] parts = path.Split(new char[]
+                { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar });
+            for (int i = 0; i < parts.Length - 1; i++)
+                if (string.Equals(parts[i], "data", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            return false;
         }
 
         private static int batchPathDepth(string path)
