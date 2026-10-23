@@ -1,0 +1,1284 @@
+================================================================
+ FE3H Randomizer - debug report
+================================================================
+
+Written      : 2026-10-23 08:39:07
+Reason       : after saving to the output folder
+Seed         : 64379
+Random numbers generated: 145673
+
+--- ENVIRONMENT ------------------------------------------------
+Exe path     : F:\EGG\Dungeon-1.8.2\fe3h-randomizer\bin\Release\Fire Emblem Three Houses Randomizer V2.exe
+Exe folder   : F:\EGG\Dungeon-1.8.2\fe3h-randomizer\bin\Release
+Assembly     : 1.8.2.0
+File version : 1.8.2.0
+OS           : Microsoft Windows NT 6.2.9200.0
+.NET         : 4.0.30319.42000
+64-bit process: False
+UI culture   : en-US
+
+--- PERFORMANCE ------------------------------------------------
+window build (all controls) : 411 ms
+extra tabs built            : 1618 ms
+display refresh             : 1237 calls, 1577 ms total, 1 ms average, 203 ms worst
+last tab switch             : Batch: folders : 5 ms
+worst tab switch            : Weapons : 102 ms
+tab switches over 250 ms    : 0
+startup / layout timings:
+    pre-layout of tab "Weapons" : 7 ms
+    pre-layout of tab "Characters" : 5 ms
+    pre-layout of tab "Calendar" : 0 ms
+    pre-layout of tab "Music and Text" : 0 ms
+    pre-layout of tab "Monastery" : 0 ms
+    pre-layout of tab "Battle Maps" : 0 ms
+    pre-layout of tab "Batch: folders" : 0 ms
+    pre-layout of tab "Extra options" : 0 ms
+
+--- NEW OPTIONS ------------------------------------------------
+Even class variety      : True
+Class variety safety    : 25%
+Ability blocklist on    : True
+Blocked abilities       : 20
+    148 : Special Dance
+    154 : Missing Number
+    158 : Dance
+    190 : Dragon Effect Null
+    191 : Monster Effect Null
+    193 : Air of Intimidation
+    195 : Giant Wings
+    197 : Divine Dragon Horn
+    198 : Path of the Conqueror
+    199 : Noncombatant
+    201 : Cursed Power
+    205 : Ancient Dragon Wrath
+    206 : Surging Light
+    207 : Ancient Dragonskin
+    225 : Mighty King of Legend
+    226 : Ten Elites
+    240 : 
+    246 : Umbral Leach
+    247 : Manifest Phantoms
+    249 : 
+Siege limit on          : True
+Max enemy weapon range  : 4
+Siege bypass chance     : 10%
+Growth shift            : 10%
+
+--- MORE OPTIONS -----------------------------------------------
+Boss abilities kept as they are: True   (slots restored 110, still changed 0)
+Boss stats kept as they are    : True   (slots restored 4, still changed 0, plus 7 raised on purpose by the scaling bonus)
+Boss level scaling bonus       : 75% of the scaling   (level scaling on, multiplier 150%, base stats raised 0, stat boosts raised 7, bosses touched 7)
+No repeated class ability      : True   (rerolled 1, left 0)
+One mastery ability per tier   : True   (rerolled 1, left 0)
+One mastery art per tier       : True   (rerolled 0)
+Unique personal abilities      : True   (rerolled 6, left 0)
+Growth range limit             : True  (15% to 105%)   (pulled back 386, changed growths now 0% to 105%)
+Even growth totals             : False  (tolerance 40%)   (classes evened 0)
+Keep each class's best growth  : True   (classes kept 52)
+    class growth totals now   : 45 to 516, average 222
+Stat boost range limit         : True  (-4 to 12)   (pulled back 0, changed boosts now -4 to 10)
+Even base stat totals          : False  (tolerance 25%)   (classes evened 0)
+Base stat range limit          : True  (4 to 99)   (pulled back 24, changed bases now 4 to 36)   3 vanilla value(s) outside the limit kept on purpose
+
+--- BIG OPTIONS ------------------------------------------------
+Swap class stat profiles       : False   (classes swapped 0, scope per tier)
+Swap class growth profiles     : False   (classes swapped 0)
+Shuffle character sheets       : False   (characters swapped 0)
+Boss remix                     : False   (bosses remixed 0)
+Weapons <- weapon effects     : 40%   (grafted 191, different type only: False)
+Weapons <- combat art effect  : 10%   (grafted 36)
+Weapons <- gambit effects     : 10%   (grafted 27)
+Combat arts <- combat art     : 40%   (grafted 35)
+Combat arts <- weapon effect  : 10%   (grafted 5)
+Gambits <- gambit effects     : 40%   (grafted 28)
+Gambits <- weapon effects     : 10%   (grafted 4)
+Unique weapon effect sets     : False   (rerolled 0, left 217)
+    weapons with an effect : 285
+    classes differing from vanilla : 65
+    characters differing from vanilla : 42
+
+--- LOADED FILES -----------------------------------------------
+DATA1.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\DATA1.bin  [file 6936719456 bytes]  [only the battalion section is held in memory]
+fixed_persondata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_persondata.bin  [file 139456 bytes]
+fixed_classdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_classdata.bin  [file 23812 bytes]
+fixed_data.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_data.bin  [file 39000 bytes]
+fixed_calendardata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch3\nx\data\fixed_calendardata.bin  [file 14696 bytes]
+fixed_lobby_common.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_lobby_common.bin  [file 44616 bytes]
+fixed_act_data.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_act_data.bin  [file 172732 bytes]
+fixed_growthdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_growthdata.bin  [file 1404 bytes]
+fixed_lobby_activity.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_lobby_activity.bin  [file 16504 bytes]
+fixed_groupworkdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_groupworkdata.bin  [file 4432 bytes]
+fixed_presentdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_presentdata.bin  [file 6180 bytes]
+fixed_shopdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_shopdata.bin  [file 18676 bytes]
+fixed_lobby_quest.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_lobby_quest.bin  [file 8672 bytes]
+fixed_scenario.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_scenario.bin  [file 4784 bytes]
+msgdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\common\common\msgdata.bin  [file 9586308 bytes]
+scrdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\common\common\scrdata.bin  [file 6736028 bytes]
+gwscrdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch1\common\common\gwscrdata.bin  [file 941488 bytes]
+tuscrdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\common\common\tuscrdata.bin  [file 787776 bytes]
+btlscrdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\common\common\btlscrdata.bin  [file 807848 bytes]
+BGM.ktsl2stbin : loaded  D:\Downloads\1roms\SWOITCH\New folder\nx\sound\BGM.ktsl2stbin  [file 398136704 bytes]
+
+--- NEW CODE - DID IT RUN? -------------------------------------
+class variety picks           : 0
+class weapon type draws       : 127
+class type bag refills        : 12
+class pick deck rebuilds      : 26
+ability picks                 : 970
+ability picks with blocks     : 892
+weapon range filter calls     : 379
+weapons removed by range      : 0
+siege bypass rolls won        : 41
+enemy spells picked           : 0
+spells replaced for range     : 0
+classes growth shifted        : 41
+tier spread passes            : 2
+
+--- CLASS VARIETY CHECK ----------------------------------------
+Weapon types per class tier (classes, not characters):
+tier       Sword Lance   Axe   Bow Brawl Magic   ???  Dark
+before start       2     0     0     0     0     0     0     0
+after  start       0     0     0     0     1     1     0     0
+before begin       2     1     1     0     0     0     1     0
+after  begin       0     1     1     2     0     2     0     0
+before inter       5     2     2     1     1     2     1     0
+after  inter       2     2     1     3     2     4     2     0
+before adv         4     3     4     1     2     4     3     0
+after  adv         3     5     4     2     5     7     3     0
+before master      1     3     3     1     1     3     2     0
+after  master      2     2     2     2     2     4     3     0
+before unique      5     4     4     2     0     1     0     0
+after  unique      3     3     2     3     2     5     4     0
+
+What the balancer actually served:
+  start  : 8 of 8 types (Magic, Brawl, ???, Dark, Sword, Bow, Axe, Lance)
+  begin  : 8 of 8 types (Magic, Lance, Axe, Bow, ???, Dark, Brawl, Sword)
+  inter  : 8 of 8 types (Magic, Axe, Lance, Bow, ???, Dark, Sword, Brawl)
+  adv    : 8 of 8 types (Brawl, Lance, Sword, Dark, Bow, Magic, ???, Axe)
+  master : 7 of 8 types (Dark, ???, Bow, Axe, Brawl, Magic, Sword)
+  unique : 8 of 8 types (Dark, Sword, Bow, Magic, Lance, Axe, ???, Brawl)
+  whole run : 8 of 8 types (Bow, Brawl, ???, Lance, Axe, Sword, Dark, Magic)
+
+WARN  master only served 7 weapon types out of 8 dealt (safety 25%)
+Most common weapon type per tier: start =Brawl x1  begin =Bow x2  inter =Magic x4  adv   =Magic x7  master=Magic x4  unique=Magic x5  
+
+--- ABILITY BLOCKLIST CHECK ------------------------------------
+ability slots scanned  : 7260
+blocked abilities found: 64  (64 already in the vanilla file, 0 new)
+blocked abilities replaced by the safety pass: 0
+note: the vanilla data already contains these on purpose (monster classes), they are not touched by the blocklist
+
+--- SIEGE / RANGE CHECK ----------------------------------------
+obtainable weapons above range 4 : 0 (still in the game data, filtered from enemy pools)
+spells above range 4 : 4 (replaced by 0 rerolls in this run)
+map units scanned          : 4560
+out of range spell slots   : 46   (1 new, 45 same as vanilla)
+  scenario 21 unit 22 : spell 12 range 10 (same as vanilla)
+  scenario 21 unit 25 : spell 12 range 10 (same as vanilla)
+  scenario 22 unit 20 : spell 5 range 10 (same as vanilla)
+  scenario 22 unit 71 : spell 5 range 10 (same as vanilla)
+  scenario 24 unit 79 : spell 35 range 10 (same as vanilla)
+  scenario 24 unit 80 : spell 35 range 10 (same as vanilla)
+  scenario 24 unit 84 : spell 35 range 10 (same as vanilla)
+  scenario 25 unit 69 : spell 12 range 10 (same as vanilla)
+  scenario 25 unit 74 : spell 5 range 10 (same as vanilla)
+  scenario 25 unit 77 : spell 5 range 10 (same as vanilla)
+out of range weapon slots  : 1   (0 new, 1 same as vanilla, bypass chance 10%, bypass rolls won 41)
+  scenario 30 unit 20 : weapon 220 range 30 (same as vanilla)
+
+--- GROWTH SHIFT CHECK -----------------------------------------
+classes with changed enemy growths: 97  (counter says 41)
+stat      enemy growth total  before -> after   |  player before -> after
+HP            1875 ->   2788   |    1380 ->   2990
+Str           1788 ->   2917   |    1319 ->   1517
+Mag            998 ->   2303   |    1209 ->   1262
+Dex            215 ->   1606   |     205 ->    820
+Spd           1734 ->   1685   |    3704 ->   2160
+Lck             90 ->   2101   |      70 ->    780
+Def           2777 ->   2114   |    2173 ->   1226
+Res           4495 ->   3005   |    3729 ->   2053
+Cha            440 ->   1905   |     435 ->   1255
+
+--- SUMMARY ----------------------------------------------------
+passed  : 22
+warnings: 1
+failures: 0
+  PASS  boss / monster abilities are untouched
+  PASS  boss / monster stats are untouched (the 7 slot(s) raised by the scaling bonus are expected and not counted)
+  PASS  no class has the same ability twice
+  PASS  every class in a tier has a different mastery ability
+  PASS  mastery combat arts: 0 re-rolled to keep the tier unique
+  PASS  boss scaling bonus: 7 boss stat(s) raised across 7 boss class(es)
+  PASS  every character has a different personal ability
+  PASS  growth range limit held (changed class growths 0% to 105%)   36 vanilla value(s) outside the limit kept on purpose
+  PASS  stat boost range limit held (-4 to 10)
+  PASS  base stat range limit held (4 to 36)   3 vanilla value(s) outside the limit kept on purpose
+  PASS  weapons taking other weapons' effects: 191 entr(ies) at 40% chance
+  PASS  weapons taking a combat art effect: 36 entr(ies) at 10% chance
+  PASS  weapons taking a gambit's effects: 27 entr(ies) at 10% chance
+  PASS  combat arts taking another art's effect: 35 entr(ies) at 40% chance
+  PASS  combat arts taking a weapon's effect: 5 entr(ies) at 10% chance
+  PASS  gambits taking another gambit's effects: 28 entr(ies) at 40% chance
+  PASS  gambits taking a weapon's effects: 4 entr(ies) at 10% chance
+  PASS  class variety code ran (0 class picks, 127 weapon type draws)
+  PASS  class variety: spread is within the 25% safety level
+  PASS  ability blocklist: no blocked ability was introduced
+  PASS  siege limit: no new out of range weapon on a map unit (1 were already there in vanilla)
+  PASS  growth shift: enemy HP growth total rose, Str/Mag/Def/Res fell
+  WARN  master served fewer weapon types than it was dealt
+
+If anything says FAIL or a new option looks like it did nothing,
+send this file along with the build and it can be checked quickly.
+
+--- FULL SETTINGS DUMP -----------------------------------------
+randStatBoosts: True
+randMonStatBoosts: False
+randStaStatBoosts: True
+randBegStatBoosts: True
+randIntStatBoosts: True
+randAdvStatBoosts: True
+randMasStatBoosts: True
+randUniStatBoosts: True
+randMovStatBoosts: True
+monStatBoostsPosCountMin: 0
+monStatBoostsPosCountMax: 0
+staStatBoostsPosCountMin: 0
+staStatBoostsPosCountMax: 0
+begStatBoostsPosCountMin: 1
+begStatBoostsPosCountMax: 1
+intStatBoostsPosCountMin: 2
+intStatBoostsPosCountMax: 4
+advStatBoostsPosCountMin: 2
+advStatBoostsPosCountMax: 5
+masStatBoostsPosCountMin: 3
+masStatBoostsPosCountMax: 7
+uniStatBoostsPosCountMin: 3
+uniStatBoostsPosCountMax: 9
+monStatBoostsNegCountMin: 0
+monStatBoostsNegCountMax: 0
+staStatBoostsNegCountMin: 0
+staStatBoostsNegCountMax: 0
+begStatBoostsNegCountMin: 0
+begStatBoostsNegCountMax: 0
+intStatBoostsNegCountMin: 0
+intStatBoostsNegCountMax: 2
+advStatBoostsNegCountMin: 1
+advStatBoostsNegCountMax: 2
+masStatBoostsNegCountMin: 0
+masStatBoostsNegCountMax: 1
+uniStatBoostsNegCountMin: 0
+uniStatBoostsNegCountMax: 1
+monStatBoostsPosMin: 0
+monStatBoostsPosMax: 0
+staStatBoostsPosMin: 0
+staStatBoostsPosMax: 0
+begStatBoostsPosMin: 1
+begStatBoostsPosMax: 1
+intStatBoostsPosMin: 1
+intStatBoostsPosMax: 4
+advStatBoostsPosMin: 1
+advStatBoostsPosMax: 10
+masStatBoostsPosMin: 1
+masStatBoostsPosMax: 6
+uniStatBoostsPosMin: 1
+uniStatBoostsPosMax: 8
+monStatBoostsNegMin: 0
+monStatBoostsNegMax: 0
+staStatBoostsNegMin: 0
+staStatBoostsNegMax: 0
+begStatBoostsNegMin: 0
+begStatBoostsNegMax: 0
+intStatBoostsNegMin: -2
+intStatBoostsNegMax: -1
+advStatBoostsNegMin: -4
+advStatBoostsNegMax: -2
+masStatBoostsNegMin: -2
+masStatBoostsNegMax: -1
+uniStatBoostsNegMin: -4
+uniStatBoostsNegMax: -1
+monMovStatBoostsMin: 0
+monMovStatBoostsMax: 2
+staMovStatBoostsMin: 0
+staMovStatBoostsMax: 0
+begMovStatBoostsMin: 0
+begMovStatBoostsMax: 0
+intMovStatBoostsMin: 0
+intMovStatBoostsMax: 1
+advMovStatBoostsMin: 0
+advMovStatBoostsMax: 2
+masMovStatBoostsMin: 1
+masMovStatBoostsMax: 2
+uniMovStatBoostsMin: 1
+uniMovStatBoostsMax: 2
+randMountBoosts: True
+randMonMountBoosts: False
+randStaMountBoosts: False
+randBegMountBoosts: False
+randIntMountBoosts: False
+randAdvMountBoosts: False
+randMasMountBoosts: True
+randUniMountBoosts: False
+randMovMountBoosts: False
+monMountBoostsPosCountMin: 0
+monMountBoostsPosCountMax: 0
+staMountBoostsPosCountMin: 0
+staMountBoostsPosCountMax: 0
+begMountBoostsPosCountMin: 0
+begMountBoostsPosCountMax: 0
+intMountBoostsPosCountMin: 0
+intMountBoostsPosCountMax: 1
+advMountBoostsPosCountMin: 0
+advMountBoostsPosCountMax: 2
+masMountBoostsPosCountMin: 0
+masMountBoostsPosCountMax: 2
+uniMountBoostsPosCountMin: 1
+uniMountBoostsPosCountMax: 2
+monMountBoostsNegCountMin: 0
+monMountBoostsNegCountMax: 0
+staMountBoostsNegCountMin: 0
+staMountBoostsNegCountMax: 0
+begMountBoostsNegCountMin: 0
+begMountBoostsNegCountMax: 0
+intMountBoostsNegCountMin: 0
+intMountBoostsNegCountMax: 1
+advMountBoostsNegCountMin: 0
+advMountBoostsNegCountMax: 1
+masMountBoostsNegCountMin: 0
+masMountBoostsNegCountMax: 0
+uniMountBoostsNegCountMin: 0
+uniMountBoostsNegCountMax: 1
+monMountBoostsPosMin: 0
+monMountBoostsPosMax: 0
+staMountBoostsPosMin: 0
+staMountBoostsPosMax: 0
+begMountBoostsPosMin: 0
+begMountBoostsPosMax: 0
+intMountBoostsPosMin: 2
+intMountBoostsPosMax: 3
+advMountBoostsPosMin: 1
+advMountBoostsPosMax: 2
+masMountBoostsPosMin: 1
+masMountBoostsPosMax: 3
+uniMountBoostsPosMin: 1
+uniMountBoostsPosMax: 3
+monMountBoostsNegMin: 0
+monMountBoostsNegMax: 0
+staMountBoostsNegMin: 0
+staMountBoostsNegMax: 0
+begMountBoostsNegMin: 0
+begMountBoostsNegMax: 0
+intMountBoostsNegMin: -2
+intMountBoostsNegMax: -2
+advMountBoostsNegMin: -2
+advMountBoostsNegMax: -2
+masMountBoostsNegMin: 0
+masMountBoostsNegMax: 0
+uniMountBoostsNegMin: -2
+uniMountBoostsNegMax: -2
+monMovMountBoostsMin: 0
+monMovMountBoostsMax: 0
+staMovMountBoostsMin: 0
+staMovMountBoostsMax: 0
+begMovMountBoostsMin: 0
+begMovMountBoostsMax: 0
+intMovMountBoostsMin: 2
+intMovMountBoostsMax: 3
+advMovMountBoostsMin: 2
+advMovMountBoostsMax: 2
+masMovMountBoostsMin: 1
+masMovMountBoostsMax: 3
+uniMovMountBoostsMin: 2
+uniMovMountBoostsMax: 3
+randPlayerGrowthBoosts: True
+randMonPlayerGrowthBoosts: False
+randStaPlayerGrowthBoosts: True
+randBegPlayerGrowthBoosts: True
+randIntPlayerGrowthBoosts: True
+randAdvPlayerGrowthBoosts: True
+randMasPlayerGrowthBoosts: True
+randUniPlayerGrowthBoosts: True
+randMovPlayerGrowthBoosts: False
+monPlayerGrowthBoostsPosCountMin: 0
+monPlayerGrowthBoostsPosCountMax: 0
+staPlayerGrowthBoostsPosCountMin: 0
+staPlayerGrowthBoostsPosCountMax: 1
+begPlayerGrowthBoostsPosCountMin: 3
+begPlayerGrowthBoostsPosCountMax: 3
+intPlayerGrowthBoostsPosCountMin: 3
+intPlayerGrowthBoostsPosCountMax: 5
+advPlayerGrowthBoostsPosCountMin: 3
+advPlayerGrowthBoostsPosCountMax: 7
+masPlayerGrowthBoostsPosCountMin: 2
+masPlayerGrowthBoostsPosCountMax: 6
+uniPlayerGrowthBoostsPosCountMin: 2
+uniPlayerGrowthBoostsPosCountMax: 6
+monPlayerGrowthBoostsNegCountMin: 0
+monPlayerGrowthBoostsNegCountMax: 0
+staPlayerGrowthBoostsNegCountMin: 0
+staPlayerGrowthBoostsNegCountMax: 0
+begPlayerGrowthBoostsNegCountMin: 0
+begPlayerGrowthBoostsNegCountMax: 1
+intPlayerGrowthBoostsNegCountMin: 0
+intPlayerGrowthBoostsNegCountMax: 2
+advPlayerGrowthBoostsNegCountMin: 0
+advPlayerGrowthBoostsNegCountMax: 2
+masPlayerGrowthBoostsNegCountMin: 0
+masPlayerGrowthBoostsNegCountMax: 2
+uniPlayerGrowthBoostsNegCountMin: 0
+uniPlayerGrowthBoostsNegCountMax: 3
+monPlayerGrowthBoostsPosMin: 0
+monPlayerGrowthBoostsPosMax: 0
+staPlayerGrowthBoostsPosMin: 5
+staPlayerGrowthBoostsPosMax: 5
+begPlayerGrowthBoostsPosMin: 5
+begPlayerGrowthBoostsPosMax: 10
+intPlayerGrowthBoostsPosMin: 5
+intPlayerGrowthBoostsPosMax: 30
+advPlayerGrowthBoostsPosMin: 5
+advPlayerGrowthBoostsPosMax: 40
+masPlayerGrowthBoostsPosMin: 5
+masPlayerGrowthBoostsPosMax: 40
+uniPlayerGrowthBoostsPosMin: 5
+uniPlayerGrowthBoostsPosMax: 40
+monPlayerGrowthBoostsNegMin: 0
+monPlayerGrowthBoostsNegMax: 0
+staPlayerGrowthBoostsNegMin: 0
+staPlayerGrowthBoostsNegMax: 0
+begPlayerGrowthBoostsNegMin: -5
+begPlayerGrowthBoostsNegMax: -5
+intPlayerGrowthBoostsNegMin: -10
+intPlayerGrowthBoostsNegMax: -5
+advPlayerGrowthBoostsNegMin: -10
+advPlayerGrowthBoostsNegMax: -5
+masPlayerGrowthBoostsNegMin: -5
+masPlayerGrowthBoostsNegMax: -5
+uniPlayerGrowthBoostsNegMin: -5
+uniPlayerGrowthBoostsNegMax: -5
+monMovPlayerGrowthBoostsMin: 0
+monMovPlayerGrowthBoostsMax: 0
+staMovPlayerGrowthBoostsMin: 1
+staMovPlayerGrowthBoostsMax: 5
+begMovPlayerGrowthBoostsMin: 1
+begMovPlayerGrowthBoostsMax: 5
+intMovPlayerGrowthBoostsMin: 1
+intMovPlayerGrowthBoostsMax: 5
+advMovPlayerGrowthBoostsMin: 1
+advMovPlayerGrowthBoostsMax: 5
+masMovPlayerGrowthBoostsMin: 1
+masMovPlayerGrowthBoostsMax: 5
+uniMovPlayerGrowthBoostsMin: 1
+uniMovPlayerGrowthBoostsMax: 5
+monMovPlayerGrowthBoostsP: 0
+staMovPlayerGrowthBoostsP: 10
+begMovPlayerGrowthBoostsP: 10
+intMovPlayerGrowthBoostsP: 10
+advMovPlayerGrowthBoostsP: 10
+masMovPlayerGrowthBoostsP: 10
+uniMovPlayerGrowthBoostsP: 10
+randEnemyGrowthBoosts: True
+randMonEnemyGrowthBoosts: True
+randStaEnemyGrowthBoosts: True
+randBegEnemyGrowthBoosts: True
+randIntEnemyGrowthBoosts: True
+randAdvEnemyGrowthBoosts: True
+randMasEnemyGrowthBoosts: True
+randUniEnemyGrowthBoosts: True
+randMovEnemyGrowthBoosts: False
+monEnemyGrowthBoostsPosCountMin: 1
+monEnemyGrowthBoostsPosCountMax: 1
+staEnemyGrowthBoostsPosCountMin: 0
+staEnemyGrowthBoostsPosCountMax: 0
+begEnemyGrowthBoostsPosCountMin: 3
+begEnemyGrowthBoostsPosCountMax: 3
+intEnemyGrowthBoostsPosCountMin: 3
+intEnemyGrowthBoostsPosCountMax: 6
+advEnemyGrowthBoostsPosCountMin: 3
+advEnemyGrowthBoostsPosCountMax: 6
+masEnemyGrowthBoostsPosCountMin: 4
+masEnemyGrowthBoostsPosCountMax: 6
+uniEnemyGrowthBoostsPosCountMin: 3
+uniEnemyGrowthBoostsPosCountMax: 5
+monEnemyGrowthBoostsNegCountMin: 1
+monEnemyGrowthBoostsNegCountMax: 1
+staEnemyGrowthBoostsNegCountMin: 0
+staEnemyGrowthBoostsNegCountMax: 0
+begEnemyGrowthBoostsNegCountMin: 1
+begEnemyGrowthBoostsNegCountMax: 1
+intEnemyGrowthBoostsNegCountMin: 0
+intEnemyGrowthBoostsNegCountMax: 2
+advEnemyGrowthBoostsNegCountMin: 0
+advEnemyGrowthBoostsNegCountMax: 2
+masEnemyGrowthBoostsNegCountMin: 1
+masEnemyGrowthBoostsNegCountMax: 1
+uniEnemyGrowthBoostsNegCountMin: 1
+uniEnemyGrowthBoostsNegCountMax: 2
+monEnemyGrowthBoostsPosMin: 5
+monEnemyGrowthBoostsPosMax: 5
+staEnemyGrowthBoostsPosMin: 0
+staEnemyGrowthBoostsPosMax: 0
+begEnemyGrowthBoostsPosMin: 5
+begEnemyGrowthBoostsPosMax: 25
+intEnemyGrowthBoostsPosMin: 5
+intEnemyGrowthBoostsPosMax: 40
+advEnemyGrowthBoostsPosMin: 5
+advEnemyGrowthBoostsPosMax: 60
+masEnemyGrowthBoostsPosMin: 5
+masEnemyGrowthBoostsPosMax: 60
+uniEnemyGrowthBoostsPosMin: 15
+uniEnemyGrowthBoostsPosMax: 60
+monEnemyGrowthBoostsNegMin: -10
+monEnemyGrowthBoostsNegMax: -10
+staEnemyGrowthBoostsNegMin: 0
+staEnemyGrowthBoostsNegMax: 0
+begEnemyGrowthBoostsNegMin: -5
+begEnemyGrowthBoostsNegMax: 0
+intEnemyGrowthBoostsNegMin: -30
+intEnemyGrowthBoostsNegMax: -5
+advEnemyGrowthBoostsNegMin: -30
+advEnemyGrowthBoostsNegMax: -5
+masEnemyGrowthBoostsNegMin: -10
+masEnemyGrowthBoostsNegMax: -5
+uniEnemyGrowthBoostsNegMin: -20
+uniEnemyGrowthBoostsNegMax: -5
+monMovEnemyGrowthBoostsMin: 0
+monMovEnemyGrowthBoostsMax: 0
+staMovEnemyGrowthBoostsMin: 1
+staMovEnemyGrowthBoostsMax: 5
+begMovEnemyGrowthBoostsMin: 1
+begMovEnemyGrowthBoostsMax: 5
+intMovEnemyGrowthBoostsMin: 1
+intMovEnemyGrowthBoostsMax: 5
+advMovEnemyGrowthBoostsMin: 1
+advMovEnemyGrowthBoostsMax: 5
+masMovEnemyGrowthBoostsMin: 1
+masMovEnemyGrowthBoostsMax: 5
+uniMovEnemyGrowthBoostsMin: 1
+uniMovEnemyGrowthBoostsMax: 5
+monMovEnemyGrowthBoostsP: 0
+staMovEnemyGrowthBoostsP: 10
+begMovEnemyGrowthBoostsP: 10
+intMovEnemyGrowthBoostsP: 10
+advMovEnemyGrowthBoostsP: 10
+masMovEnemyGrowthBoostsP: 10
+uniMovEnemyGrowthBoostsP: 10
+randClassBases: True
+randMonClassBases: False
+randStaClassBases: True
+randBegClassBases: True
+randIntClassBases: True
+randAdvClassBases: True
+randMasClassBases: True
+randUniClassBases: True
+hpMonClassBasesMin: 0
+hpMonClassBasesMax: 0
+hpStaClassBasesMin: 1
+hpStaClassBasesMax: 1
+hpBegClassBasesMin: 20
+hpBegClassBasesMax: 20
+hpIntClassBasesMin: 25
+hpIntClassBasesMax: 30
+hpAdvClassBasesMin: 20
+hpAdvClassBasesMax: 35
+hpMasClassBasesMin: 32
+hpMasClassBasesMax: 34
+hpUniClassBasesMin: 28
+hpUniClassBasesMax: 38
+strMonClassBasesMin: 0
+strMonClassBasesMax: 0
+strStaClassBasesMin: 0
+strStaClassBasesMax: 0
+strBegClassBasesMin: 4
+strBegClassBasesMax: 8
+strIntClassBasesMin: 4
+strIntClassBasesMax: 10
+strAdvClassBasesMin: 5
+strAdvClassBasesMax: 20
+strMasClassBasesMin: 8
+strMasClassBasesMax: 20
+strUniClassBasesMin: 8
+strUniClassBasesMax: 18
+magMonClassBasesMin: 0
+magMonClassBasesMax: 0
+magStaClassBasesMin: 0
+magStaClassBasesMax: 0
+magBegClassBasesMin: 3
+magBegClassBasesMax: 8
+magIntClassBasesMin: 6
+magIntClassBasesMax: 10
+magAdvClassBasesMin: 6
+magAdvClassBasesMax: 17
+magMasClassBasesMin: 10
+magMasClassBasesMax: 17
+magUniClassBasesMin: 8
+magUniClassBasesMax: 17
+dexMonClassBasesMin: 0
+dexMonClassBasesMax: 0
+dexStaClassBasesMin: 0
+dexStaClassBasesMax: 1
+dexBegClassBasesMin: 6
+dexBegClassBasesMax: 6
+dexIntClassBasesMin: 7
+dexIntClassBasesMax: 11
+dexAdvClassBasesMin: 7
+dexAdvClassBasesMax: 12
+dexMasClassBasesMin: 14
+dexMasClassBasesMax: 14
+dexUniClassBasesMin: 11
+dexUniClassBasesMax: 14
+speMonClassBasesMin: 0
+speMonClassBasesMax: 0
+speStaClassBasesMin: 0
+speStaClassBasesMax: 0
+speBegClassBasesMin: 6
+speBegClassBasesMax: 6
+speIntClassBasesMin: 4
+speIntClassBasesMax: 11
+speAdvClassBasesMin: 8
+speAdvClassBasesMax: 14
+speMasClassBasesMin: 10
+speMasClassBasesMax: 20
+speUniClassBasesMin: 6
+speUniClassBasesMax: 20
+lucMonClassBasesMin: 0
+lucMonClassBasesMax: 0
+lucStaClassBasesMin: 0
+lucStaClassBasesMax: 0
+lucBegClassBasesMin: 4
+lucBegClassBasesMax: 4
+lucIntClassBasesMin: 8
+lucIntClassBasesMax: 8
+lucAdvClassBasesMin: 8
+lucAdvClassBasesMax: 12
+lucMasClassBasesMin: 12
+lucMasClassBasesMax: 12
+lucUniClassBasesMin: 19
+lucUniClassBasesMax: 19
+defMonClassBasesMin: 0
+defMonClassBasesMax: 0
+defStaClassBasesMin: 0
+defStaClassBasesMax: 0
+defBegClassBasesMin: 3
+defBegClassBasesMax: 5
+defIntClassBasesMin: 3
+defIntClassBasesMax: 12
+defAdvClassBasesMin: 5
+defAdvClassBasesMax: 17
+defMasClassBasesMin: 13
+defMasClassBasesMax: 17
+defUniClassBasesMin: 13
+defUniClassBasesMax: 17
+resMonClassBasesMin: 0
+resMonClassBasesMax: 0
+resStaClassBasesMin: 0
+resStaClassBasesMax: 0
+resBegClassBasesMin: 2
+resBegClassBasesMax: 4
+resIntClassBasesMin: 1
+resIntClassBasesMax: 5
+resAdvClassBasesMin: 4
+resAdvClassBasesMax: 15
+resMasClassBasesMin: 10
+resMasClassBasesMax: 16
+resUniClassBasesMin: 8
+resUniClassBasesMax: 16
+chaMonClassBasesMin: 0
+chaMonClassBasesMax: 0
+chaStaClassBasesMin: 0
+chaStaClassBasesMax: 0
+chaBegClassBasesMin: 4
+chaBegClassBasesMax: 5
+chaIntClassBasesMin: 5
+chaIntClassBasesMax: 9
+chaAdvClassBasesMin: 6
+chaAdvClassBasesMax: 14
+chaMasClassBasesMin: 12
+chaMasClassBasesMax: 16
+chaUniClassBasesMin: 9
+chaUniClassBasesMax: 16
+removeWeaponRestrictions: True
+randWeaponTypes: True
+mon2ndWeaponTypeP: 0
+sta2ndWeaponTypeP: 0
+beg2ndWeaponTypeP: 5
+int2ndWeaponTypeP: 15
+adv2ndWeaponTypeP: 35
+mas2ndWeaponTypeP: 75
+uni2ndWeaponTypeP: 50
+randTyping: True
+randMovTypes: False
+baseMovTypes: False
+randClassProf: True
+baseClassProf: True
+randCert: True
+randMonCert: True
+randStaCert: True
+randBegCert: True
+randIntCert: True
+randAdvCert: True
+randMasCert: True
+randUniCert: True
+mainMonCertMin: 0
+mainMonCertMax: 0
+mainStaCertMin: 0
+mainStaCertMax: 0
+mainBegCertMin: 2
+mainBegCertMax: 2
+mainIntCertMin: 4
+mainIntCertMax: 4
+mainAdvCertMin: 6
+mainAdvCertMax: 8
+mainMasCertMin: 7
+mainMasCertMax: 8
+mainUniCertMin: 0
+mainUniCertMax: 0
+typeMonCertMin: 0
+typeMonCertMax: 0
+typeStaCertMin: 0
+typeStaCertMax: 0
+typeBegCertMin: 0
+typeBegCertMax: 0
+typeIntCertMin: 1
+typeIntCertMax: 2
+typeAdvCertMin: 4
+typeAdvCertMax: 6
+typeMasCertMin: 7
+typeMasCertMax: 9
+typeUniCertMin: 0
+typeUniCertMax: 0
+otherMonCertMin: 0
+otherMonCertMax: 0
+otherStaCertMin: 0
+otherStaCertMax: 0
+otherBegCertMin: 0
+otherBegCertMax: 2
+otherIntCertMin: 0
+otherIntCertMax: 2
+otherAdvCertMin: 4
+otherAdvCertMax: 4
+otherMasCertMin: 4
+otherMasCertMax: 6
+otherUniCertMin: 0
+otherUniCertMax: 0
+baseCert: True
+randCertItem: False
+allowNonSealCertItems: False
+randClassAb: True
+baseClassAb: True
+randClassDefAb: True
+randMonClassDefAb: True
+randStaClassDefAb: True
+randBegClassDefAb: True
+randIntClassDefAb: True
+randAdvClassDefAb: True
+randMasClassDefAb: True
+randUniClassDefAb: True
+monClassDefAbCountMin: 0
+monClassDefAbCountMax: 0
+staClassDefAbCountMin: 0
+staClassDefAbCountMax: 0
+intClassDefAbCountMin: 2
+intClassDefAbCountMax: 2
+begClassDefAbCountMin: 0
+begClassDefAbCountMax: 1
+advClassDefAbCountMin: 3
+advClassDefAbCountMax: 3
+masClassDefAbCountMin: 4
+masClassDefAbCountMax: 4
+uniClassDefAbCountMin: 5
+uniClassDefAbCountMax: 5
+randClassClassAb: True
+randMonClassClassAb: True
+randStaClassClassAb: True
+randBegClassClassAb: True
+randIntClassClassAb: True
+randAdvClassClassAb: True
+randMasClassClassAb: True
+randUniClassClassAb: True
+monClassClassAbCountMin: 3
+monClassClassAbCountMax: 3
+staClassClassAbCountMin: 0
+staClassClassAbCountMax: 0
+intClassClassAbCountMin: 0
+intClassClassAbCountMax: 2
+begClassClassAbCountMin: 0
+begClassClassAbCountMax: 0
+advClassClassAbCountMin: 2
+advClassClassAbCountMax: 3
+masClassClassAbCountMin: 3
+masClassClassAbCountMax: 3
+uniClassClassAbCountMin: 2
+uniClassClassAbCountMax: 3
+randClassMasteryAb: True
+randClassMasteryCa: True
+baseClassMasteryCa: True
+randClassMasteryExpReq: True
+randMonClassMasteryExpReq: False
+randStaClassMasteryExpReq: True
+randBegClassMasteryExpReq: True
+randIntClassMasteryExpReq: True
+randAdvClassMasteryExpReq: True
+randMasClassMasteryExpReq: True
+randUniClassMasteryExpReq: True
+monClassMasteryExpReqMin: 0
+monClassMasteryExpReqMax: 0
+staClassMasteryExpReqMin: 10
+staClassMasteryExpReqMax: 30
+begClassMasteryExpReqMin: 30
+begClassMasteryExpReqMax: 80
+intClassMasteryExpReqMin: 50
+intClassMasteryExpReqMax: 140
+advClassMasteryExpReqMin: 150
+advClassMasteryExpReqMax: 210
+masClassMasteryExpReqMin: 160
+masClassMasteryExpReqMax: 255
+uniClassMasteryExpReqMin: 100
+uniClassMasteryExpReqMax: 200
+randAdjutant: True
+specialToAdv: True
+randExpYield: False
+randMonExpYield: True
+randStaExpYield: True
+randBegExpYield: True
+randIntExpYield: True
+randAdvExpYield: True
+randMasExpYield: True
+randUniExpYield: True
+monExpYieldMin: 25
+monExpYieldMax: 75
+staExpYieldMin: 15
+staExpYieldMax: 45
+begExpYieldMin: 15
+begExpYieldMax: 45
+intExpYieldMin: 18
+intExpYieldMax: 54
+advExpYieldMin: 20
+advExpYieldMax: 60
+masExpYieldMin: 20
+masExpYieldMax: 60
+uniExpYieldMin: 25
+uniExpYieldMax: 75
+unitsToScale: True
+randMounts: True
+setArmorAni: True
+provideClassAni: True
+randClassAni: False
+randTierLv: False
+randBegTierLv: True
+randIntTierLv: True
+randAdvTierLv: True
+randMasTierLv: True
+begTierLvMin: 4
+begTierLvMax: 6
+intTierLvMin: 8
+intTierLvMax: 12
+advTierLvMin: 16
+advTierLvMax: 24
+masTierLvMin: 24
+masTierLvMax: 36
+removeGenderRestrictions: True
+randBarrierBreakItem: False
+allowNonMineralBarrierBreakItem: False
+randBarrierAb: False
+randLatentAb: True
+randWeapons: True
+randSpells: True
+randTurrets: False
+randGambits: True
+randMonsterAoe: True
+randAtkStatusEffects: True
+atkStatusEffectsP: 10
+randAtkEffectiveness: True
+atkEffectivenessP: 10
+atkEffectivenessPreserveBows: False
+randAtkCrit: False
+atkCritP: 30
+atkCritMax: 50
+randAtkDoubleAttack: False
+atkDoubleAttackP: 5
+atkDoubleAttackPreserveGauntlets: True
+randAtkRange: True
+randAtkRangeP: 10
+atkRangeBinomial: True
+atkRangeLinear: False
+atkRangeLinearDev: 2
+atkRangeProportional: False
+atkRangeProportionalDev: 1
+atkRangeExponential: False
+atkRangeExponentialDev: 2
+randAtkDurability: True
+randAtkDurabilityP: 50
+atkDurabilityBinomial: False
+atkDurabilityLinear: False
+atkDurabilityLinearDev: 10
+atkDurabilityProportional: True
+atkDurabilityProportionalDev: 0.5
+atkDurabilityExponential: False
+atkDurabilityExponentialDev: 2
+randAtkMight: True
+randAtkMightP: 50
+atkMightBinomial: False
+atkMightLinear: False
+atkMightLinearDev: 5
+atkMightProportional: True
+atkMightProportionalDev: 0.5
+atkMightExponential: False
+atkMightExponentialDev: 2
+randAtkHit: True
+randAtkHitP: 50
+atkHitBinomial: False
+atkHitLinear: False
+atkHitLinearDev: 25
+atkHitProportional: True
+atkHitProportionalDev: 0.25
+atkHitExponential: False
+atkHitExponentialDev: 1.5
+randAtkWeight: True
+randAtkWeightP: 50
+atkWeightBinomial: True
+atkWeightLinear: False
+atkWeightLinearDev: 6
+atkWeightProportional: False
+atkWeightProportionalDev: 0.5
+atkWeightExponential: False
+atkWeightExponentialDev: 2
+randAtkPhysicalMagicSwitch: True
+randAtkPhysicalMagicSwitchP: 10
+randAtkIgnoreDefRes: False
+randAtkIgnoreDefResP: 0.5
+randAtkLeaveAt1: False
+randAtkLeaveAt1P: 0.5
+randCa: True
+randCaAvoid: True
+randCaAvoidP: 20
+randCaAvoidMax: 25
+randCaCrit: False
+randCaCritP: 35
+randCaCritMax: 40
+randCaEffects: True
+randCaEffectsP: 75
+randCaEffectiveness: True
+randCaEffectivenessP: 20
+randCaRange: True
+randCaRangeP: 10
+caRangeBinomial: True
+caRangeLinear: False
+caRangeLinearDev: 2
+caRangeProportional: False
+caRangeProportionalDev: 1
+caRangeExponential: False
+caRangeExponentialDev: 2
+randCaDurabilityCost: True
+randCaDurabilityCostP: 50
+caDurabilityCostBinomial: False
+caDurabilityCostLinear: False
+caDurabilityCostLinearDev: 2
+caDurabilityCostProportional: True
+caDurabilityCostProportionalDev: 0.5
+caDurabilityCostExponential: False
+caDurabilityCostExponentialDev: 2
+randCaMight: True
+randCaMightP: 50
+caMightBinomial: False
+caMightLinear: False
+caMightLinearDev: 5
+caMightProportional: True
+caMightProportionalDev: 0.5
+caMightExponential: False
+caMightExponentialDev: 2
+randCaHit: True
+caHitMin: -35
+caHitMax: 35
+randCaHitP: 25
+randBattalions: True
+randBattalionEndurance: True
+randBattalionEnduranceP: 80
+battalionEnduranceBinomial: False
+battalionEnduranceLinear: False
+battalionEnduranceLinearDev: 30
+battalionEnduranceProportional: True
+battalionEnduranceProportionalDev: 0.5
+battalionEnduranceExponential: False
+battalionEnduranceExponentialDev: 2
+randBattalionBoostBases: True
+randBattalionBoostGrowths: True
+randBattalionStatBoosts: False
+battalionStatBoostsIncludeAll: False
+randBattalionGambit: True
+shuffleAssets: False
+shuffleAssetsGender: False
+shuffleAssetsAge: False
+randModelData: True
+randAge: False
+ageMin: 9
+ageMax: 73
+randBirthday: True
+randAniSet: False
+aniSetIncludeCane: False
+randHeight: True
+heightMin: 135
+heightMax: 204
+modelSize1Min: 0.85
+modelSize1Max: 1.15
+modelSize2Min: 0.85
+modelSize2Max: 1.16
+modelPreTsChestSizeMin: 0.08
+modelPreTsChestSizeMax: 1.75
+modelPostTsChestSizeMin: 0.1
+modelPostTsChestSizeMax: 2.45
+randCrests: True
+crest1P: 60
+crest2P: 10
+randPersonalAb: True
+basePersonalAb: True
+newPersonalAbPostTsP: 5
+randSupportBonuses: True
+randSpecialSupportBonuses: True
+supportBonusesIncludeMore: False
+randRecruitmentRequirements: True
+recruitmentRequirementStatsMin: 8
+recruitmentRequirementStatsMax: 22
+recruitmentRequirementRanksMin: 3
+recruitmentRequirementRanksMax: 6
+preserveCharCaps: False
+randCharCaps: True
+removeCharCaps: False
+hpCharCapsMin: 80
+hpCharCapsMax: 200
+strCharCapsMin: 30
+strCharCapsMax: 90
+magCharCapsMin: 30
+magCharCapsMax: 90
+dexCharCapsMin: 55
+dexCharCapsMax: 90
+speCharCapsMin: 35
+speCharCapsMax: 90
+lucCharCapsMin: 0
+lucCharCapsMax: 255
+defCharCapsMin: 35
+defCharCapsMax: 70
+resCharCapsMin: 35
+resCharCapsMax: 70
+chaCharCapsMin: 35
+chaCharCapsMax: 100
+randCharBases: True
+ensureGoodBases: True
+hpCharBasesMin: 20
+hpCharBasesMax: 35
+strCharBasesMin: 4
+strCharBasesMax: 13
+magCharBasesMin: 4
+magCharBasesMax: 13
+dexCharBasesMin: 6
+dexCharBasesMax: 7
+speCharBasesMin: 5
+speCharBasesMax: 10
+lucCharBasesMin: 0
+lucCharBasesMax: 11
+defCharBasesMin: 3
+defCharBasesMax: 8
+resCharBasesMin: 1
+resCharBasesMax: 10
+chaCharBasesMin: 1
+chaCharBasesMax: 12
+randMovCharBases: False
+randMovCharBasesP: 10
+movCharBasesMin: 3
+movCharBasesMax: 5
+randCharGrowths: True
+ensureGoodGrowths: True
+hpCharGrowthsMin: 50
+hpCharGrowthsMax: 100
+strCharGrowthsMin: 20
+strCharGrowthsMax: 60
+magCharGrowthsMin: 20
+magCharGrowthsMax: 60
+dexCharGrowthsMin: 30
+dexCharGrowthsMax: 60
+speCharGrowthsMin: 15
+speCharGrowthsMax: 70
+lucCharGrowthsMin: 0
+lucCharGrowthsMax: 100
+defCharGrowthsMin: 20
+defCharGrowthsMax: 50
+resCharGrowthsMin: 20
+resCharGrowthsMax: 50
+chaCharGrowthsMin: 10
+chaCharGrowthsMax: 65
+randMovCharGrowths: False
+randMovCharGrowthsP: 10
+movCharGrowthsMin: 1
+movCharGrowthsMax: 10
+randGenericAb: True
+baseGenericAb: True
+preserveProwessAb: True
+randGenericCa: True
+baseGenericCa: True
+randCharCa: True
+baseCharCa: True
+limitCharCa: True
+charCaCountMin: 2
+charCaCountMax: 3
+randBuddingTalents: True
+multipleBuddingTalents: True
+baseBuddingTalents: True
+randBuddingTalentLessonCount: True
+buddingTalentLessonCountMin: 10
+buddingTalentLessonCountMax: 14
+randSpellLists: True
+spellAtD: True
+baseSpellLists: True
+regularSpellListReasonCountMin: 3
+regularSpellListReasonCountMax: 3
+regularSpellListFaithCountMin: 2
+regularSpellListFaithCountMax: 5
+proficientSpellListReasonCountMin: 5
+proficientSpellListReasonCountMax: 5
+proficientSpellListFaithCountMin: 5
+proficientSpellListFaithCountMax: 5
+unknownSpellListReasonCountMin: 2
+unknownSpellListReasonCountMax: 5
+unknownSpellListFaithCountMin: 3
+unknownSpellListFaithCountMax: 5
+randCharAb: True
+baseCharAb: True
+limitCharAb: True
+charAbCountMin: 1
+charAbCountMax: 3
+preserveGenericCharAb: True
+randCharProfs: True
+strengthCountMin: 2
+strengthCountMax: 5
+weaknessCountMin: 1
+weaknessCountMax: 4
+randCharStartClasses: False
+randCharPreCertClasses: True
+charOptimalClasses: True
+randStartInventories: True
+baseStartInventories: True
+randStartInventoryItem: True
+startInventoryItemP: 100
+randFacultyTraining: True
+baseFacultyTraining: True
+randSeminars: True
+baseSeminars: True
+randGoals: True
+baseGoals: True
+randStartRanks: True
+baseStartRanks: True
+randCalendar: False
+randRareMonsterSighting: False
+randRareMonsterSightingP: 20
+randRestrictFreeday: False
+randRestrictFreedayP: 10
+randCafeteriaEvent: False
+randCafeteriaEventP: 50
+randChoirEvent: False
+randChoirEventP: 10
+randGardenEvent: False
+randGardenEventP: 10
+randFishingEvent: False
+randFishingEventP: 30
+shuffleBgm: True
+changeMsg: False
+changeScr: False
+changeGwscr: False
+changeTuscr: False
+changeBtlscr: False
+changeData1Text: False
+baseText: True
+qolText: False
+randText: False
+preserveStringLength: False
+randTextSource: False
+randChoirProfs: False
+randCookingProfs: False
+randMeal: False
+randMealPrefs: False
+randFishingItems: False
+randGardeningItems: False
+randCultivationCosts: False
+randGiftPrefs: False
+randSaintStatueCosts: False
+randSaintStatuePerks: False
+randInfluencerCosts: False
+randQuestRewards: False
+randGroupTaskGold: False
+randGroupTaskSkills: False
+randGroupTaskItems: False
+randGroupTaskProfs: False
+sameFunctionItems: True
+sameTypeItems: False
+randTypeItems: False
+randTypeItemP: 10
+randWeaponShops: False
+randItemShops: False
+randBattalionShops: False
+randMerchants: False
+randAnnaShop: True
+randPaganAltar: False
+randShopPrices: False
+randShopStocks: False
+randLectureExp: False
+randProfLvExpReq: False
+randFunds: False
+randLecturePointCount: False
+randBattlePointCount: False
+randAdjutantCount: False
+randActivityPointCount: False
+unlockMasterClasses: True
+randRepairItems: False
+randForgeCosts: False
+randForgeItems: False
+randForgeWeapons: True
+preserveForgeWeaponTypes: False
+randForgeProfLvReq: False
+randMapClass: True
+includeMonsterMapClass: False
+mapGroupClass: True
+mapIndividualClass: False
+randMapInventory: True
+mapInventoryP: 10
+mapInventoryForceCom: True
+randMapWeapons: True
+baseMapWeapons: True
+randMapEquipment: True
+mapEquipmentP: 20
+randMapItems: True
+mapItemsP: 20
+randMapDrops: True
+mapDropsP: 20
+randMapAb: False
+mapAbP: 10
+mapAbForceCom: False
+baseMapAb: False
+randMapBattalionId: False
+randMapBattalion: False
+mapBattalionP: 10
+mapBattalionForceCom: False
+randMapCa: False
+mapCaP: 10
+mapCaForceCom: False
+baseMapCa: False
+randMapSpellId: False
+randMapSpell: False
+mapSpellP: 10
+mapSpellForceCom: False
+baseMapSpell: False
+randChestItem: True
+randChestItemType: True
+randChestItemTypeP: 50
+mapExtraEnemies: True
+mapExtraEnemiesMin: 10
+mapExtraEnemiesMax: 10
+mapMaxAllies: False
+randAllyMapSpawn: False
+randNpcMapSpawn: False
+randEnemyMapSpawn: True
+randComMapSpawn: False
+randMapSpawnP: 15
+changeLv: True
+lvMultiplier: 150
+amplifyMaddening: False
+amplifyMaddeningAmount: 50
+ensureLowLvEarly: True
+
