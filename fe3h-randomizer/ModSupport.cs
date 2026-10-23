@@ -155,6 +155,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             public int[] Modded;
             public bool Valid;
             public string Problem;
+            // set when the map came from a measured, built-in profile instead of
+            // from an original file the user supplied
+            public bool FromProfile;
+            public string ProfileName;
 
             public int Count
             {
@@ -313,6 +317,99 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             return groups;
         }
 
+        // ------------------------------------------------- built-in profiles
+        // The same map, measured once from a known mod release and stored here,
+        // so that release needs no originals folder. A profile is only used when
+        // the loaded file's own header matches the stored directory exactly - a
+        // different build that happens to have the same size is not trusted.
+        private sealed class BuiltInProfile
+        {
+            public string Name;
+            public string FileName;
+            public int LoadedSize;
+            public int[] Original;
+            public int[] Modded;
+        }
+
+        private static readonly BuiltInProfile[] builtInProfiles = new BuiltInProfile[]
+        {
+            new BuiltInProfile
+            {
+                Name = "No Monastery 1.3.3",
+                FileName = "fixed_classdata.bin",
+                LoadedSize = 23956,
+                Original = new int[] { 11864, 11948, 13512, 13584, 14148, 16612, 21476,
+                    22180, 23364, 23508 },
+                Modded = new int[] { 11982, 12068, 13648, 13720, 14292, 16756, 21620,
+                    22324, 23508, 23652 }
+            },
+            new BuiltInProfile
+            {
+                Name = "No Monastery 1.3.3",
+                FileName = "fixed_data.bin",
+                LoadedSize = 39648,
+                Original = new int[] { 12064, 12196, 13172, 13308, 15292, 16796, 18060,
+                    22924, 24428, 25532, 25776, 26224, 37692, 37876, 38300, 38924 },
+                Modded = new int[] { 12064, 12196, 13460, 13596, 15580, 17084, 18348,
+                    23212, 25076, 26180, 26424, 26872, 38340, 38524, 38948, 39572 }
+            },
+            new BuiltInProfile
+            {
+                Name = "No Monastery 1.3.3",
+                FileName = "fixed_persondata.bin",
+                LoadedSize = 145776,
+                Original = new int[] { 96144, 96292, 107156, 108148, 109744, 110708,
+                    113564, 114260, 115676, 116868, 117624, 120928, 122432, 122760,
+                    123132, 123504, 124528, 138992 },
+                Modded = new int[] { 96144, 96292, 107156, 108148, 109812, 110816,
+                    113796, 114520, 115996, 117188, 123944, 127248, 128752, 129080,
+                    129452, 129824, 130848, 145312 }
+            }
+        };
+
+        // A profile for this file, but only if the loaded file's header is
+        // exactly the one that was measured.
+        private static OffsetMap profileMap(TableGroup group)
+        {
+            byte[] data = group.Data();
+            if (data == null)
+                return null;
+
+            for (int i = 0; i < builtInProfiles.Length; i++)
+            {
+                BuiltInProfile profile = builtInProfiles[i];
+                if (profile.FileName != group.FileName || profile.LoadedSize != data.Length)
+                    continue;
+
+                int count;
+                List<int> starts = sectionStarts(data, out count);
+                if (starts.Count != profile.Modded.Length || count != starts.Count)
+                    continue;
+
+                bool same = true;
+                for (int k = 0; k < starts.Count; k++)
+                {
+                    if (starts[k] != profile.Modded[k])
+                    {
+                        same = false;
+                        break;
+                    }
+                }
+                if (!same)
+                    continue;
+
+                OffsetMap map = new OffsetMap();
+                map.FileName = group.FileName;
+                map.Original = profile.Original;
+                map.Modded = profile.Modded;
+                map.Valid = true;
+                map.FromProfile = true;
+                map.ProfileName = profile.Name;
+                return map;
+            }
+            return null;
+        }
+
         // Reads the sub-table directory out of a fixed_*.bin header.
         private static List<int> sectionStarts(byte[] data, out int count)
         {
@@ -402,6 +499,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             int valid = 0;
             int attempted = 0;
             int missing = 0;
+            int fromProfile = 0;
             for (int i = 0; i < list.Count; i++)
             {
                 TableGroup group = list[i];
@@ -411,6 +509,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 byte[] original = readFile(originalFolder, group.FileName);
                 if (original == null)
                 {
+                    group.Map = profileMap(group);
+                    if (group.Map != null)
+                    {
+                        valid++;
+                        attempted++;
+                        fromProfile++;
+                        continue;
+                    }
                     missing++;
                     continue;
                 }
@@ -422,7 +528,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             if (valid > 0)
                 offsetsStatus = valid.ToString() + " of " + attempted.ToString()
-                    + " table maps read" + (missing > 0
+                    + " table maps read"
+                    + (fromProfile > 0
+                        ? " (" + fromProfile.ToString() + " from the built-in profile)" : "")
+                    + (missing > 0
                         ? ", " + missing.ToString() + " loaded file(s) had no original" : "");
             else if (missing > 0 && attempted == 0)
                 offsetsStatus = "no table maps read - the originals for the loaded files are not "
@@ -474,9 +583,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             if (!modMode)
                 return;
-            // Re-read every run: the user may have loaded different files since.
-            if (originalFolder != null && originalFolder.Trim().Length > 0)
-                readOffsets();
+            // Re-read every run: the user may have loaded different files since,
+            // and the built-in profile needs no folder at all.
+            readOffsets();
             applyOffsets();
         }
 
@@ -882,7 +991,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         + (group.Map.Problem == null ? "not usable" : group.Map.Problem));
                     continue;
                 }
-                text.AppendLine("  " + group.FileName + " : deltas " + deltaList(group.Map));
+                text.AppendLine("  " + group.FileName + " : deltas " + deltaList(group.Map)
+                    + (group.Map.FromProfile ? "   (built-in profile: " + group.Map.ProfileName + ")"
+                        : ""));
             }
 
             List<string> open = unverifiedFiles();
@@ -987,7 +1098,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     ? " : " + count.ToString() + " of " + group.Fields.Length.ToString()
                         + " table(s) moved"
                     : " : same layout as the original, nothing to adjust")
-                + ", sub-tables " + map.Count.ToString() + ", deltas " + deltaList(map));
+                + ", sub-tables " + map.Count.ToString() + ", deltas " + deltaList(map)
+                + (map.FromProfile ? "\r\n    from the built-in profile for " + map.ProfileName
+                    + " (the loaded header matches the measured one exactly)" : ""));
             if (moved.Length > 0)
                 text.AppendLine("    " + moved.ToString());
         }
@@ -995,9 +1108,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // Called by the form right before a run. A mod that moved a table makes
         // every write land somewhere else, so this asks instead of quietly
         // writing into the neighbouring table.
+        private static bool offsetsAcknowledged;
+
         public static bool confirmOffsets()
         {
-            if (!modMode)
+            if (!modMode || offsetsAcknowledged)
                 return true;
 
             List<string> open = unverifiedFiles();
@@ -1024,6 +1139,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + "Randomize anyway (not recommended)?",
                 "Table offsets unknown", MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
                 MessageBoxDefaultButton.Button2);
+            if (answer == DialogResult.Yes)
+                offsetsAcknowledged = true;
             return answer == DialogResult.Yes;
         }
 

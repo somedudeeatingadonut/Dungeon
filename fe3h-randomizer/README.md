@@ -253,6 +253,15 @@ The same directory is read for every other data file the randomizer writes -
 `fixed_presentdata.bin`, `fixed_lobby_quest.bin` and `fixed_scenario.bin` - so
 those tables move too, as soon as their original copy is in the folder.
 
+**No Monastery 1.3.3 needs no folder at all.** The measured map for that release
+is built into the exe, so the originals folder is optional: the tool recognises
+the mod by its own file headers (`fixed_classdata.bin` 23,956 /
+`fixed_data.bin` 39,648 / `fixed_persondata.bin` 145,776 bytes, and every
+sub-table start has to match the measured list exactly). The debug report says
+`from the built-in profile for No Monastery 1.3.3` when that happens. A
+different build - or a different mod - never matches silently: it falls back to
+the originals folder, and without one the run asks first.
+
 **What is verified and what is not:** the three files above were checked byte by
 byte against No Monastery's copies (every section start, and the content at every
 moved offset lines up). For the other files the tool knows how to read the

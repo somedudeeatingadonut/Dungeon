@@ -1,4 +1,4 @@
-// -----------------------------------------------------------------------------
+﻿// -----------------------------------------------------------------------------
 //  RandomizerExtrasTab.cs
 //
 //  The "Extra options" tab: class variety, ability blocklist, siege tome limit
@@ -233,7 +233,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     "Switch this on when the game runs a total conversion mod. It changes four things,\r\n"
                     + "all of them checked against No Monastery's own data files:\r\n"
                     + "  - the table offsets are moved to where the mod's file really keeps its tables,\r\n"
-                    + "    read out of the file header (a mod that adds rows moves everything after them)\r\n"
+                    + "    read out of the file header (a mod that adds rows moves everything after them);\r\n"
+                    + "    No Monastery 1.3.3 is recognised by its own file headers and needs no folder\r\n"
                     + "  - the mod's class mastery EXP values are put back after randomizing (the mod\r\n"
                     + "    builds its mastery rework on its own 0 / 20 / 50 / 100 / 150 / 200 scale)\r\n"
                     + "  - the Dancer row is looked up in the loaded data instead of being assumed to be\r\n"
@@ -323,9 +324,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 addFullRow(layout, modButtons);
 
                 addFullRow(layout, helpLabel(
-                    "The offsets are read from the mod's own file header, compared with the originals in\r\n"
-                    + "the folder above. Without those originals the offset map cannot be built: if the\r\n"
-                    + "loaded files are not original size, the run asks before it writes anything.\r\n"
+                    "The offsets are read from the mod's own file header and compared with the\r\n"
+                    + "originals in the folder above; for No Monastery 1.3.3 the same numbers are\r\n"
+                    + "built in, so that folder is optional. A mod with no built-in profile and no\r\n"
+                    + "originals is not trusted: the run asks before it writes anything.\r\n"
                     + "Analysis compares the loaded files with the original sizes, so it says whether you\r\n"
                     + "loaded the mod's copies or the game dump's. Load the mod's romfs, and write the\r\n"
                     + "result back into that same romfs folder - a file written anywhere else is\r\n"
@@ -1056,13 +1058,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasModOriginals_textBox != null)
                 ModSupport.originalFolder = this.extrasModOriginals_textBox.Text.Trim();
 
-            if (ModSupport.originalFolder == null || ModSupport.originalFolder.Length == 0)
-            {
-                MessageBox.Show("Pick the folder that holds the original, unmodified fixed_*.bin files first.\r\n\r\n"
-                    + "They come from the game dump (patch4\\nx\\data), not from the mod.",
-                    "Table offsets", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
+            bool haveFolder = ModSupport.originalFolder != null
+                && ModSupport.originalFolder.Length > 0;
 
             bool ok = ModSupport.readOffsets();
             ModSupport.applyOffsets();
@@ -1072,12 +1069,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             StringBuilder text = new StringBuilder();
             text.AppendLine(ModSupport.offsetsStatus);
             text.AppendLine();
-            text.AppendLine("Comparing the loaded files with the originals:");
+            text.AppendLine(haveFolder
+                ? "Comparing the loaded files with the originals in that folder:"
+                : "No originals folder set, so this is the built-in profile (plus the loaded headers):");
             text.AppendLine(ModSupport.offsetSummary());
             text.AppendLine();
             if (!ok)
-                text.AppendLine("The comparison needs the original fixed_*.bin files in that folder and\r\n"
-                    + "the mod's files loaded in the randomizer.");
+                text.AppendLine("Nothing to map yet: load the mod's files first, and for a mod without a\r\n"
+                    + "built-in profile also pick the folder with the original fixed_*.bin files\r\n"
+                    + "(they come from the game dump, patch4\\nx\\data, not from the mod).");
             else if (!ModSupport.modMode)
                 text.AppendLine("Mod mode is off, so nothing was moved - these are only comparisons.");
             else
