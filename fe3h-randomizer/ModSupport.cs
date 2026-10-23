@@ -627,7 +627,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             System.Reflection.FieldInfo field = fieldOf(name);
             if (field == null)
                 return false;
-            field.SetValue(null, Convert.ChangeType(value, field.FieldType));
+            try
+            {
+                field.SetValue(null, Convert.ChangeType(value, field.FieldType));
+            }
+            catch
+            {
+                // A field type that cannot hold the value (a short offset moved
+                // past 32767 by a very large mod) stays where it was rather than
+                // taking the whole run down.
+                return false;
+            }
             return true;
         }
 
@@ -977,14 +987,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + ", monster rows: " + monsters.ToString());
 
             masteryValues.Sort();
-            StringBuilder mastery = new StringBuilder();
+            StringBuilder masteryText = new StringBuilder();
             for (int i = 0; i < masteryValues.Count && i < 10; i++)
             {
                 if (i > 0)
-                    mastery.Append(", ");
-                mastery.Append(masteryValues[i].ToString());
+                    masteryText.Append(", ");
+                masteryText.Append(masteryValues[i].ToString());
             }
-            lines.Add("mastery EXP values in use: " + mastery.ToString()
+            lines.Add("mastery EXP values in use: " + masteryText.ToString()
                 + "   (the base randomizer would replace these)");
 
             lines.Add("class rows in the loaded file: " + classRowCount().ToString());
