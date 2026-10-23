@@ -15,7 +15,7 @@
     <OutputType>WinExe</OutputType>
     <AssemblyName>Fire Emblem Three Houses Randomizer V2</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <ApplicationVersion>1.8.2.0</ApplicationVersion>
+    <ApplicationVersion>1.9.0.0</ApplicationVersion>
     <FileAlignment>512</FileAlignment>
     <RootNamespace>Fire_Emblem_Three_Houses_Randomizer_V2</RootNamespace>
   </PropertyGroup>
@@ -55,6 +55,7 @@
     <Compile Include="MoreOptionsTab.cs" />
     <Compile Include="RandomizerBig.cs" />
     <Compile Include="QuickOptions.cs" />
+    <Compile Include="Presets.cs" />
     <Compile Include="Data1RawTextFile.cs" />
     <Compile Include="Data1TextFormatter.cs" />
     <Compile Include="Data1TextLanguageSection.cs" />

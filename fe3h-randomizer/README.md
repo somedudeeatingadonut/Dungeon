@@ -210,6 +210,39 @@ Two buttons at the top of the Extra options tab:
   not features.
 * **Turn every option off** - back to a clean slate without restarting the tool.
 
+### Presets - save the whole configuration
+
+The **Presets** row at the top of the Extra options tab stores everything at
+once: every option on every tab, plus the extra options and the range limits.
+Useful when a run needs a specific setup, or when you want to try one thing at a
+time without re-ticking 400 boxes.
+
+| Button | What it does |
+| --- | --- |
+| Apply preset | Resets everything to the tool's defaults, then applies the preset |
+| Save current settings as preset... | Writes the current state to `presets\<name>.txt` next to the exe |
+| Delete preset | Removes a saved preset (the built-in one cannot be deleted) |
+| Open preset folder | Shows the folder the files live in |
+
+A preset is a plain text file, one `name=value` per line:
+
+```
+randClassBases=True
+RandomizerBig.swapScope=1
+RandomizerBig.weaponGraftChance=50
+RandomizerExtras.blockedAbilities=190,191,195,197,205,207
+```
+
+Because applying a preset resets to the defaults first, the result is exactly
+what the file says - a preset never means "the file plus whatever was already
+ticked". That also means a half-written preset is a valid way to start from a
+known state and change one thing.
+
+One preset is built in: **Everything on - the 1.8.1 test run**. It is the exact
+configuration of the stress run recorded in the 1.8.1 debug report (241 settings,
+41 pass options), reconstructed from that report, so that run can be repeated
+byte for byte. The debug report prints the applied preset name at the top.
+
 ### Range limits, next to the thing they limit
 
 The three "keep it inside this range" options live on the tab that randomizes

@@ -111,6 +111,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("Written      : " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             text.AppendLine("Reason       : " + (reason == null ? "" : reason));
             text.AppendLine("Seed         : " + (Randomizer.seed.ToString()));
+            if (RandomizerPresets.lastApplied != null && RandomizerPresets.lastApplied.Length > 0)
+                text.AppendLine("Preset       : " + RandomizerPresets.lastApplied);
             text.AppendLine("Random numbers generated: " + (Randomizer.rng == null ? "n/a" : Randomizer.rng.GetRandomNumberCount().ToString()));
             text.AppendLine();
         }

@@ -49,6 +49,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private NumericUpDown extrasGraftGambitFromWeapon_numericUpDown;
         private CheckBox extrasBigWeaponUnique_checkBox;
         private CheckBox extrasBigWeaponDifferentType_checkBox;
+        private ComboBox extrasPreset_comboBox;
+        private Label extrasPresetInfo_label;
         private CheckBox extrasDebugAuto_checkBox;
         private Label extrasDebugPath_label;
         private bool extrasBuilding;
@@ -111,6 +113,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extras_tabPage != null || this.FETHRand_tabControl == null)
                 return;
 
+            // The preset system needs to know the starting values of the passes
+            // in this project before anything is changed, and it needs the list of
+            // preset files before the combo box is filled.
+            RandomizerPresets.rememberDefaults();
+            RandomizerPresets.refresh();
+
             this.extrasBuilding = true;
             try
             {
@@ -159,6 +167,60 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "this tab and the range limits on the Classes tabs) in one click, for stress testing.\r\n"
                     + "The interpolation styles (binomial / linear / proportional / exponential) are left\r\n"
                     + "alone - they are alternatives to each other, not extra features."));
+
+                // ------------------------------------------------------ presets
+                addFullRow(layout, sectionLabel("Presets"));
+                addFullRow(layout, helpLabel(
+                    "A preset stores the whole configuration - every option on every tab plus the ones\r\n"
+                    + "on this tab - and puts it back in one click. Applying a preset resets everything\r\n"
+                    + "first, so the result is exactly what the preset says and not the preset plus\r\n"
+                    + "whatever happened to be ticked already."));
+
+                FlowLayoutPanel presetRow = new FlowLayoutPanel();
+                presetRow.AutoSize = true;
+                presetRow.WrapContents = true;
+                presetRow.Margin = new Padding(0, 4, 0, 4);
+
+                this.extrasPreset_comboBox = new ComboBox();
+                this.extrasPreset_comboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+                this.extrasPreset_comboBox.Width = 360;
+                this.extrasPreset_comboBox.Margin = new Padding(0, 3, 8, 3);
+                this.refreshPresetList();
+                presetRow.Controls.Add(this.extrasPreset_comboBox);
+
+                Button applyPresetButton = new Button();
+                applyPresetButton.AutoSize = true;
+                applyPresetButton.Text = "Apply preset";
+                applyPresetButton.Click += new EventHandler(this.extrasPresetApply_button_Click);
+                presetRow.Controls.Add(applyPresetButton);
+
+                Button savePresetButton = new Button();
+                savePresetButton.AutoSize = true;
+                savePresetButton.Text = "Save current settings as preset...";
+                savePresetButton.Click += new EventHandler(this.extrasPresetSave_button_Click);
+                presetRow.Controls.Add(savePresetButton);
+
+                Button deletePresetButton = new Button();
+                deletePresetButton.AutoSize = true;
+                deletePresetButton.Text = "Delete preset";
+                deletePresetButton.Click += new EventHandler(this.extrasPresetDelete_button_Click);
+                presetRow.Controls.Add(deletePresetButton);
+
+                Button openPresetButton = new Button();
+                openPresetButton.AutoSize = true;
+                openPresetButton.Text = "Open preset folder";
+                openPresetButton.Click += new EventHandler(this.extrasPresetOpen_button_Click);
+                presetRow.Controls.Add(openPresetButton);
+
+                addFullRow(layout, presetRow);
+
+                this.extrasPresetInfo_label = new Label();
+                this.extrasPresetInfo_label.AutoSize = true;
+                this.extrasPresetInfo_label.MaximumSize = new Size(900, 0);
+                this.extrasPresetInfo_label.ForeColor = Color.DimGray;
+                this.extrasPresetInfo_label.Margin = new Padding(0, 2, 0, 2);
+                this.extrasPresetInfo_label.Text = "Presets are stored as .txt files in the presets folder next to the exe.";
+                addFullRow(layout, this.extrasPresetInfo_label);
 
                 // ------------------------------------------------ class variety
                 addFullRow(layout, sectionLabel("Random classes - even variety"));
@@ -843,6 +905,192 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasBuilding || this.extrasBigWeaponUnique_checkBox == null)
                 return;
             RandomizerBig.uniqueWeaponEffects = this.extrasBigWeaponUnique_checkBox.Checked;
+        }
+
+        // ------------------------------------------------------------ presets
+        private void refreshPresetList()
+        {
+            if (this.extrasPreset_comboBox == null)
+                return;
+            string keep = null;
+            if (this.extrasPreset_comboBox.SelectedItem != null)
+                keep = ((RandomizerPresets.Preset)this.extrasPreset_comboBox.SelectedItem).Name;
+
+            this.extrasPreset_comboBox.BeginUpdate();
+            this.extrasPreset_comboBox.Items.Clear();
+            System.Collections.Generic.List<RandomizerPresets.Preset> presets = RandomizerPresets.all();
+            for (int i = 0; i < presets.Count; i++)
+                this.extrasPreset_comboBox.Items.Add(presets[i]);
+            this.extrasPreset_comboBox.EndUpdate();
+
+            if (this.extrasPreset_comboBox.Items.Count == 0)
+                return;
+            int selected = 0;
+            if (keep != null)
+                for (int i = 0; i < this.extrasPreset_comboBox.Items.Count; i++)
+                {
+                    RandomizerPresets.Preset preset =
+                        (RandomizerPresets.Preset)this.extrasPreset_comboBox.Items[i];
+                    if (string.Equals(preset.Name, keep, StringComparison.Ordinal))
+                    {
+                        selected = i;
+                        break;
+                    }
+                }
+            this.extrasPreset_comboBox.SelectedIndex = selected;
+        }
+
+        private RandomizerPresets.Preset selectedPreset()
+        {
+            if (this.extrasPreset_comboBox == null)
+                return null;
+            return this.extrasPreset_comboBox.SelectedItem as RandomizerPresets.Preset;
+        }
+
+        private void extrasPresetApply_button_Click(object sender, EventArgs e)
+        {
+            RandomizerPresets.Preset preset = this.selectedPreset();
+            if (preset == null)
+            {
+                MessageBox.Show("Pick a preset first.", "Presets",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            int applied;
+            int skipped = RandomizerPresets.apply(this.settings, preset, out applied);
+            this.quickSyncExtraControls();
+            this.syncExtraDetailControls();
+            try
+            {
+                this.updateAllDisplay();
+            }
+            catch
+            {
+            }
+
+            RandomizerPresets.lastApplied = preset.Name;
+
+            string message = "Applied \"" + preset.Name + "\".\r\n\r\n"
+                + applied.ToString() + " setting(s) set.";
+            if (skipped > 0)
+                message += "\r\n" + skipped.ToString()
+                    + " line(s) in the preset could not be used (unknown name or bad value).";
+            message += "\r\n\r\nEverything not mentioned by the preset is back at its default.";
+            if (this.extrasPresetInfo_label != null)
+                this.extrasPresetInfo_label.Text = "Applied preset: " + RandomizerPresets.describe(preset);
+            MessageBox.Show(message, "Presets", MessageBoxButtons.OK,
+                skipped > 0 ? MessageBoxIcon.Exclamation : MessageBoxIcon.Information);
+        }
+
+        private void extrasPresetSave_button_Click(object sender, EventArgs e)
+        {
+            string name = this.promptForText("Save preset",
+                "Name for this preset:\r\n\r\nThe whole current configuration is stored, including the options on this tab.",
+                "My settings");
+            if (name == null)
+                return;
+
+            try
+            {
+                string path = RandomizerPresets.save(this.settings, name);
+                this.refreshPresetList();
+                if (this.extrasPresetInfo_label != null)
+                    this.extrasPresetInfo_label.Text = "Saved preset: " + path;
+                MessageBox.Show("Preset saved to:\r\n\r\n" + path
+                    + "\r\n\r\nIt is a plain text file, so it can be edited or shared.",
+                    "Presets", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show("The preset could not be saved:\r\n\r\n" + exception.Message,
+                    "Presets", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+        }
+
+        private void extrasPresetDelete_button_Click(object sender, EventArgs e)
+        {
+            RandomizerPresets.Preset preset = this.selectedPreset();
+            if (preset == null)
+                return;
+            if (preset.BuiltIn)
+            {
+                MessageBox.Show("That preset is built in and cannot be deleted.",
+                    "Presets", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            if (MessageBox.Show("Delete the preset \"" + preset.Name + "\"?\r\n\r\n" + preset.Path,
+                    "Presets", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+            if (RandomizerPresets.delete(preset))
+            {
+                this.refreshPresetList();
+                if (this.extrasPresetInfo_label != null)
+                    this.extrasPresetInfo_label.Text = "Preset deleted.";
+            }
+        }
+
+        private void extrasPresetOpen_button_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string folder = RandomizerPresets.presetFolder();
+                System.IO.Directory.CreateDirectory(folder);
+                System.Diagnostics.Process.Start("explorer.exe", "\"" + folder + "\"");
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show("The preset folder could not be opened:\r\n\r\n" + exception.Message,
+                    "Presets", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+        }
+
+        // Small input box - WinForms has no built in one.
+        private string promptForText(string title, string message, string initial)
+        {
+            Form dialog = new Form();
+            dialog.Text = title;
+            dialog.FormBorderStyle = FormBorderStyle.FixedDialog;
+            dialog.StartPosition = FormStartPosition.CenterParent;
+            dialog.MinimizeBox = false;
+            dialog.MaximizeBox = false;
+            dialog.ClientSize = new Size(430, 150);
+
+            Label label = new Label();
+            label.AutoSize = true;
+            label.MaximumSize = new Size(410, 0);
+            label.Location = new Point(12, 12);
+            label.Text = message;
+            dialog.Controls.Add(label);
+
+            TextBox box = new TextBox();
+            box.Location = new Point(12, 78);
+            box.Width = 406;
+            box.Text = initial == null ? "" : initial;
+            dialog.Controls.Add(box);
+
+            Button ok = new Button();
+            ok.Text = "OK";
+            ok.DialogResult = DialogResult.OK;
+            ok.Location = new Point(262, 112);
+            ok.AutoSize = true;
+            dialog.Controls.Add(ok);
+
+            Button cancel = new Button();
+            cancel.Text = "Cancel";
+            cancel.DialogResult = DialogResult.Cancel;
+            cancel.Location = new Point(348, 112);
+            cancel.AutoSize = true;
+            dialog.Controls.Add(cancel);
+
+            dialog.AcceptButton = ok;
+            dialog.CancelButton = cancel;
+
+            string result = dialog.ShowDialog(this) == DialogResult.OK ? box.Text.Trim() : null;
+            dialog.Dispose();
+            if (result != null && result.Length == 0)
+                return null;
+            return result;
         }
 
         private void extrasDebugAuto_checkBox_CheckedChanged(object sender, EventArgs e)

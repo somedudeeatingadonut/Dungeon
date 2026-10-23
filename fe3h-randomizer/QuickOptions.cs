@@ -134,6 +134,27 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             if (this.extrasEvenClasses_checkBox != null)
                 this.extrasEvenClasses_checkBox.Checked = RandomizerExtras.evenClassVariety;
+            if (this.extrasSafety_numericUpDown != null)
+                this.extrasSafety_numericUpDown.Value = clampToControl(this.extrasSafety_numericUpDown,
+                    RandomizerExtras.classVarietySafety);
+            if (this.extrasMaxRange_numericUpDown != null)
+                this.extrasMaxRange_numericUpDown.Value = clampToControl(this.extrasMaxRange_numericUpDown,
+                    RandomizerExtras.maxEnemyWeaponRange);
+            if (this.extrasSiegeChance_numericUpDown != null)
+                this.extrasSiegeChance_numericUpDown.Value = clampToControl(this.extrasSiegeChance_numericUpDown,
+                    RandomizerExtras.siegeChance);
+            if (this.extrasGrowthShift_numericUpDown != null)
+                this.extrasGrowthShift_numericUpDown.Value = clampToControl(this.extrasGrowthShift_numericUpDown,
+                    RandomizerExtras.growthShift);
+            if (this.extrasGrowthTolerance_numericUpDown != null)
+                this.extrasGrowthTolerance_numericUpDown.Value = clampToControl(this.extrasGrowthTolerance_numericUpDown,
+                    RandomizerMore.growthTotalTolerance);
+            if (this.extrasBossScaling_numericUpDown != null)
+                this.extrasBossScaling_numericUpDown.Value = clampToControl(this.extrasBossScaling_numericUpDown,
+                    RandomizerMore.bossScalingShare);
+            if (this.extrasStatTotalTolerance_numericUpDown != null)
+                this.extrasStatTotalTolerance_numericUpDown.Value = clampToControl(this.extrasStatTotalTolerance_numericUpDown,
+                    RandomizerMore.statTotalTolerance);
             if (this.extrasSiege_checkBox != null)
                 this.extrasSiege_checkBox.Checked = RandomizerExtras.limitSiegeTomes;
 
@@ -186,11 +207,54 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasBigBossRemix_checkBox.Checked = RandomizerBig.bossRemix;
 
             if (this.growthClampPanel != null && this.growthClampPanel.check != null)
+            {
                 this.growthClampPanel.check.Checked = RandomizerMore.clampGrowths;
+                if (this.growthClampPanel.low != null)
+                    this.growthClampPanel.low.Value = clampToControl(this.growthClampPanel.low,
+                        RandomizerMore.growthClampMin);
+                if (this.growthClampPanel.high != null)
+                    this.growthClampPanel.high.Value = clampToControl(this.growthClampPanel.high,
+                        RandomizerMore.growthClampMax);
+            }
             if (this.statBoostClampPanel != null && this.statBoostClampPanel.check != null)
+            {
                 this.statBoostClampPanel.check.Checked = RandomizerMore.clampStatBoosts;
+                if (this.statBoostClampPanel.low != null)
+                    this.statBoostClampPanel.low.Value = clampToControl(this.statBoostClampPanel.low,
+                        RandomizerMore.statBoostClampMin);
+                if (this.statBoostClampPanel.high != null)
+                    this.statBoostClampPanel.high.Value = clampToControl(this.statBoostClampPanel.high,
+                        RandomizerMore.statBoostClampMax);
+            }
             if (this.statBaseClampPanel != null && this.statBaseClampPanel.check != null)
+            {
                 this.statBaseClampPanel.check.Checked = RandomizerMore.clampStatBases;
+                if (this.statBaseClampPanel.low != null)
+                    this.statBaseClampPanel.low.Value = clampToControl(this.statBaseClampPanel.low,
+                        RandomizerMore.statBaseClampMin);
+                if (this.statBaseClampPanel.high != null)
+                    this.statBaseClampPanel.high.Value = clampToControl(this.statBaseClampPanel.high,
+                        RandomizerMore.statBaseClampMax);
+            }
+        }
+
+        // Keeps a value inside a NumericUpDown's own range instead of throwing.
+        private static decimal clampToControl(NumericUpDown control, int value)
+        {
+            if (value < (int)control.Minimum)
+                return control.Minimum;
+            if (value > (int)control.Maximum)
+                return control.Maximum;
+            return value;
+        }
+
+        // Everything on the Extra options tab that the quick buttons and the
+        // presets have to bring back in line with the actual option values.
+        private void syncExtraDetailControls()
+        {
+            this.quickSyncExtraControls();
+            if (this.extrasPreset_comboBox != null && this.extrasPreset_comboBox.Items.Count == 0)
+                this.refreshPresetList();
         }
     }
 }
