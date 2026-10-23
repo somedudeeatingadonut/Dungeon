@@ -115,6 +115,24 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             return false;
         }
 
+        public static int conflictCount()
+        {
+            return conflictTable.GetLength(0);
+        }
+
+        public static string conflictKeyAt(int index)
+        {
+            return conflictTable[index, 0];
+        }
+
+        public static List<string> conflictKeys()
+        {
+            List<string> keys = new List<string>();
+            for (int i = 0; i < conflictTable.GetLength(0); i++)
+                keys.Add(conflictTable[i, 0]);
+            return keys;
+        }
+
         public static List<string> enabledConflicts(Settings settings)
         {
             List<string> found = new List<string>();
@@ -1126,8 +1144,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 text.AppendLine("no data files loaded yet, nothing to compare");
 
             if (!hasOffsets() && anyLoaded && modMode)
-                warnings.Add("mod mode is on but no table map could be built, so the compiled-in "
-                    + "offsets were used - that is only right for an unmodified game");
+            {
+                if (open.Count == 0)
+                    text.AppendLine("no map needed: every loaded file is the original size, so the "
+                        + "compiled-in offsets are correct");
+                else
+                    warnings.Add("mod mode is on but no table map could be built, so the compiled-in "
+                        + "offsets were used - that is only right for an unmodified game");
+            }
 
             if (statOffsetsApplied > 0)
                 passes.Add("mod table offsets: " + statOffsetsApplied.ToString()

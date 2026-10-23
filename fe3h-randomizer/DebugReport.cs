@@ -1,4 +1,4 @@
-// -----------------------------------------------------------------------------
+﻿// -----------------------------------------------------------------------------
 //  DebugReport.cs
 //
 //  Writes a plain text report ("FE3H Randomizer Debug.txt") that says what the
@@ -113,7 +113,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("Reason       : " + (reason == null ? "" : reason));
             text.AppendLine("Seed         : " + (Randomizer.seed.ToString()));
             if (RandomizerPresets.lastApplied != null && RandomizerPresets.lastApplied.Length > 0)
-                text.AppendLine("Preset       : " + RandomizerPresets.lastApplied);
+                text.AppendLine("Preset       : " + RandomizerPresets.lastApplied
+                    + "   (" + RandomizerPresets.lastAppliedSet.ToString() + " value(s) set"
+                    + (RandomizerPresets.lastAppliedSkipped > 0
+                        ? ", " + RandomizerPresets.lastAppliedSkipped.ToString() + " line(s) skipped"
+                        : "") + ")");
             text.AppendLine("Random numbers generated: " + (Randomizer.rng == null ? "n/a" : Randomizer.rng.GetRandomNumberCount().ToString()));
             text.AppendLine();
         }

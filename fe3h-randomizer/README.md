@@ -333,10 +333,22 @@ what the file says - a preset never means "the file plus whatever was already
 ticked". That also means a half-written preset is a valid way to start from a
 known state and change one thing.
 
-One preset is built in: **Everything on - the 1.8.1 test run**. It is the exact
-configuration of the stress run recorded in the 1.8.1 debug report (241 settings,
-41 pass options), reconstructed from that report, so that run can be repeated
-byte for byte. The debug report prints the applied preset name at the top.
+Two presets are built in:
+
+| Preset | What it is |
+| --- | --- |
+| **My run - the 1.8.2 debug report** | The exact configuration of the run recorded in `FE3H Randomizer Debug.txt`: all 1,050 values of its settings dump, plus the extra options read out of the same report's NEW / MORE / BIG sections. Applying it repeats that run. |
+| **No Monastery (mod safe)** | The same run with the 38 options the mod owns written off explicitly, mod mode on and the mod's mastery EXP kept. |
+
+Both are generated from that report rather than typed in by hand, so the values
+match it one for one. The mod-safe one does not merely *omit* the conflicting
+options: it writes each of them as `False` after the run's values, because the
+tool's default for a few (the mastery EXP requirements, for instance) is on and
+a preset is applied on top of the defaults.
+
+The debug report prints the applied preset name at the top together with how
+many values it set and how many lines it had to skip - a preset that silently
+half-applies is visible at a glance.
 
 ### Range limits, next to the thing they limit
 
