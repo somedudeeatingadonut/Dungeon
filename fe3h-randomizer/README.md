@@ -210,6 +210,43 @@ Two buttons at the top of the Extra options tab:
   not features.
 * **Turn every option off** - back to a clean slate without restarting the tool.
 
+### Total conversion mods (No Monastery)
+
+The Extra options tab has a **Total conversion mod** section. Mod mode is off by
+default; switch it on when the game runs a mod such as *Three Houses: No
+Monastery*. What it does was checked against that mod's own `fixed_*.bin` files:
+
+| Behaviour | Why |
+| --- | --- |
+| Class mastery EXP values are put back after randomizing | The mod's mastery rework runs on its own **0 / 20 / 50 / 100 / 150 / 200** scale (Noble and Commoner are 200 for Aptitude). Random values break it. |
+| The Dancer row is looked up instead of assumed to be class 43 | In the mod's data the only row holding ability 158 (Dance) is **row 71**, so the hardcoded 43 would put Dance on the wrong class. If the lookup is ambiguous, 43 is kept. |
+| The report lists the options that fight the mod | Its dialogue, shops, monastery, level curve and mastery values are all things the mod owns. |
+
+**Analyse the loaded files** compares every loaded file with the original sizes
+and reports the deltas, which is the quickest way to see whether you loaded the
+mod's copies or the game dump's. It also prints the class table findings: tier
+range, monster rows, the mastery values in use, the Dancer row, and any populated
+class rows outside the range the randomizer writes (88..99, except 91) - the mod
+has one at row 89, and those rows are deliberately left alone.
+
+**Use the mod-safe preset** applies the 1.8.1 stress configuration with the 35
+options the mod owns removed, and switches mod mode on.
+
+**Where the files have to go:** load the files from the mod's own `romfs` folder,
+not from the game dump, and write the output back into that same `romfs` folder.
+A romfs overlay wins over the dump, so a randomized file written anywhere else is
+ignored by the game. `DATA1.bin` is patched in place and is not part of the
+overlay.
+
+**What the analysis cannot answer yet:** the mod's data files are slightly larger
+than the originals (`fixed_classdata.bin` +144 bytes, `fixed_data.bin` +648, which
+is exactly 36 combat art rows of 18 bytes, `fixed_persondata.bin` +6320). Extra
+bytes appended at the end of a file leave every fixed offset valid; extra bytes
+inserted in the middle move everything after them. Telling those apart needs the
+original `fixed_classdata.bin` / `fixed_data.bin` / `fixed_persondata.bin` to
+compare against, so until then the analysis reports the deltas instead of
+pretending to know.
+
 ### Presets - save the whole configuration
 
 The **Presets** row at the top of the Extra options tab stores everything at

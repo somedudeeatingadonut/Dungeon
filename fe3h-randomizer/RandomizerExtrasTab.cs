@@ -9,6 +9,7 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 
 namespace Fire_Emblem_Three_Houses_Randomizer_V2
@@ -49,6 +50,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private NumericUpDown extrasGraftGambitFromWeapon_numericUpDown;
         private CheckBox extrasBigWeaponUnique_checkBox;
         private CheckBox extrasBigWeaponDifferentType_checkBox;
+        private CheckBox extrasModMode_checkBox;
+        private CheckBox extrasModMastery_checkBox;
         private ComboBox extrasPreset_comboBox;
         private Label extrasPresetInfo_label;
         private CheckBox extrasDebugAuto_checkBox;
@@ -221,6 +224,62 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasPresetInfo_label.Margin = new Padding(0, 2, 0, 2);
                 this.extrasPresetInfo_label.Text = "Presets are stored as .txt files in the presets folder next to the exe.";
                 addFullRow(layout, this.extrasPresetInfo_label);
+
+                // --------------------------------------- total conversion mods
+                addFullRow(layout, sectionLabel("Total conversion mod (No Monastery and friends)"));
+                addFullRow(layout, helpLabel(
+                    "Switch this on when the game runs a total conversion mod. It changes three things,\r\n"
+                    + "all of them checked against No Monastery's own data files:\r\n"
+                    + "  - the mod's class mastery EXP values are put back after randomizing (the mod\r\n"
+                    + "    builds its mastery rework on its own 0 / 20 / 50 / 100 / 150 / 200 scale)\r\n"
+                    + "  - the Dancer row is looked up in the loaded data instead of being assumed to be\r\n"
+                    + "    class 43, because the mod's Dance sits on a different row\r\n"
+                    + "  - the debug report lists every option that is still on and fights the mod"));
+
+                this.extrasModMode_checkBox = new CheckBox();
+                this.extrasModMode_checkBox.AutoSize = true;
+                this.extrasModMode_checkBox.Checked = ModSupport.modMode;
+                this.extrasModMode_checkBox.Text = "This game has a total conversion mod installed (mod mode)";
+                this.extrasModMode_checkBox.CheckedChanged += new EventHandler(this.extrasModMode_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasModMode_checkBox);
+
+                this.extrasModMastery_checkBox = new CheckBox();
+                this.extrasModMastery_checkBox.AutoSize = true;
+                this.extrasModMastery_checkBox.Checked = ModSupport.keepMasteryExp;
+                this.extrasModMastery_checkBox.Text = "Keep the mod's class mastery EXP requirements";
+                this.extrasModMastery_checkBox.CheckedChanged += new EventHandler(this.extrasModMastery_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasModMastery_checkBox);
+
+                FlowLayoutPanel modButtons = new FlowLayoutPanel();
+                modButtons.AutoSize = true;
+                modButtons.WrapContents = true;
+                modButtons.Margin = new Padding(0, 4, 0, 4);
+
+                Button analyseButton = new Button();
+                analyseButton.AutoSize = true;
+                analyseButton.Text = "Analyse the loaded files";
+                analyseButton.Click += new EventHandler(this.extrasModAnalyse_button_Click);
+                modButtons.Controls.Add(analyseButton);
+
+                Button modSafePresetButton = new Button();
+                modSafePresetButton.AutoSize = true;
+                modSafePresetButton.Text = "Use the mod-safe preset";
+                modSafePresetButton.Click += new EventHandler(this.extrasModSafePreset_button_Click);
+                modButtons.Controls.Add(modSafePresetButton);
+
+                Button modConflictsButton = new Button();
+                modConflictsButton.AutoSize = true;
+                modConflictsButton.Text = "Show options that fight the mod";
+                modConflictsButton.Click += new EventHandler(this.extrasModConflicts_button_Click);
+                modButtons.Controls.Add(modConflictsButton);
+
+                addFullRow(layout, modButtons);
+
+                addFullRow(layout, helpLabel(
+                    "Analysis compares the loaded files with the original sizes, so it says whether you\r\n"
+                    + "loaded the mod's copies or the game dump's. Load the mod's romfs, and write the\r\n"
+                    + "result back into that same romfs folder - a file written anywhere else is\r\n"
+                    + "overlaid by the mod and never reaches the game."));
 
                 // ------------------------------------------------ class variety
                 addFullRow(layout, sectionLabel("Random classes - even variety"));
@@ -905,6 +964,98 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasBuilding || this.extrasBigWeaponUnique_checkBox == null)
                 return;
             RandomizerBig.uniqueWeaponEffects = this.extrasBigWeaponUnique_checkBox.Checked;
+        }
+
+        // ------------------------------------------- total conversion mod mode
+        private void extrasModMode_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasModMode_checkBox == null)
+                return;
+            ModSupport.modMode = this.extrasModMode_checkBox.Checked;
+            if (this.extrasModMastery_checkBox != null)
+                this.extrasModMastery_checkBox.Enabled = ModSupport.modMode;
+        }
+
+        private void extrasModMastery_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasModMastery_checkBox == null)
+                return;
+            ModSupport.keepMasteryExp = this.extrasModMastery_checkBox.Checked;
+        }
+
+        private void extrasModAnalyse_button_Click(object sender, EventArgs e)
+        {
+            System.Collections.Generic.List<string> lines = ModSupport.analyse();
+            if (lines == null || lines.Count == 0)
+            {
+                MessageBox.Show("No files are loaded yet. Use \"Scan folder and load all files\" first.",
+                    "Mod analysis", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            StringBuilder text = new StringBuilder();
+            for (int i = 0; i < lines.Count; i++)
+                text.AppendLine(lines[i]);
+            MessageBox.Show(text.ToString(), "Mod analysis", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void extrasModConflicts_button_Click(object sender, EventArgs e)
+        {
+            System.Collections.Generic.List<string> conflicts = ModSupport.enabledConflicts(this.settings);
+            if (conflicts.Count == 0)
+            {
+                MessageBox.Show("No enabled option fights a total conversion mod.",
+                    "Mod conflicts", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            StringBuilder text = new StringBuilder();
+            text.AppendLine("These options are on and the mod owns the data they change:");
+            text.AppendLine();
+            for (int i = 0; i < conflicts.Count; i++)
+                text.AppendLine("  " + conflicts[i]);
+            text.AppendLine();
+            text.AppendLine("\"Use the mod-safe preset\" turns exactly these off and leaves the rest.");
+            MessageBox.Show(text.ToString(), "Mod conflicts", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        private void extrasModSafePreset_button_Click(object sender, EventArgs e)
+        {
+            RandomizerPresets.Preset preset = null;
+            System.Collections.Generic.List<RandomizerPresets.Preset> presets = RandomizerPresets.all();
+            for (int i = 0; i < presets.Count; i++)
+                if (presets[i].BuiltIn && preset == null
+                    && presets[i].Name.StartsWith("No Monastery", StringComparison.Ordinal))
+                    preset = presets[i];
+            if (preset == null)
+            {
+                MessageBox.Show("The mod-safe preset is missing from this build.",
+                    "Mod safe preset", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
+            int applied;
+            int skipped = RandomizerPresets.apply(this.settings, preset, out applied);
+            RandomizerPresets.lastApplied = preset.Name;
+            this.quickSyncExtraControls();
+            this.syncExtraDetailControls();
+            try
+            {
+                this.updateAllDisplay();
+            }
+            catch
+            {
+            }
+            if (this.extrasModMode_checkBox != null)
+                this.extrasModMode_checkBox.Checked = ModSupport.modMode;
+            if (this.extrasModMastery_checkBox != null)
+                this.extrasModMastery_checkBox.Checked = ModSupport.keepMasteryExp;
+
+            MessageBox.Show("Applied \"" + preset.Name + "\".\r\n\r\n"
+                + applied.ToString() + " setting(s) set"
+                + (skipped > 0 ? ", " + skipped.ToString() + " line(s) skipped" : "")
+                + ".\r\n\r\nEverything the mod owns - its dialogue, its shops, the monastery options,\r\n"
+                + "its mastery EXP values and its level curve - is left to the mod. The rest of the\r\n"
+                + "randomization (classes, characters, weapons, effects) still runs at full strength.",
+                "Mod safe preset", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         // ------------------------------------------------------------ presets

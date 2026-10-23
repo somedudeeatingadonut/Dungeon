@@ -5575,8 +5575,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 }
                             }
                         }
-                        if (index == 43)
+                        if (index == ModSupport.DancerClassIndex)
                             classAbilities[0] = 158; // Dance: the Dancer is the only way to get it
+                        // (the row is looked up in the loaded data instead of being
+                        //  hardcoded to 43, so a mod that moved the Dancer still works)
                         classData[classAbStart + abMod + 2L] = (byte)classAbilities[0]; // Class Abilities
                         classData[classAbStart + abMod + 3L] = (byte)classAbilities[1];
                         classData[classAbStart + abMod + 4L] = (byte)classAbilities[2];

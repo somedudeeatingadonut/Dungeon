@@ -253,6 +253,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private void syncExtraDetailControls()
         {
             this.quickSyncExtraControls();
+            if (this.extrasModMode_checkBox != null)
+                this.extrasModMode_checkBox.Checked = ModSupport.modMode;
+            if (this.extrasModMastery_checkBox != null)
+                this.extrasModMastery_checkBox.Checked = ModSupport.keepMasteryExp;
             if (this.extrasPreset_comboBox != null && this.extrasPreset_comboBox.Items.Count == 0)
                 this.refreshPresetList();
         }

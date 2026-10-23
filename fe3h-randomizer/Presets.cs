@@ -84,6 +84,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             builtIn.BuiltIn = true;
             cache.Add(builtIn);
 
+            Preset modSafe = new Preset();
+            modSafe.Name = "No Monastery (mod safe)";
+            modSafe.Description = "The same run with everything the mod owns handed back to the mod";
+            modSafe.Data = builtInModSafeData();
+            modSafe.BuiltIn = true;
+            cache.Add(modSafe);
+
             string folder = presetFolder();
             try
             {
@@ -114,6 +121,37 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
         }
 
+        // The stress preset with every option that fights a total conversion
+        // removed, so the values that remain are the ones the mod does not own.
+        // Anything dropped here falls back to the tool's default, which is off
+        // for all of them.
+        private static string builtInModSafeData()
+        {
+            StringBuilder text = new StringBuilder();
+            string[] lines = builtInStressData.Replace("\r\n", "\n").Split('\n');
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i].Trim();
+                if (line.Length == 0)
+                    continue;
+                int equals = line.IndexOf('=');
+                if (equals <= 0)
+                    continue;
+                string key = line.Substring(0, equals);
+                if (key.IndexOf('.') > 0)
+                {
+                    text.AppendLine(line);
+                    continue;
+                }
+                if (ModSupport.isConflictKey(key))
+                    continue;
+                text.AppendLine(line);
+            }
+            text.AppendLine("ModSupport.modMode=True");
+            text.AppendLine("ModSupport.keepMasteryExp=True");
+            return text.ToString();
+        }
+
         private static int countLines(string data)
         {
             int count = 0;
@@ -126,7 +164,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
         // ------------------------------------------------------------- capture
         private static readonly Type[] extraTypes =
-            { typeof(RandomizerExtras), typeof(RandomizerMore), typeof(RandomizerBig) };
+            { typeof(RandomizerExtras), typeof(RandomizerMore), typeof(RandomizerBig), typeof(ModSupport) };
 
         // The values the extra passes start with, remembered the first time this
         // is looked at (during window load, before anything is ticked).

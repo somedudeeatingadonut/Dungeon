@@ -90,6 +90,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             AppendMoreOptions(text, passes, warnings, failures);
             AppendBigOptions(text, passes, warnings, failures);
             AppendInputs(text, warnings);
+            ModSupport.appendReport(text, passes, warnings);
             AppendCounters(text, passes, warnings);
             AppendClassVarietyCheck(text, passes, warnings, failures);
             AppendAbilityCheck(text, passes, warnings, failures);
