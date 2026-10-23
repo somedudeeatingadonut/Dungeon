@@ -255,23 +255,31 @@ those tables move too, as soon as their original copy is in the folder.
 
 **No Monastery 1.3.3 needs no folder at all.** The measured map for that release
 is built into the exe, so the originals folder is optional: the tool recognises
-the mod by its own file headers (`fixed_classdata.bin` 23,956 /
-`fixed_data.bin` 39,648 / `fixed_persondata.bin` 145,776 bytes, and every
-sub-table start has to match the measured list exactly). The debug report says
-`from the built-in profile for No Monastery 1.3.3` when that happens. A
-different build - or a different mod - never matches silently: it falls back to
-the originals folder, and without one the run asks first.
+the mod by its own file headers - the size and every sub-table start of
+`fixed_classdata.bin`, `fixed_data.bin`, `fixed_persondata.bin`,
+`fixed_act_data.bin`, `fixed_shopdata.bin` and `fixed_scenario.bin` - and only
+uses a profile when all of them match. The debug report says `from the built-in
+profile for No Monastery 1.3.3` when that happens. A different build - or a
+different mod - never matches silently: it falls back to the originals folder,
+and without one the run asks first.
 
-**What is verified and what is not:** the three files above were checked byte by
-byte against No Monastery's copies (every section start, and the content at every
-moved offset lines up). For the other files the tool knows how to read the
-directory but has no original to compare with, and No Monastery ships three of
-them bigger than the originals (`fixed_act_data.bin` +192,
-`fixed_shopdata.bin` +312, `fixed_scenario.bin` +11). While that is the case the
-tool says so in the debug report and asks before a run instead of writing at
-offsets it has not verified - writing into a file with extra rows puts the data
-in the neighbouring table. Drop the original copies of those three files into the
-same folder and the offsets are moved exactly like the first three.
+**What is verified:** those six files were checked against the original game
+copies, every section start in the mod's header was matched one for one, and the
+content at every moved offset lines up (the bytes that differ are the mod's own
+edits). Measured shifts:
+
+| File | Sections | Shift per section |
+| --- | --- | --- |
+| `fixed_classdata.bin` | 10 | +118, +120, +136, +144 from the 5th on |
+| `fixed_data.bin` | 16 | none, then +288, then +648 from the 9th on |
+| `fixed_persondata.bin` | 18 | none, +68 .. +320, then +6320 from the 12th on |
+| `fixed_act_data.bin` | 29 | none, then +192 from the 3rd on |
+| `fixed_shopdata.bin` | 13 | none, then +312 from the 6th on |
+| `fixed_scenario.bin` | 2 | none (the +11 bytes land in the last section) |
+
+The other files the randomizer writes are unchanged in size and layout; for those
+the tool still reads the directory, so a future mod that moves them is handled
+the same way.
 
 The debug report prints the originals folder, every map with its per-section
 deltas, every adjusted offset, and the files whose offsets were not checked.
