@@ -3196,6 +3196,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
         public static void randomizeTrue(Settings settings)
         {
+            // Total conversion mods can add rows to the data tables, which moves
+            // every offset after them. ModSupport reads the real offsets out of
+            // the mod's own file header before anything is written.
+            ModSupport.prepareForRun();
+
             if (Randomizer.personLoaded)
             {
                 Randomizer.personData = new byte[Randomizer.personDataV.Length];

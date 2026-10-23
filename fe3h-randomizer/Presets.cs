@@ -239,6 +239,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             text.AppendLine("# options from this project");
             text.AppendLine("RandomizerExtras.blockedAbilities=" + joinBlocked());
+            text.AppendLine("ModSupport.originalFolder=" + (ModSupport.originalFolder == null
+                ? "" : ModSupport.originalFolder.Replace("\n", " ").Replace("\r", " ")));
             for (int t = 0; t < extraTypes.Length; t++)
             {
                 FieldInfo[] fields = extraTypes[t].GetFields(BindingFlags.Public | BindingFlags.Static);
@@ -349,6 +351,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             RandomizerExtras.blockedAbilities.Clear();
             for (int i = 0; i < RandomizerExtras.defaultBlockedAbilities.Length; i++)
                 RandomizerExtras.blockedAbilities.Add(RandomizerExtras.defaultBlockedAbilities[i]);
+            ModSupport.originalFolder = "";
 
             for (int t = 0; t < extraTypes.Length; t++)
             {
@@ -377,6 +380,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             if (key == null || key.Length == 0)
                 return false;
+
+            if (key == "ModSupport.originalFolder")
+            {
+                ModSupport.originalFolder = value == null ? "" : value;
+                return true;
+            }
 
             if (key == "RandomizerExtras.blockedAbilities")
             {

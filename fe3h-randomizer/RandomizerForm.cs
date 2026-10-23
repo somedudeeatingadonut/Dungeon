@@ -4023,6 +4023,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             else
             {
+                // Added by ModSupport.cs: a mod that moved a table would make every
+                // write land in the wrong place, so this is asked before the run.
+                if (!ModSupport.confirmOffsets())
+                    return;
+
                 // Added by DebugReport.cs: a crash in the randomization writes a
                 // report with the stack trace instead of only showing a dialog.
                 try

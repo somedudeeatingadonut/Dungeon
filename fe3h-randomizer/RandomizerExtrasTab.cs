@@ -51,6 +51,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private CheckBox extrasBigWeaponUnique_checkBox;
         private CheckBox extrasBigWeaponDifferentType_checkBox;
         private CheckBox extrasModMode_checkBox;
+        private TextBox extrasModOriginals_textBox;
+        private Label extrasModOffsets_label;
         private CheckBox extrasModMastery_checkBox;
         private ComboBox extrasPreset_comboBox;
         private Label extrasPresetInfo_label;
@@ -228,12 +230,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 // --------------------------------------- total conversion mods
                 addFullRow(layout, sectionLabel("Total conversion mod (No Monastery and friends)"));
                 addFullRow(layout, helpLabel(
-                    "Switch this on when the game runs a total conversion mod. It changes three things,\r\n"
+                    "Switch this on when the game runs a total conversion mod. It changes four things,\r\n"
                     + "all of them checked against No Monastery's own data files:\r\n"
+                    + "  - the table offsets are moved to where the mod's file really keeps its tables,\r\n"
+                    + "    read out of the file header (a mod that adds rows moves everything after them)\r\n"
                     + "  - the mod's class mastery EXP values are put back after randomizing (the mod\r\n"
                     + "    builds its mastery rework on its own 0 / 20 / 50 / 100 / 150 / 200 scale)\r\n"
                     + "  - the Dancer row is looked up in the loaded data instead of being assumed to be\r\n"
-                    + "    class 43, because the mod's Dance sits on a different row\r\n"
+                    + "    class 43 with Dance in its first ability slot\r\n"
                     + "  - the debug report lists every option that is still on and fights the mod"));
 
                 this.extrasModMode_checkBox = new CheckBox();
@@ -242,6 +246,43 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasModMode_checkBox.Text = "This game has a total conversion mod installed (mod mode)";
                 this.extrasModMode_checkBox.CheckedChanged += new EventHandler(this.extrasModMode_checkBox_CheckedChanged);
                 addFullRow(layout, this.extrasModMode_checkBox);
+
+                // ---- originals folder: needed to work out the mod's table offsets
+                Label originalsLabel = new Label();
+                originalsLabel.AutoSize = true;
+                originalsLabel.Anchor = AnchorStyles.Left;
+                originalsLabel.Margin = new Padding(0, 6, 8, 6);
+                originalsLabel.Text = "Unmodified game files (folder with the original fixed_*.bin):";
+
+                this.extrasModOriginals_textBox = new TextBox();
+                this.extrasModOriginals_textBox.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+                this.extrasModOriginals_textBox.Margin = new Padding(0, 6, 8, 6);
+                this.extrasModOriginals_textBox.Width = 520;
+                this.extrasModOriginals_textBox.Text = ModSupport.originalFolder;
+                this.extrasModOriginals_textBox.TextChanged += new EventHandler(this.extrasModOriginals_textBox_TextChanged);
+
+                FlowLayoutPanel originalsRow = new FlowLayoutPanel();
+                originalsRow.AutoSize = true;
+                originalsRow.WrapContents = true;
+                originalsRow.Margin = new Padding(0, 2, 0, 2);
+                originalsRow.Controls.Add(this.extrasModOriginals_textBox);
+
+                Button originalsBrowseButton = new Button();
+                originalsBrowseButton.AutoSize = true;
+                originalsBrowseButton.Text = "Browse...";
+                originalsBrowseButton.Click += new EventHandler(this.extrasModOriginalsBrowse_button_Click);
+                originalsRow.Controls.Add(originalsBrowseButton);
+
+                addFullRow(layout, originalsLabel);
+                addFullRow(layout, originalsRow);
+
+                this.extrasModOffsets_label = new Label();
+                this.extrasModOffsets_label.AutoSize = true;
+                this.extrasModOffsets_label.MaximumSize = new Size(900, 0);
+                this.extrasModOffsets_label.ForeColor = Color.DimGray;
+                this.extrasModOffsets_label.Margin = new Padding(0, 2, 0, 2);
+                this.extrasModOffsets_label.Text = "Offsets: " + ModSupport.offsetsStatus;
+                addFullRow(layout, this.extrasModOffsets_label);
 
                 this.extrasModMastery_checkBox = new CheckBox();
                 this.extrasModMastery_checkBox.AutoSize = true;
@@ -254,6 +295,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 modButtons.AutoSize = true;
                 modButtons.WrapContents = true;
                 modButtons.Margin = new Padding(0, 4, 0, 4);
+
+                Button readOffsetsButton = new Button();
+                readOffsetsButton.AutoSize = true;
+                readOffsetsButton.Text = "Read table offsets";
+                readOffsetsButton.Click += new EventHandler(this.extrasModReadOffsets_button_Click);
+                modButtons.Controls.Add(readOffsetsButton);
 
                 Button analyseButton = new Button();
                 analyseButton.AutoSize = true;
@@ -276,7 +323,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 addFullRow(layout, modButtons);
 
                 addFullRow(layout, helpLabel(
-                    "Analysis compares the loaded files with the original sizes, so it says whether you\r\n"
+                    "The offsets are read from the mod's own file header, compared with the originals in\r\n"
+                    + "the folder above. Without those originals the offset map cannot be built: if the\r\n"
+                    + "loaded files are not original size, the run asks before it writes anything.\r\n"
+                    + "Analysis compares the loaded files with the original sizes, so it says whether you\r\n"
                     + "loaded the mod's copies or the game dump's. Load the mod's romfs, and write the\r\n"
                     + "result back into that same romfs folder - a file written anywhere else is\r\n"
                     + "overlaid by the mod and never reaches the game."));
@@ -981,6 +1031,59 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasBuilding || this.extrasModMastery_checkBox == null)
                 return;
             ModSupport.keepMasteryExp = this.extrasModMastery_checkBox.Checked;
+        }
+
+        private void extrasModOriginals_textBox_TextChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasModOriginals_textBox == null)
+                return;
+            ModSupport.originalFolder = this.extrasModOriginals_textBox.Text.Trim();
+        }
+
+        private void extrasModOriginalsBrowse_button_Click(object sender, EventArgs e)
+        {
+            string folder = this.batchPickFolder(
+                "Select the folder with the original (unmodified) fixed_*.bin files", null);
+            if (folder == null)
+                return;
+            if (this.extrasModOriginals_textBox != null)
+                this.extrasModOriginals_textBox.Text = folder;
+            ModSupport.originalFolder = folder;
+        }
+
+        private void extrasModReadOffsets_button_Click(object sender, EventArgs e)
+        {
+            if (this.extrasModOriginals_textBox != null)
+                ModSupport.originalFolder = this.extrasModOriginals_textBox.Text.Trim();
+
+            if (ModSupport.originalFolder == null || ModSupport.originalFolder.Length == 0)
+            {
+                MessageBox.Show("Pick the folder that holds the original, unmodified fixed_*.bin files first.\r\n\r\n"
+                    + "They come from the game dump (patch4\\nx\\data), not from the mod.",
+                    "Table offsets", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            bool ok = ModSupport.readOffsets();
+            ModSupport.applyOffsets();
+            if (this.extrasModOffsets_label != null)
+                this.extrasModOffsets_label.Text = "Offsets: " + ModSupport.offsetsStatus;
+
+            StringBuilder text = new StringBuilder();
+            text.AppendLine(ModSupport.offsetsStatus);
+            text.AppendLine();
+            text.AppendLine("Comparing the loaded files with the originals:");
+            text.AppendLine(ModSupport.offsetSummary());
+            text.AppendLine();
+            if (!ok)
+                text.AppendLine("The comparison needs the original fixed_*.bin files in that folder and\r\n"
+                    + "the mod's files loaded in the randomizer.");
+            else if (!ModSupport.modMode)
+                text.AppendLine("Mod mode is off, so nothing was moved - these are only comparisons.");
+            else
+                text.AppendLine("Mod mode is on: the run will write to the offsets above.");
+            MessageBox.Show(text.ToString(), "Table offsets", MessageBoxButtons.OK,
+                ok ? MessageBoxIcon.Information : MessageBoxIcon.Exclamation);
         }
 
         private void extrasModAnalyse_button_Click(object sender, EventArgs e)

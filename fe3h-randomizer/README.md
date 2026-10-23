@@ -218,9 +218,54 @@ Monastery*. What it does was checked against that mod's own `fixed_*.bin` files:
 
 | Behaviour | Why |
 | --- | --- |
+| Every table offset is moved to where the mod's file keeps it | The mod's files are larger, and the extra bytes are **not** all at the end. Each file's header lists where its sub-tables start; comparing that list with the original file gives the shift of every section. See below. |
 | Class mastery EXP values are put back after randomizing | The mod's mastery rework runs on its own **0 / 20 / 50 / 100 / 150 / 200** scale (Noble and Commoner are 200 for Aptitude). Random values break it. |
-| The Dancer row is looked up instead of assumed to be class 43 | In the mod's data the only row holding ability 158 (Dance) is **row 71**, so the hardcoded 43 would put Dance on the wrong class. If the lookup is ambiguous, 43 is kept. |
+| The Dancer row is looked up instead of assumed to be class 43 | In the mod's data the Dancer is still row 43, but Dance (ability 158) sits in the **third** ability slot instead of the first, and the class table has **101** rows instead of 100. The lookup scans the ability slots of the loaded data, so a mod that moves the Dancer still works; if the lookup is ambiguous, 43 is kept. |
 | The report lists the options that fight the mod | Its dialogue, shops, monastery, level curve and mastery values are all things the mod owns. |
+
+#### The table offsets
+
+The randomizer writes at fixed byte offsets into `fixed_classdata.bin`,
+`fixed_data.bin` and `fixed_persondata.bin`. No Monastery adds rows, which moves
+everything after them, and *by a different amount in every section* - so no
+single correction is enough. The header of each of those files starts with a
+directory of sub-table starts, and the mod keeps that directory up to date.
+Point **Unmodified game files** on this tab at a folder with the original three
+files, press **Read table offsets**, and the tool compares the two directories:
+
+| File | Sections | Shift per section |
+| --- | --- | --- |
+| `fixed_classdata.bin` | 10 | +118, +120, +136, +144 from the 5th on |
+| `fixed_data.bin` | 16 | none, then +288, then +648 from the 9th on |
+| `fixed_persondata.bin` | 18 | none, +68 .. +320, then +6320 from the 12th on |
+
+That moves 5 class, 8 item and 15 character table offsets (class rows,
+certifications, tiers, abilities, monster data; weapons, spells, turrets,
+gambits, blow data, combat arts, gambit extras, battalions; characters, weapon
+ranks, spell lists, skills, starting inventory, combat arts, supports, special
+supports, budding talents, learnsets, faculty training, seminars, goals,
+portraits, enemy skills). Tables that the mod did not move keep their original
+offset, so vanilla users see exactly the old behaviour.
+
+The same directory is read for every other data file the randomizer writes -
+`fixed_act_data.bin`, `fixed_shopdata.bin`, `fixed_lobby_common.bin`,
+`fixed_lobby_activity.bin`, `fixed_growthdata.bin`, `fixed_groupworkdata.bin`,
+`fixed_presentdata.bin`, `fixed_lobby_quest.bin` and `fixed_scenario.bin` - so
+those tables move too, as soon as their original copy is in the folder.
+
+**What is verified and what is not:** the three files above were checked byte by
+byte against No Monastery's copies (every section start, and the content at every
+moved offset lines up). For the other files the tool knows how to read the
+directory but has no original to compare with, and No Monastery ships three of
+them bigger than the originals (`fixed_act_data.bin` +192,
+`fixed_shopdata.bin` +312, `fixed_scenario.bin` +11). While that is the case the
+tool says so in the debug report and asks before a run instead of writing at
+offsets it has not verified - writing into a file with extra rows puts the data
+in the neighbouring table. Drop the original copies of those three files into the
+same folder and the offsets are moved exactly like the first three.
+
+The debug report prints the originals folder, every map with its per-section
+deltas, every adjusted offset, and the files whose offsets were not checked.
 
 **Analyse the loaded files** compares every loaded file with the original sizes
 and reports the deltas, which is the quickest way to see whether you loaded the
@@ -238,14 +283,10 @@ A romfs overlay wins over the dump, so a randomized file written anywhere else i
 ignored by the game. `DATA1.bin` is patched in place and is not part of the
 overlay.
 
-**What the analysis cannot answer yet:** the mod's data files are slightly larger
-than the originals (`fixed_classdata.bin` +144 bytes, `fixed_data.bin` +648, which
-is exactly 36 combat art rows of 18 bytes, `fixed_persondata.bin` +6320). Extra
-bytes appended at the end of a file leave every fixed offset valid; extra bytes
-inserted in the middle move everything after them. Telling those apart needs the
-original `fixed_classdata.bin` / `fixed_data.bin` / `fixed_persondata.bin` to
-compare against, so until then the analysis reports the deltas instead of
-pretending to know.
+**What the offsets cannot answer:** they describe the `fixed_*.bin` files the
+randomizer writes. `DATA1.bin` is patched in place by section offset and No
+Monastery does not ship it, so nothing there moves. The randomizer writes class
+rows 0..99; the mod's extra class row 100 is left alone.
 
 ### Presets - save the whole configuration
 

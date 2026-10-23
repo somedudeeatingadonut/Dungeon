@@ -257,6 +257,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasModMode_checkBox.Checked = ModSupport.modMode;
             if (this.extrasModMastery_checkBox != null)
                 this.extrasModMastery_checkBox.Checked = ModSupport.keepMasteryExp;
+            if (this.extrasModOriginals_textBox != null
+                && this.extrasModOriginals_textBox.Text != ModSupport.originalFolder)
+                this.extrasModOriginals_textBox.Text = ModSupport.originalFolder;
+            if (this.extrasModOffsets_label != null)
+                this.extrasModOffsets_label.Text = "Offsets: " + ModSupport.offsetsStatus;
             if (this.extrasPreset_comboBox != null && this.extrasPreset_comboBox.Items.Count == 0)
                 this.refreshPresetList();
         }
