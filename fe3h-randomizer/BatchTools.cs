@@ -844,7 +844,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (Randomizer.growthdataLoaded)
                 written += this.batchWriteOutput(nxData, "fixed_growthdata.bin", Randomizer.growthdataData, log);
 
-            if (Randomizer.msgLoaded && (this.settings.changeMsg || RandomizerBig.describeWeaponEffects))
+            if (Randomizer.msgLoaded && (this.settings.changeMsg || RandomizerBig.statWeaponDescriptionsDone > 0))
                 written += this.batchWriteOutput(common, "msgdata.bin", Randomizer.msgData, log);
             if (Randomizer.scrLoaded && this.settings.changeScr)
                 written += this.batchWriteOutput(common, "scrdata.bin", Randomizer.scrData, log);

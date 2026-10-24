@@ -59,6 +59,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private CheckBox extrasClassIdentity_checkBox;
         private NumericUpDown extrasClassDefenseLimit_numericUpDown;
         private CheckBox extrasDescribeWeapons_checkBox;
+        private NumericUpDown extrasFlatHp_numericUpDown;
+        private NumericUpDown extrasFlatDef_numericUpDown;
+        private NumericUpDown extrasFlatRes_numericUpDown;
         private CheckBox extrasModNoMonastery_checkBox;
         private ComboBox extrasPreset_comboBox;
         private Label extrasPresetInfo_label;
@@ -473,6 +476,55 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "be enough to make a beginner class - and every enemy in it - far tankier than it\r\n"
                     + "should be. 0% turns the pull-back off."));
 
+                // ------------------------------------------------ flat bulk trim
+                addFullRow(layout, sectionLabel("Flat enemy bulk trim"));
+
+                this.extrasFlatHp_numericUpDown = new NumericUpDown();
+                this.extrasFlatHp_numericUpDown.Minimum = 0;
+                this.extrasFlatHp_numericUpDown.Maximum = 40;
+                this.extrasFlatHp_numericUpDown.Increment = 1;
+                this.extrasFlatHp_numericUpDown.Value = RandomizerExtras.flatHpTrim;
+                this.extrasFlatHp_numericUpDown.Width = 70;
+                this.extrasFlatHp_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasFlatHp_numericUpDown.ValueChanged +=
+                    new EventHandler(this.extrasFlatTrim_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("HP taken off every class base:"),
+                    this.extrasFlatHp_numericUpDown);
+
+                this.extrasFlatDef_numericUpDown = new NumericUpDown();
+                this.extrasFlatDef_numericUpDown.Minimum = 0;
+                this.extrasFlatDef_numericUpDown.Maximum = 20;
+                this.extrasFlatDef_numericUpDown.Increment = 1;
+                this.extrasFlatDef_numericUpDown.Value = RandomizerExtras.flatDefTrim;
+                this.extrasFlatDef_numericUpDown.Width = 70;
+                this.extrasFlatDef_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasFlatDef_numericUpDown.ValueChanged +=
+                    new EventHandler(this.extrasFlatTrim_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Def taken off every class base:"),
+                    this.extrasFlatDef_numericUpDown);
+
+                this.extrasFlatRes_numericUpDown = new NumericUpDown();
+                this.extrasFlatRes_numericUpDown.Minimum = 0;
+                this.extrasFlatRes_numericUpDown.Maximum = 20;
+                this.extrasFlatRes_numericUpDown.Increment = 1;
+                this.extrasFlatRes_numericUpDown.Value = RandomizerExtras.flatResTrim;
+                this.extrasFlatRes_numericUpDown.Width = 70;
+                this.extrasFlatRes_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasFlatRes_numericUpDown.ValueChanged +=
+                    new EventHandler(this.extrasFlatTrim_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Res taken off every class base:"),
+                    this.extrasFlatRes_numericUpDown);
+
+                addFullRow(layout, helpLabel(
+                    "Subtracted from the class base HP / Def / Res as the very last stat pass, so nothing\r\n"
+                    + "clamps it back. A class base is what a level 1 unit of that class has and it is a\r\n"
+                    + "floor for every unit in the class, so this is the part that makes the first maps\r\n"
+                    + "feel walled - at level 40 the same two or three points barely register. -2 Def, -2\r\n"
+                    + "Res and -6 HP is a good starting point for a No Monastery run.\r\n"
+                    + "The game keeps one class table, so a class trimmed here is trimmed for your own\r\n"
+                    + "units of that class too. Monster / boss rows are left alone, and boosts and growths\r\n"
+                    + "are not touched. 0 on a row means that stat is not trimmed."));
+
                 // ---------------------------------------------------- abilities
                 addFullRow(layout, sectionLabel("Abilities that must never be randomized"));
 
@@ -520,7 +572,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 addFullRow(layout, helpLabel(
                     "Anything ticked here is never handed out by the ability, class ability and learnset\r\n"
                     + "randomization. Dragon / monster abilities (Ancient Dragonskin, Ancient Dragon Wrath,\r\n"
-                    + "Divine Dragon Horn, Giant Wings and the two Effect Null skills) are ticked by default."));
+                    + "Divine Dragon Horn, Giant Wings and the two Effect Null skills) are ticked by default.\r\n"
+                    + "A second, fixed list can never be handed out whatever is ticked here: Twin Crests, Ten\r\n"
+                    + "Elites, Mighty King of Legend, Dance and the rest of the boss-tier and monster skills -\r\n"
+                    + "they are named in the debug report under Abilities."));
 
                 // -------------------------------------------------- siege limit
                 addFullRow(layout, sectionLabel("Enemy siege tomes and long range weapons"));
@@ -575,8 +630,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "the old description, so a weapon that seals defence looks like a plain iron sword.\r\n"
                     + "With this on, every weapon whose effect, effectiveness or properties changed gets a\r\n"
                     + "first line naming it - \"Inflicts Seal Defense.\" - with the vanilla flavour text kept\r\n"
-                    + "underneath. It needs msgdata.bin loaded, and the run writes msgdata.bin even when the\r\n"
-                    + "text options on the Music and Text tab are off."));
+                    + "underneath when the weapon's properties did not change (a vanilla line that promised\r\n"
+                    + "a property the run removed is dropped, so the text never argues with itself).\r\n"
+                    + "It needs msgdata.bin loaded, and the run writes msgdata.bin even when the text\r\n"
+                    + "options on the Music and Text tab are off."));
 
                 // ------------------------------------------------- level scaling
                 addFullRow(layout, sectionLabel("Level scaling"));
@@ -996,6 +1053,18 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasBuilding || this.extrasDescribeWeapons_checkBox == null)
                 return;
             RandomizerBig.describeWeaponEffects = this.extrasDescribeWeapons_checkBox.Checked;
+        }
+
+        private void extrasFlatTrim_numericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding)
+                return;
+            if (this.extrasFlatHp_numericUpDown != null)
+                RandomizerExtras.flatHpTrim = (int)this.extrasFlatHp_numericUpDown.Value;
+            if (this.extrasFlatDef_numericUpDown != null)
+                RandomizerExtras.flatDefTrim = (int)this.extrasFlatDef_numericUpDown.Value;
+            if (this.extrasFlatRes_numericUpDown != null)
+                RandomizerExtras.flatResTrim = (int)this.extrasFlatRes_numericUpDown.Value;
         }
 
         private void extrasGrowthShift_numericUpDown_ValueChanged(object sender, EventArgs e)

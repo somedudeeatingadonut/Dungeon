@@ -76,6 +76,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statGambitFromWeaponGrafted;
         public static int statWeaponEffectsRerolled;
         public static int statWeaponDescriptionsDone;
+        // Weapons whose effect changed but that have no description entry at the
+        // index this pass writes to. A non-zero value means the message table is
+        // laid out differently (another language set, another mod), and the
+        // report says so instead of silently describing nothing.
+        public static int statWeaponTextMissing;
 
         public static void resetCounters()
         {
@@ -487,6 +492,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // text options already use).
         public const int weaponDescriptionStart = 11162;
 
+        // 0..299 are the named weapons; the text run ends there.
+        public const int weaponDescriptionCount = 300;
+
         // Builds the description of one weapon from the data that is actually
         // being written, so it names whatever the remix put there - including
         // the parts of the effect that are not an id (magic damage, ignores
@@ -533,12 +541,52 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             return text.ToString().TrimEnd('\n');
         }
 
+        // Drops the lines this tool generates (and only those) from the front of a
+        // description, so the vanilla flavour text is what is left.
+        private static string stripGeneratedLines(string text)
+        {
+            if (text == null)
+                return "";
+            string[] lines = text.Replace("\r\n", "\n").Split('\n');
+            int first = 0;
+            while (first < lines.Length && isGeneratedLine(lines[first]))
+                first++;
+            if (first >= lines.Length)
+                return "";
+            StringBuilder builder = new StringBuilder();
+            for (int i = first; i < lines.Length; i++)
+            {
+                if (builder.Length > 0)
+                    builder.Append('\n');
+                builder.Append(lines[i]);
+            }
+            return builder.ToString().Trim('\n');
+        }
+
+        private static bool isGeneratedLine(string line)
+        {
+            if (line == null)
+                return false;
+            string trimmed = line.Trim();
+            if (trimmed.Length == 0)
+                return false;
+            return trimmed.StartsWith("Inflicts ", StringComparison.Ordinal)
+                || trimmed.StartsWith("Effective against ", StringComparison.Ordinal)
+                || trimmed.StartsWith("Deals magic damage", StringComparison.Ordinal)
+                || trimmed.StartsWith("Ignores Def/Res", StringComparison.Ordinal)
+                || trimmed.StartsWith("Leaves the target at 1 HP", StringComparison.Ordinal)
+                || trimmed.StartsWith("Leaves target at 1 HP", StringComparison.Ordinal)
+                || trimmed.StartsWith("Attacks twice", StringComparison.Ordinal)
+                || trimmed == "No special attributes.";
+        }
+
         // Rewrites the description of every weapon whose effect changed in this
         // run. The vanilla text is kept underneath when it fits, so the flavour
         // line is not lost, but the new effect is always the first line.
         public static int writeWeaponDescriptions(List<string> strings)
         {
             statWeaponDescriptionsDone = 0;
+            statWeaponTextMissing = 0;
             if (!describeWeaponEffects || strings == null)
                 return 0;
             if (Randomizer.itemData == null || Randomizer.itemDataV == null)
@@ -546,7 +594,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             byte[] data = Randomizer.itemData;
             byte[] vanilla = Randomizer.itemDataV;
-            for (int index = 0; index < weaponCount; index++)
+            // The item help text is written in weapon id order from index 11162.
+            // The original code only ever wrote 0..299 (the named weapons) and
+            // 300 ("Viskam") is past the end of that run of text, so this pass
+            // stops at 299 as well.
+            for (int index = 0; index < weaponCount && index < weaponDescriptionCount; index++)
             {
                 int block = weaponBlock(index);
                 if (block + weaponSlotProperties >= data.Length)
@@ -564,15 +616,30 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                 int textIndex = weaponDescriptionStart + index;
                 if (textIndex >= strings.Count)
+                {
+                    statWeaponTextMissing++;
                     continue;
+                }
 
                 string effect = describeWeapon(data, block);
                 if (effect.Length == 0)
                     effect = "No special attributes.";
-                string original = strings[textIndex];
+                // The text options on the Music and Text tab already write a
+                // description of their own for the weapons they touch, and that
+                // one has no flavour line. Strip it before prepending, or the
+                // item screen would show the same effect twice.
+                string original = stripGeneratedLines(strings[textIndex]);
+
+                // A vanilla description often names the very property that was
+                // randomized away ("...will attack twice when initiating
+                // combat"), so it is only kept when the property byte is the
+                // one the weapon had before. Otherwise the flavour line would
+                // contradict the line above it.
+                bool sameProperties = block + weaponSlotProperties < vanilla.Length
+                    && data[block + weaponSlotProperties] == vanilla[block + weaponSlotProperties];
                 string combined = effect;
-                if (original != null && original.Length > 0 && !original.StartsWith(effect)
-                    && effect.Length + original.Length < 220)
+                if (sameProperties && original != null && original.Length > 0
+                    && !original.StartsWith(effect) && effect.Length + original.Length < 220)
                     combined = effect + "\n" + original;
                 if (combined.Length > 240)
                     combined = combined.Substring(0, 240);

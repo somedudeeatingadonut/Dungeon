@@ -77,7 +77,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             RandomizerExtras.limitSiegeTomes = value;
             RandomizerExtras.blockAbilities = value;
             if (!value)
+            {
                 RandomizerExtras.growthShift = 0;
+                // The trim is a subtraction the user asks for; turning every
+                // option off must not keep weakening the class bases.
+                RandomizerExtras.flatHpTrim = 0;
+                RandomizerExtras.flatDefTrim = 0;
+                RandomizerExtras.flatResTrim = 0;
+            }
 
             // RandomizerMore passes.
             RandomizerMore.protectBossAbilities = value;
@@ -172,6 +179,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (this.extrasDescribeWeapons_checkBox != null)
                 this.extrasDescribeWeapons_checkBox.Checked = RandomizerBig.describeWeaponEffects;
+            if (this.extrasFlatHp_numericUpDown != null)
+                this.extrasFlatHp_numericUpDown.Value = clampToControl(
+                    this.extrasFlatHp_numericUpDown, RandomizerExtras.flatHpTrim);
+            if (this.extrasFlatDef_numericUpDown != null)
+                this.extrasFlatDef_numericUpDown.Value = clampToControl(
+                    this.extrasFlatDef_numericUpDown, RandomizerExtras.flatDefTrim);
+            if (this.extrasFlatRes_numericUpDown != null)
+                this.extrasFlatRes_numericUpDown.Value = clampToControl(
+                    this.extrasFlatRes_numericUpDown, RandomizerExtras.flatResTrim);
 
             if (this.extrasBossAb_checkBox != null)
                 this.extrasBossAb_checkBox.Checked = RandomizerMore.protectBossAbilities;

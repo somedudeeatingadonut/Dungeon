@@ -50,6 +50,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static bool classIdentity = true;
         public static int classDefenseLimit = 50;
 
+        // A flat subtraction from the class bases, applied after every other
+        // pass. A class base is a floor for every unit in the class and it is
+        // the part that matters at low level, where the enemies of a run feel
+        // walled: taking HP / Def / Res off it helps the early maps a lot and
+        // the late game only by the same few points. 0 means "no trim".
+        public static int flatHpTrim = 0;
+        public static int flatDefTrim = 0;
+        public static int flatResTrim = 0;
+
         // Abilities that are never handed out, whatever the blocklist says.
         // These either hand the holder a whole boss's kit (Twin Crests, Ten
         // Elites, Mighty King of Legend) or make a unit effectively unkillable
@@ -101,8 +110,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statBlockedAbilitiesRemoved;
         public static int statRoleSwaps;
         public static int statDefenseClamped;
+        public static int statFlatTrimmed;
         public static List<string> roleSwapSamples = new List<string>();
         public static List<string> defenseClampSamples = new List<string>();
+        public static List<string> flatTrimSamples = new List<string>();
         public static List<int>[] statTypesServedByTier = new List<int>[8];
         public static List<int> statTypesServedGlobal = new List<int>();
         // How many weapon types were actually dealt per tier. The report needs
@@ -137,8 +148,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statFirstSpellRank = 0;
             statRoleSwaps = 0;
             statDefenseClamped = 0;
+            statFlatTrimmed = 0;
             roleSwapSamples = new List<string>();
             defenseClampSamples = new List<string>();
+            flatTrimSamples = new List<string>();
             RandomizerMore.resetCounters();
             RandomizerBig.resetCounters();
             ModSupport.resetCounters();
@@ -764,8 +777,83 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 // hold for the data that is actually written out.
                 RandomizerMore.reapplyRangeLimits();
 
-                // Runs last, after every other pass has written its values.
-                enforceAbilityBlocklist();
+                // Flat trim last of the stat passes: it is a subtraction the
+                // user asked for, so nothing may clamp it back up afterwards.
+                applyFlatTrim();
+            }
+
+            // Runs last, after every other pass has written its values. It
+            // guards its own data, so a run that loaded only the character file
+            // still gets its learnsets cleaned.
+            enforceAbilityBlocklist();
+        }
+
+        // ----------------------------------------------------- flat bulk trim
+        // Subtracts a flat number of HP / Def / Res from every class base. The
+        // base is what a level 1 unit of the class has, so the early maps (where
+        // the enemies feel walled) feel it most; at level 40 the same few points
+        // are noise. Monster / boss rows are left alone, and so is every boost
+        // and growth - this only moves the starting values.
+        //
+        // The game keeps one class table, so a class trimmed here is trimmed for
+        // the player's own units of that class as well; the report says so.
+        public static void applyFlatTrim()
+        {
+            if (Randomizer.classData == null)
+                return;
+            int hpTrim = Math.Max(0, Math.Min(60, flatHpTrim));
+            int defTrim = Math.Max(0, Math.Min(40, flatDefTrim));
+            int resTrim = Math.Max(0, Math.Min(40, flatResTrim));
+            if (hpTrim == 0 && defTrim == 0 && resTrim == 0)
+                return;
+
+            for (int index = 0; index < 100; index++)
+            {
+                if (!(index < 88 || index == 91))
+                    continue;
+                if (RandomizerMore.isMonsterClass(index))
+                    continue;
+
+                long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)index;
+                long hpOffset = block + baseStatOffsets[0];
+                long defOffset = block + baseStatOffsets[6];
+                long resOffset = block + baseStatOffsets[7];
+                if (resOffset >= Randomizer.classData.Length)
+                    continue;
+
+                bool changed = false;
+                int hp = Randomizer.classData[hpOffset];
+                int def = Randomizer.classData[defOffset];
+                int res = Randomizer.classData[resOffset];
+                // Never leave a class on 0 HP; the trim is capped per row, not
+                // globally, so one tiny row cannot weaken the others.
+                int rowHpTrim = Math.Min(hpTrim, Math.Max(0, hp - 1));
+                if (rowHpTrim > 0)
+                {
+                    Randomizer.classData[hpOffset] = (byte)(hp - rowHpTrim);
+                    changed = true;
+                }
+                if (defTrim > 0 && def > 0)
+                {
+                    Randomizer.classData[defOffset] = (byte)Math.Max(0, def - defTrim);
+                    changed = true;
+                }
+                if (resTrim > 0 && res > 0)
+                {
+                    Randomizer.classData[resOffset] = (byte)Math.Max(0, res - resTrim);
+                    changed = true;
+                }
+                if (!changed)
+                    continue;
+
+                statFlatTrimmed++;
+                if (flatTrimSamples.Count < 6)
+                    flatTrimSamples.Add(className(index) + " base HP " + hp.ToString()
+                        + (rowHpTrim > 0 ? " -> " + (hp - rowHpTrim).ToString() : "")
+                        + ", Def " + def.ToString()
+                        + (defTrim > 0 ? " -> " + Math.Max(0, def - defTrim).ToString() : "")
+                        + ", Res " + res.ToString()
+                        + (resTrim > 0 ? " -> " + Math.Max(0, res - resTrim).ToString() : ""));
             }
         }
 

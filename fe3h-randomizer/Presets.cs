@@ -13,9 +13,10 @@
 //  already ticked". A saved preset is a full snapshot; the built in one only
 //  lists the values that differ from the defaults.
 //
-//  The built in preset is the configuration of the run in the 1.8.2 debug
-//  report that ships next to the exe, so that exact run can be repeated. The
-//  mod safe one is the same run with every option the mod owns turned off.
+//  The built in preset is the owner's own saved settings of the run he actually
+//  played (2026-10-24, No Monastery 2.1), so that run can be repeated. The mod
+//  safe presets are the same run with every option the mod owns turned off, and
+//  with the enemy bulk dial turned up.
 // -----------------------------------------------------------------------------
 
 using System;
@@ -50,14 +51,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         }
 
         // ---------------------------------------------------------------------
-        //  The built in preset is the configuration of the run recorded in the
-        //  debug report that ships next to the exe (1.8.2): its full settings
-        //  dump, value for value, plus the extra options read out of the same
-        //  report's NEW / MORE / BIG sections. Nothing here was retyped from a
-        //  conversation - apply it and you get that run again.
+        //  The built in preset is a real run, not something typed in from a
+        //  conversation: the owner's own "Save current settings as preset" file
+        //  of 2026-10-24, with the numbers that file was missing because the
+        //  saver dropped every option whose name starts with "stat" (the five
+        //  range limits, read back out of that run's debug report) and the
+        //  options that were added after the file was saved. Nothing of his
+        //  machine is in it: the ModSupport.* lines (mod folder, mod switches)
+        //  are stripped here and put back by the two mod presets.
         // ---------------------------------------------------------------------
         private static readonly string builtInRunData =
-            "randStatBoosts=True\nrandMonStatBoosts=False\nrandStaStatBoosts=True\nrandBegStatBoosts=True\n"
+              "randStatBoosts=True\nrandMonStatBoosts=False\nrandStaStatBoosts=True\nrandBegStatBoosts=True\n"
             + "randIntStatBoosts=True\nrandAdvStatBoosts=True\nrandMasStatBoosts=True\nrandUniStatBoosts=True\n"
             + "randMovStatBoosts=True\nmonStatBoostsPosCountMin=0\nmonStatBoostsPosCountMax=0\n"
             + "staStatBoostsPosCountMin=0\nstaStatBoostsPosCountMax=0\nbegStatBoostsPosCountMin=1\n"
@@ -79,55 +83,59 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             + "monMovStatBoostsMax=2\nstaMovStatBoostsMin=0\nstaMovStatBoostsMax=0\nbegMovStatBoostsMin=0\n"
             + "begMovStatBoostsMax=0\nintMovStatBoostsMin=0\nintMovStatBoostsMax=1\nadvMovStatBoostsMin=0\n"
             + "advMovStatBoostsMax=2\nmasMovStatBoostsMin=1\nmasMovStatBoostsMax=2\nuniMovStatBoostsMin=1\n"
-            + "uniMovStatBoostsMax=2\nrandMountBoosts=True\nrandMonMountBoosts=False\nrandStaMountBoosts=False\n"
-            + "randBegMountBoosts=False\nrandIntMountBoosts=False\nrandAdvMountBoosts=False\n"
-            + "randMasMountBoosts=True\nrandUniMountBoosts=False\nrandMovMountBoosts=False\n"
-            + "monMountBoostsPosCountMin=0\nmonMountBoostsPosCountMax=0\nstaMountBoostsPosCountMin=0\n"
-            + "staMountBoostsPosCountMax=0\nbegMountBoostsPosCountMin=0\nbegMountBoostsPosCountMax=0\n"
-            + "intMountBoostsPosCountMin=0\nintMountBoostsPosCountMax=1\nadvMountBoostsPosCountMin=0\n"
-            + "advMountBoostsPosCountMax=2\nmasMountBoostsPosCountMin=0\nmasMountBoostsPosCountMax=2\n"
-            + "uniMountBoostsPosCountMin=1\nuniMountBoostsPosCountMax=2\nmonMountBoostsNegCountMin=0\n"
-            + "monMountBoostsNegCountMax=0\nstaMountBoostsNegCountMin=0\nstaMountBoostsNegCountMax=0\n"
-            + "begMountBoostsNegCountMin=0\nbegMountBoostsNegCountMax=0\nintMountBoostsNegCountMin=0\n"
-            + "intMountBoostsNegCountMax=1\nadvMountBoostsNegCountMin=0\nadvMountBoostsNegCountMax=1\n"
-            + "masMountBoostsNegCountMin=0\nmasMountBoostsNegCountMax=0\nuniMountBoostsNegCountMin=0\n"
-            + "uniMountBoostsNegCountMax=1\nmonMountBoostsPosMin=0\nmonMountBoostsPosMax=0\n"
-            + "staMountBoostsPosMin=0\nstaMountBoostsPosMax=0\nbegMountBoostsPosMin=0\nbegMountBoostsPosMax=0\n"
-            + "intMountBoostsPosMin=2\nintMountBoostsPosMax=3\nadvMountBoostsPosMin=1\nadvMountBoostsPosMax=2\n"
-            + "masMountBoostsPosMin=1\nmasMountBoostsPosMax=3\nuniMountBoostsPosMin=1\nuniMountBoostsPosMax=3\n"
-            + "monMountBoostsNegMin=0\nmonMountBoostsNegMax=0\nstaMountBoostsNegMin=0\nstaMountBoostsNegMax=0\n"
-            + "begMountBoostsNegMin=0\nbegMountBoostsNegMax=0\nintMountBoostsNegMin=-2\nintMountBoostsNegMax=-2\n"
-            + "advMountBoostsNegMin=-2\nadvMountBoostsNegMax=-2\nmasMountBoostsNegMin=0\nmasMountBoostsNegMax=0\n"
-            + "uniMountBoostsNegMin=-2\nuniMountBoostsNegMax=-2\nmonMovMountBoostsMin=0\nmonMovMountBoostsMax=0\n"
-            + "staMovMountBoostsMin=0\nstaMovMountBoostsMax=0\nbegMovMountBoostsMin=0\nbegMovMountBoostsMax=0\n"
-            + "intMovMountBoostsMin=2\nintMovMountBoostsMax=3\nadvMovMountBoostsMin=2\nadvMovMountBoostsMax=2\n"
-            + "masMovMountBoostsMin=1\nmasMovMountBoostsMax=3\nuniMovMountBoostsMin=2\nuniMovMountBoostsMax=3\n"
-            + "randPlayerGrowthBoosts=True\nrandMonPlayerGrowthBoosts=False\nrandStaPlayerGrowthBoosts=True\n"
-            + "randBegPlayerGrowthBoosts=True\nrandIntPlayerGrowthBoosts=True\nrandAdvPlayerGrowthBoosts=True\n"
-            + "randMasPlayerGrowthBoosts=True\nrandUniPlayerGrowthBoosts=True\nrandMovPlayerGrowthBoosts=False\n"
-            + "monPlayerGrowthBoostsPosCountMin=0\nmonPlayerGrowthBoostsPosCountMax=0\n"
-            + "staPlayerGrowthBoostsPosCountMin=0\nstaPlayerGrowthBoostsPosCountMax=1\n"
-            + "begPlayerGrowthBoostsPosCountMin=3\nbegPlayerGrowthBoostsPosCountMax=3\n"
-            + "intPlayerGrowthBoostsPosCountMin=3\nintPlayerGrowthBoostsPosCountMax=5\n"
-            + "advPlayerGrowthBoostsPosCountMin=3\nadvPlayerGrowthBoostsPosCountMax=7\n"
-            + "masPlayerGrowthBoostsPosCountMin=2\nmasPlayerGrowthBoostsPosCountMax=6\n"
-            + "uniPlayerGrowthBoostsPosCountMin=2\nuniPlayerGrowthBoostsPosCountMax=6\n"
-            + "monPlayerGrowthBoostsNegCountMin=0\nmonPlayerGrowthBoostsNegCountMax=0\n"
-            + "staPlayerGrowthBoostsNegCountMin=0\nstaPlayerGrowthBoostsNegCountMax=0\n"
-            + "begPlayerGrowthBoostsNegCountMin=0\nbegPlayerGrowthBoostsNegCountMax=1\n"
-            + "intPlayerGrowthBoostsNegCountMin=0\nintPlayerGrowthBoostsNegCountMax=2\n"
-            + "advPlayerGrowthBoostsNegCountMin=0\nadvPlayerGrowthBoostsNegCountMax=2\n"
-            + "masPlayerGrowthBoostsNegCountMin=0\nmasPlayerGrowthBoostsNegCountMax=2\n"
-            + "uniPlayerGrowthBoostsNegCountMin=0\nuniPlayerGrowthBoostsNegCountMax=3\n"
-            + "monPlayerGrowthBoostsPosMin=0\nmonPlayerGrowthBoostsPosMax=0\nstaPlayerGrowthBoostsPosMin=5\n"
-            + "staPlayerGrowthBoostsPosMax=5\nbegPlayerGrowthBoostsPosMin=5\nbegPlayerGrowthBoostsPosMax=10\n"
-            + "intPlayerGrowthBoostsPosMin=5\nintPlayerGrowthBoostsPosMax=30\nadvPlayerGrowthBoostsPosMin=5\n"
-            + "advPlayerGrowthBoostsPosMax=40\nmasPlayerGrowthBoostsPosMin=5\nmasPlayerGrowthBoostsPosMax=40\n"
-            + "uniPlayerGrowthBoostsPosMin=5\nuniPlayerGrowthBoostsPosMax=40\nmonPlayerGrowthBoostsNegMin=0\n"
-            + "monPlayerGrowthBoostsNegMax=0\nstaPlayerGrowthBoostsNegMin=0\nstaPlayerGrowthBoostsNegMax=0\n"
-            + "begPlayerGrowthBoostsNegMin=-5\nbegPlayerGrowthBoostsNegMax=-5\nintPlayerGrowthBoostsNegMin=-10\n"
-            + "intPlayerGrowthBoostsNegMax=-5\nadvPlayerGrowthBoostsNegMin=-10\nadvPlayerGrowthBoostsNegMax=-5\n"
-            + "masPlayerGrowthBoostsNegMin=-5\nmasPlayerGrowthBoostsNegMax=-5\nuniPlayerGrowthBoostsNegMin=-5\n"
+            + "uniMovStatBoostsMax=2\nrandMountBoosts=True\nrandMonMountBoosts=False\n"
+            + "randStaMountBoosts=False\nrandBegMountBoosts=False\nrandIntMountBoosts=False\n"
+            + "randAdvMountBoosts=False\nrandMasMountBoosts=True\nrandUniMountBoosts=False\n"
+            + "randMovMountBoosts=False\nmonMountBoostsPosCountMin=0\nmonMountBoostsPosCountMax=0\n"
+            + "staMountBoostsPosCountMin=0\nstaMountBoostsPosCountMax=0\nbegMountBoostsPosCountMin=0\n"
+            + "begMountBoostsPosCountMax=0\nintMountBoostsPosCountMin=0\nintMountBoostsPosCountMax=1\n"
+            + "advMountBoostsPosCountMin=0\nadvMountBoostsPosCountMax=2\nmasMountBoostsPosCountMin=0\n"
+            + "masMountBoostsPosCountMax=2\nuniMountBoostsPosCountMin=1\nuniMountBoostsPosCountMax=2\n"
+            + "monMountBoostsNegCountMin=0\nmonMountBoostsNegCountMax=0\nstaMountBoostsNegCountMin=0\n"
+            + "staMountBoostsNegCountMax=0\nbegMountBoostsNegCountMin=0\nbegMountBoostsNegCountMax=0\n"
+            + "intMountBoostsNegCountMin=0\nintMountBoostsNegCountMax=1\nadvMountBoostsNegCountMin=0\n"
+            + "advMountBoostsNegCountMax=1\nmasMountBoostsNegCountMin=0\nmasMountBoostsNegCountMax=0\n"
+            + "uniMountBoostsNegCountMin=0\nuniMountBoostsNegCountMax=1\nmonMountBoostsPosMin=0\n"
+            + "monMountBoostsPosMax=0\nstaMountBoostsPosMin=0\nstaMountBoostsPosMax=0\nbegMountBoostsPosMin=0\n"
+            + "begMountBoostsPosMax=0\nintMountBoostsPosMin=2\nintMountBoostsPosMax=3\nadvMountBoostsPosMin=1\n"
+            + "advMountBoostsPosMax=2\nmasMountBoostsPosMin=1\nmasMountBoostsPosMax=3\nuniMountBoostsPosMin=1\n"
+            + "uniMountBoostsPosMax=3\nmonMountBoostsNegMin=0\nmonMountBoostsNegMax=0\nstaMountBoostsNegMin=0\n"
+            + "staMountBoostsNegMax=0\nbegMountBoostsNegMin=0\nbegMountBoostsNegMax=0\n"
+            + "intMountBoostsNegMin=-2\nintMountBoostsNegMax=-2\nadvMountBoostsNegMin=-2\n"
+            + "advMountBoostsNegMax=-2\nmasMountBoostsNegMin=0\nmasMountBoostsNegMax=0\n"
+            + "uniMountBoostsNegMin=-2\nuniMountBoostsNegMax=-2\nmonMovMountBoostsMin=0\n"
+            + "monMovMountBoostsMax=0\nstaMovMountBoostsMin=0\nstaMovMountBoostsMax=0\nbegMovMountBoostsMin=0\n"
+            + "begMovMountBoostsMax=0\nintMovMountBoostsMin=2\nintMovMountBoostsMax=3\nadvMovMountBoostsMin=2\n"
+            + "advMovMountBoostsMax=2\nmasMovMountBoostsMin=1\nmasMovMountBoostsMax=3\nuniMovMountBoostsMin=2\n"
+            + "uniMovMountBoostsMax=3\nrandPlayerGrowthBoosts=True\nrandMonPlayerGrowthBoosts=False\n"
+            + "randStaPlayerGrowthBoosts=True\nrandBegPlayerGrowthBoosts=True\n"
+            + "randIntPlayerGrowthBoosts=True\nrandAdvPlayerGrowthBoosts=True\n"
+            + "randMasPlayerGrowthBoosts=True\nrandUniPlayerGrowthBoosts=True\n"
+            + "randMovPlayerGrowthBoosts=False\nmonPlayerGrowthBoostsPosCountMin=0\n"
+            + "monPlayerGrowthBoostsPosCountMax=0\nstaPlayerGrowthBoostsPosCountMin=0\n"
+            + "staPlayerGrowthBoostsPosCountMax=1\nbegPlayerGrowthBoostsPosCountMin=3\n"
+            + "begPlayerGrowthBoostsPosCountMax=3\nintPlayerGrowthBoostsPosCountMin=3\n"
+            + "intPlayerGrowthBoostsPosCountMax=5\nadvPlayerGrowthBoostsPosCountMin=3\n"
+            + "advPlayerGrowthBoostsPosCountMax=7\nmasPlayerGrowthBoostsPosCountMin=2\n"
+            + "masPlayerGrowthBoostsPosCountMax=6\nuniPlayerGrowthBoostsPosCountMin=2\n"
+            + "uniPlayerGrowthBoostsPosCountMax=6\nmonPlayerGrowthBoostsNegCountMin=0\n"
+            + "monPlayerGrowthBoostsNegCountMax=0\nstaPlayerGrowthBoostsNegCountMin=0\n"
+            + "staPlayerGrowthBoostsNegCountMax=0\nbegPlayerGrowthBoostsNegCountMin=0\n"
+            + "begPlayerGrowthBoostsNegCountMax=1\nintPlayerGrowthBoostsNegCountMin=0\n"
+            + "intPlayerGrowthBoostsNegCountMax=2\nadvPlayerGrowthBoostsNegCountMin=0\n"
+            + "advPlayerGrowthBoostsNegCountMax=2\nmasPlayerGrowthBoostsNegCountMin=0\n"
+            + "masPlayerGrowthBoostsNegCountMax=2\nuniPlayerGrowthBoostsNegCountMin=0\n"
+            + "uniPlayerGrowthBoostsNegCountMax=3\nmonPlayerGrowthBoostsPosMin=0\n"
+            + "monPlayerGrowthBoostsPosMax=0\nstaPlayerGrowthBoostsPosMin=5\nstaPlayerGrowthBoostsPosMax=5\n"
+            + "begPlayerGrowthBoostsPosMin=5\nbegPlayerGrowthBoostsPosMax=10\nintPlayerGrowthBoostsPosMin=5\n"
+            + "intPlayerGrowthBoostsPosMax=30\nadvPlayerGrowthBoostsPosMin=5\nadvPlayerGrowthBoostsPosMax=40\n"
+            + "masPlayerGrowthBoostsPosMin=5\nmasPlayerGrowthBoostsPosMax=40\nuniPlayerGrowthBoostsPosMin=5\n"
+            + "uniPlayerGrowthBoostsPosMax=40\nmonPlayerGrowthBoostsNegMin=0\nmonPlayerGrowthBoostsNegMax=0\n"
+            + "staPlayerGrowthBoostsNegMin=0\nstaPlayerGrowthBoostsNegMax=0\nbegPlayerGrowthBoostsNegMin=-5\n"
+            + "begPlayerGrowthBoostsNegMax=-5\nintPlayerGrowthBoostsNegMin=-10\n"
+            + "intPlayerGrowthBoostsNegMax=-5\nadvPlayerGrowthBoostsNegMin=-10\n"
+            + "advPlayerGrowthBoostsNegMax=-5\nmasPlayerGrowthBoostsNegMin=-5\n"
+            + "masPlayerGrowthBoostsNegMax=-5\nuniPlayerGrowthBoostsNegMin=-5\n"
             + "uniPlayerGrowthBoostsNegMax=-5\nmonMovPlayerGrowthBoostsMin=0\nmonMovPlayerGrowthBoostsMax=0\n"
             + "staMovPlayerGrowthBoostsMin=1\nstaMovPlayerGrowthBoostsMax=5\nbegMovPlayerGrowthBoostsMin=1\n"
             + "begMovPlayerGrowthBoostsMax=5\nintMovPlayerGrowthBoostsMin=1\nintMovPlayerGrowthBoostsMax=5\n"
@@ -169,134 +177,141 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             + "uniMovEnemyGrowthBoostsMax=5\nmonMovEnemyGrowthBoostsP=0\nstaMovEnemyGrowthBoostsP=10\n"
             + "begMovEnemyGrowthBoostsP=10\nintMovEnemyGrowthBoostsP=10\nadvMovEnemyGrowthBoostsP=10\n"
             + "masMovEnemyGrowthBoostsP=10\nuniMovEnemyGrowthBoostsP=10\nrandClassBases=True\n"
-            + "randMonClassBases=False\nrandStaClassBases=True\nrandBegClassBases=True\nrandIntClassBases=True\n"
-            + "randAdvClassBases=True\nrandMasClassBases=True\nrandUniClassBases=True\nhpMonClassBasesMin=0\n"
-            + "hpMonClassBasesMax=0\nhpStaClassBasesMin=1\nhpStaClassBasesMax=1\nhpBegClassBasesMin=20\n"
-            + "hpBegClassBasesMax=20\nhpIntClassBasesMin=25\nhpIntClassBasesMax=30\nhpAdvClassBasesMin=20\n"
-            + "hpAdvClassBasesMax=35\nhpMasClassBasesMin=32\nhpMasClassBasesMax=34\nhpUniClassBasesMin=28\n"
-            + "hpUniClassBasesMax=38\nstrMonClassBasesMin=0\nstrMonClassBasesMax=0\nstrStaClassBasesMin=0\n"
-            + "strStaClassBasesMax=0\nstrBegClassBasesMin=4\nstrBegClassBasesMax=8\nstrIntClassBasesMin=4\n"
-            + "strIntClassBasesMax=10\nstrAdvClassBasesMin=5\nstrAdvClassBasesMax=20\nstrMasClassBasesMin=8\n"
-            + "strMasClassBasesMax=20\nstrUniClassBasesMin=8\nstrUniClassBasesMax=18\nmagMonClassBasesMin=0\n"
-            + "magMonClassBasesMax=0\nmagStaClassBasesMin=0\nmagStaClassBasesMax=0\nmagBegClassBasesMin=3\n"
-            + "magBegClassBasesMax=8\nmagIntClassBasesMin=6\nmagIntClassBasesMax=10\nmagAdvClassBasesMin=6\n"
-            + "magAdvClassBasesMax=17\nmagMasClassBasesMin=10\nmagMasClassBasesMax=17\nmagUniClassBasesMin=8\n"
-            + "magUniClassBasesMax=17\ndexMonClassBasesMin=0\ndexMonClassBasesMax=0\ndexStaClassBasesMin=0\n"
-            + "dexStaClassBasesMax=1\ndexBegClassBasesMin=6\ndexBegClassBasesMax=6\ndexIntClassBasesMin=7\n"
-            + "dexIntClassBasesMax=11\ndexAdvClassBasesMin=7\ndexAdvClassBasesMax=12\ndexMasClassBasesMin=14\n"
-            + "dexMasClassBasesMax=14\ndexUniClassBasesMin=11\ndexUniClassBasesMax=14\nspeMonClassBasesMin=0\n"
-            + "speMonClassBasesMax=0\nspeStaClassBasesMin=0\nspeStaClassBasesMax=0\nspeBegClassBasesMin=6\n"
-            + "speBegClassBasesMax=6\nspeIntClassBasesMin=4\nspeIntClassBasesMax=11\nspeAdvClassBasesMin=8\n"
-            + "speAdvClassBasesMax=14\nspeMasClassBasesMin=10\nspeMasClassBasesMax=20\nspeUniClassBasesMin=6\n"
-            + "speUniClassBasesMax=20\nlucMonClassBasesMin=0\nlucMonClassBasesMax=0\nlucStaClassBasesMin=0\n"
-            + "lucStaClassBasesMax=0\nlucBegClassBasesMin=4\nlucBegClassBasesMax=4\nlucIntClassBasesMin=8\n"
-            + "lucIntClassBasesMax=8\nlucAdvClassBasesMin=8\nlucAdvClassBasesMax=12\nlucMasClassBasesMin=12\n"
-            + "lucMasClassBasesMax=12\nlucUniClassBasesMin=19\nlucUniClassBasesMax=19\ndefMonClassBasesMin=0\n"
-            + "defMonClassBasesMax=0\ndefStaClassBasesMin=0\ndefStaClassBasesMax=0\ndefBegClassBasesMin=3\n"
-            + "defBegClassBasesMax=5\ndefIntClassBasesMin=3\ndefIntClassBasesMax=12\ndefAdvClassBasesMin=5\n"
-            + "defAdvClassBasesMax=17\ndefMasClassBasesMin=13\ndefMasClassBasesMax=17\ndefUniClassBasesMin=13\n"
-            + "defUniClassBasesMax=17\nresMonClassBasesMin=0\nresMonClassBasesMax=0\nresStaClassBasesMin=0\n"
-            + "resStaClassBasesMax=0\nresBegClassBasesMin=2\nresBegClassBasesMax=4\nresIntClassBasesMin=1\n"
-            + "resIntClassBasesMax=5\nresAdvClassBasesMin=4\nresAdvClassBasesMax=15\nresMasClassBasesMin=10\n"
-            + "resMasClassBasesMax=16\nresUniClassBasesMin=8\nresUniClassBasesMax=16\nchaMonClassBasesMin=0\n"
-            + "chaMonClassBasesMax=0\nchaStaClassBasesMin=0\nchaStaClassBasesMax=0\nchaBegClassBasesMin=4\n"
-            + "chaBegClassBasesMax=5\nchaIntClassBasesMin=5\nchaIntClassBasesMax=9\nchaAdvClassBasesMin=6\n"
-            + "chaAdvClassBasesMax=14\nchaMasClassBasesMin=12\nchaMasClassBasesMax=16\nchaUniClassBasesMin=9\n"
-            + "chaUniClassBasesMax=16\nremoveWeaponRestrictions=True\nrandWeaponTypes=True\nmon2ndWeaponTypeP=0\n"
-            + "sta2ndWeaponTypeP=0\nbeg2ndWeaponTypeP=5\nint2ndWeaponTypeP=15\nadv2ndWeaponTypeP=35\n"
-            + "mas2ndWeaponTypeP=75\nuni2ndWeaponTypeP=50\nrandTyping=True\nrandMovTypes=False\n"
-            + "baseMovTypes=False\nrandClassProf=True\nbaseClassProf=True\nrandCert=True\nrandMonCert=True\n"
-            + "randStaCert=True\nrandBegCert=True\nrandIntCert=True\nrandAdvCert=True\nrandMasCert=True\n"
-            + "randUniCert=True\nmainMonCertMin=0\nmainMonCertMax=0\nmainStaCertMin=0\nmainStaCertMax=0\n"
-            + "mainBegCertMin=2\nmainBegCertMax=2\nmainIntCertMin=4\nmainIntCertMax=4\nmainAdvCertMin=6\n"
-            + "mainAdvCertMax=8\nmainMasCertMin=7\nmainMasCertMax=8\nmainUniCertMin=0\nmainUniCertMax=0\n"
-            + "typeMonCertMin=0\ntypeMonCertMax=0\ntypeStaCertMin=0\ntypeStaCertMax=0\ntypeBegCertMin=0\n"
-            + "typeBegCertMax=0\ntypeIntCertMin=1\ntypeIntCertMax=2\ntypeAdvCertMin=4\ntypeAdvCertMax=6\n"
-            + "typeMasCertMin=7\ntypeMasCertMax=9\ntypeUniCertMin=0\ntypeUniCertMax=0\notherMonCertMin=0\n"
-            + "otherMonCertMax=0\notherStaCertMin=0\notherStaCertMax=0\notherBegCertMin=0\notherBegCertMax=2\n"
-            + "otherIntCertMin=0\notherIntCertMax=2\notherAdvCertMin=4\notherAdvCertMax=4\notherMasCertMin=4\n"
-            + "otherMasCertMax=6\notherUniCertMin=0\notherUniCertMax=0\nbaseCert=True\nrandCertItem=False\n"
-            + "allowNonSealCertItems=False\nrandClassAb=True\nbaseClassAb=True\nrandClassDefAb=True\n"
-            + "randMonClassDefAb=True\nrandStaClassDefAb=True\nrandBegClassDefAb=True\nrandIntClassDefAb=True\n"
-            + "randAdvClassDefAb=True\nrandMasClassDefAb=True\nrandUniClassDefAb=True\nmonClassDefAbCountMin=0\n"
-            + "monClassDefAbCountMax=0\nstaClassDefAbCountMin=0\nstaClassDefAbCountMax=0\nintClassDefAbCountMin=2\n"
-            + "intClassDefAbCountMax=2\nbegClassDefAbCountMin=0\nbegClassDefAbCountMax=1\nadvClassDefAbCountMin=3\n"
-            + "advClassDefAbCountMax=3\nmasClassDefAbCountMin=4\nmasClassDefAbCountMax=4\nuniClassDefAbCountMin=5\n"
-            + "uniClassDefAbCountMax=5\nrandClassClassAb=True\nrandMonClassClassAb=True\nrandStaClassClassAb=True\n"
+            + "randMonClassBases=False\nrandStaClassBases=True\nrandBegClassBases=True\n"
+            + "randIntClassBases=True\nrandAdvClassBases=True\nrandMasClassBases=True\nrandUniClassBases=True\n"
+            + "hpMonClassBasesMin=0\nhpMonClassBasesMax=0\nhpStaClassBasesMin=1\nhpStaClassBasesMax=1\n"
+            + "hpBegClassBasesMin=20\nhpBegClassBasesMax=20\nhpIntClassBasesMin=25\nhpIntClassBasesMax=30\n"
+            + "hpAdvClassBasesMin=20\nhpAdvClassBasesMax=35\nhpMasClassBasesMin=32\nhpMasClassBasesMax=34\n"
+            + "hpUniClassBasesMin=28\nhpUniClassBasesMax=38\nstrMonClassBasesMin=0\nstrMonClassBasesMax=0\n"
+            + "strStaClassBasesMin=0\nstrStaClassBasesMax=0\nstrBegClassBasesMin=4\nstrBegClassBasesMax=8\n"
+            + "strIntClassBasesMin=4\nstrIntClassBasesMax=10\nstrAdvClassBasesMin=5\nstrAdvClassBasesMax=20\n"
+            + "strMasClassBasesMin=8\nstrMasClassBasesMax=20\nstrUniClassBasesMin=8\nstrUniClassBasesMax=18\n"
+            + "magMonClassBasesMin=0\nmagMonClassBasesMax=0\nmagStaClassBasesMin=0\nmagStaClassBasesMax=0\n"
+            + "magBegClassBasesMin=3\nmagBegClassBasesMax=8\nmagIntClassBasesMin=6\nmagIntClassBasesMax=10\n"
+            + "magAdvClassBasesMin=6\nmagAdvClassBasesMax=17\nmagMasClassBasesMin=10\nmagMasClassBasesMax=17\n"
+            + "magUniClassBasesMin=8\nmagUniClassBasesMax=17\ndexMonClassBasesMin=0\ndexMonClassBasesMax=0\n"
+            + "dexStaClassBasesMin=0\ndexStaClassBasesMax=1\ndexBegClassBasesMin=6\ndexBegClassBasesMax=6\n"
+            + "dexIntClassBasesMin=7\ndexIntClassBasesMax=11\ndexAdvClassBasesMin=7\ndexAdvClassBasesMax=12\n"
+            + "dexMasClassBasesMin=14\ndexMasClassBasesMax=14\ndexUniClassBasesMin=11\ndexUniClassBasesMax=14\n"
+            + "speMonClassBasesMin=0\nspeMonClassBasesMax=0\nspeStaClassBasesMin=0\nspeStaClassBasesMax=0\n"
+            + "speBegClassBasesMin=6\nspeBegClassBasesMax=6\nspeIntClassBasesMin=4\nspeIntClassBasesMax=11\n"
+            + "speAdvClassBasesMin=8\nspeAdvClassBasesMax=14\nspeMasClassBasesMin=10\nspeMasClassBasesMax=20\n"
+            + "speUniClassBasesMin=6\nspeUniClassBasesMax=20\nlucMonClassBasesMin=0\nlucMonClassBasesMax=0\n"
+            + "lucStaClassBasesMin=0\nlucStaClassBasesMax=0\nlucBegClassBasesMin=4\nlucBegClassBasesMax=4\n"
+            + "lucIntClassBasesMin=8\nlucIntClassBasesMax=8\nlucAdvClassBasesMin=8\nlucAdvClassBasesMax=12\n"
+            + "lucMasClassBasesMin=12\nlucMasClassBasesMax=12\nlucUniClassBasesMin=19\nlucUniClassBasesMax=19\n"
+            + "defMonClassBasesMin=0\ndefMonClassBasesMax=0\ndefStaClassBasesMin=0\ndefStaClassBasesMax=0\n"
+            + "defBegClassBasesMin=3\ndefBegClassBasesMax=5\ndefIntClassBasesMin=3\ndefIntClassBasesMax=12\n"
+            + "defAdvClassBasesMin=5\ndefAdvClassBasesMax=17\ndefMasClassBasesMin=13\ndefMasClassBasesMax=17\n"
+            + "defUniClassBasesMin=13\ndefUniClassBasesMax=17\nresMonClassBasesMin=0\nresMonClassBasesMax=0\n"
+            + "resStaClassBasesMin=0\nresStaClassBasesMax=0\nresBegClassBasesMin=2\nresBegClassBasesMax=4\n"
+            + "resIntClassBasesMin=1\nresIntClassBasesMax=5\nresAdvClassBasesMin=4\nresAdvClassBasesMax=15\n"
+            + "resMasClassBasesMin=10\nresMasClassBasesMax=16\nresUniClassBasesMin=8\nresUniClassBasesMax=16\n"
+            + "chaMonClassBasesMin=0\nchaMonClassBasesMax=0\nchaStaClassBasesMin=0\nchaStaClassBasesMax=0\n"
+            + "chaBegClassBasesMin=4\nchaBegClassBasesMax=5\nchaIntClassBasesMin=5\nchaIntClassBasesMax=9\n"
+            + "chaAdvClassBasesMin=6\nchaAdvClassBasesMax=14\nchaMasClassBasesMin=12\nchaMasClassBasesMax=16\n"
+            + "chaUniClassBasesMin=9\nchaUniClassBasesMax=16\nremoveWeaponRestrictions=True\n"
+            + "randWeaponTypes=True\nmon2ndWeaponTypeP=0\nsta2ndWeaponTypeP=0\nbeg2ndWeaponTypeP=5\n"
+            + "int2ndWeaponTypeP=15\nadv2ndWeaponTypeP=35\nmas2ndWeaponTypeP=75\nuni2ndWeaponTypeP=50\n"
+            + "randTyping=True\nrandMovTypes=False\nbaseMovTypes=False\nrandClassProf=True\nbaseClassProf=True\n"
+            + "randCert=True\nrandMonCert=True\nrandStaCert=True\nrandBegCert=True\nrandIntCert=True\n"
+            + "randAdvCert=True\nrandMasCert=True\nrandUniCert=True\nmainMonCertMin=0\nmainMonCertMax=0\n"
+            + "mainStaCertMin=0\nmainStaCertMax=0\nmainBegCertMin=2\nmainBegCertMax=2\nmainIntCertMin=4\n"
+            + "mainIntCertMax=4\nmainAdvCertMin=6\nmainAdvCertMax=8\nmainMasCertMin=7\nmainMasCertMax=8\n"
+            + "mainUniCertMin=0\nmainUniCertMax=0\ntypeMonCertMin=0\ntypeMonCertMax=0\ntypeStaCertMin=0\n"
+            + "typeStaCertMax=0\ntypeBegCertMin=0\ntypeBegCertMax=0\ntypeIntCertMin=1\ntypeIntCertMax=2\n"
+            + "typeAdvCertMin=4\ntypeAdvCertMax=6\ntypeMasCertMin=7\ntypeMasCertMax=9\ntypeUniCertMin=0\n"
+            + "typeUniCertMax=0\notherMonCertMin=0\notherMonCertMax=0\notherStaCertMin=0\notherStaCertMax=0\n"
+            + "otherBegCertMin=0\notherBegCertMax=2\notherIntCertMin=0\notherIntCertMax=2\notherAdvCertMin=4\n"
+            + "otherAdvCertMax=4\notherMasCertMin=4\notherMasCertMax=6\notherUniCertMin=0\notherUniCertMax=0\n"
+            + "baseCert=True\nrandCertItem=False\nallowNonSealCertItems=False\nrandClassAb=True\n"
+            + "baseClassAb=True\nrandClassDefAb=True\nrandMonClassDefAb=True\nrandStaClassDefAb=True\n"
+            + "randBegClassDefAb=True\nrandIntClassDefAb=True\nrandAdvClassDefAb=True\nrandMasClassDefAb=True\n"
+            + "randUniClassDefAb=True\nmonClassDefAbCountMin=0\nmonClassDefAbCountMax=0\n"
+            + "staClassDefAbCountMin=0\nstaClassDefAbCountMax=0\nintClassDefAbCountMin=2\n"
+            + "intClassDefAbCountMax=2\nbegClassDefAbCountMin=0\nbegClassDefAbCountMax=1\n"
+            + "advClassDefAbCountMin=3\nadvClassDefAbCountMax=3\nmasClassDefAbCountMin=4\n"
+            + "masClassDefAbCountMax=4\nuniClassDefAbCountMin=5\nuniClassDefAbCountMax=5\n"
+            + "randClassClassAb=True\nrandMonClassClassAb=True\nrandStaClassClassAb=True\n"
             + "randBegClassClassAb=True\nrandIntClassClassAb=True\nrandAdvClassClassAb=True\n"
             + "randMasClassClassAb=True\nrandUniClassClassAb=True\nmonClassClassAbCountMin=3\n"
             + "monClassClassAbCountMax=3\nstaClassClassAbCountMin=0\nstaClassClassAbCountMax=0\n"
             + "intClassClassAbCountMin=0\nintClassClassAbCountMax=2\nbegClassClassAbCountMin=0\n"
             + "begClassClassAbCountMax=0\nadvClassClassAbCountMin=2\nadvClassClassAbCountMax=3\n"
             + "masClassClassAbCountMin=3\nmasClassClassAbCountMax=3\nuniClassClassAbCountMin=2\n"
-            + "uniClassClassAbCountMax=3\nrandClassMasteryAb=True\nrandClassMasteryCa=True\n"
+            + "uniClassClassAbCountMax=3\nrandClassMasteryAb=False\nrandClassMasteryCa=False\n"
             + "baseClassMasteryCa=True\nrandClassMasteryExpReq=True\nrandMonClassMasteryExpReq=False\n"
-            + "randStaClassMasteryExpReq=True\nrandBegClassMasteryExpReq=True\nrandIntClassMasteryExpReq=True\n"
-            + "randAdvClassMasteryExpReq=True\nrandMasClassMasteryExpReq=True\nrandUniClassMasteryExpReq=True\n"
-            + "monClassMasteryExpReqMin=0\nmonClassMasteryExpReqMax=0\nstaClassMasteryExpReqMin=10\n"
-            + "staClassMasteryExpReqMax=30\nbegClassMasteryExpReqMin=30\nbegClassMasteryExpReqMax=80\n"
-            + "intClassMasteryExpReqMin=50\nintClassMasteryExpReqMax=140\nadvClassMasteryExpReqMin=150\n"
-            + "advClassMasteryExpReqMax=210\nmasClassMasteryExpReqMin=160\nmasClassMasteryExpReqMax=255\n"
-            + "uniClassMasteryExpReqMin=100\nuniClassMasteryExpReqMax=200\nrandAdjutant=True\nspecialToAdv=True\n"
-            + "randExpYield=False\nrandMonExpYield=True\nrandStaExpYield=True\nrandBegExpYield=True\n"
-            + "randIntExpYield=True\nrandAdvExpYield=True\nrandMasExpYield=True\nrandUniExpYield=True\n"
-            + "monExpYieldMin=25\nmonExpYieldMax=75\nstaExpYieldMin=15\nstaExpYieldMax=45\nbegExpYieldMin=15\n"
-            + "begExpYieldMax=45\nintExpYieldMin=18\nintExpYieldMax=54\nadvExpYieldMin=20\nadvExpYieldMax=60\n"
-            + "masExpYieldMin=20\nmasExpYieldMax=60\nuniExpYieldMin=25\nuniExpYieldMax=75\nunitsToScale=True\n"
-            + "randMounts=True\nsetArmorAni=True\nprovideClassAni=True\nrandClassAni=False\nrandTierLv=False\n"
+            + "randStaClassMasteryExpReq=True\nrandBegClassMasteryExpReq=True\n"
+            + "randIntClassMasteryExpReq=True\nrandAdvClassMasteryExpReq=True\n"
+            + "randMasClassMasteryExpReq=True\nrandUniClassMasteryExpReq=True\nmonClassMasteryExpReqMin=0\n"
+            + "monClassMasteryExpReqMax=0\nstaClassMasteryExpReqMin=10\nstaClassMasteryExpReqMax=30\n"
+            + "begClassMasteryExpReqMin=30\nbegClassMasteryExpReqMax=80\nintClassMasteryExpReqMin=50\n"
+            + "intClassMasteryExpReqMax=140\nadvClassMasteryExpReqMin=150\nadvClassMasteryExpReqMax=210\n"
+            + "masClassMasteryExpReqMin=160\nmasClassMasteryExpReqMax=255\nuniClassMasteryExpReqMin=100\n"
+            + "uniClassMasteryExpReqMax=200\nrandAdjutant=True\nspecialToAdv=True\nrandExpYield=False\n"
+            + "randMonExpYield=True\nrandStaExpYield=True\nrandBegExpYield=True\nrandIntExpYield=True\n"
+            + "randAdvExpYield=True\nrandMasExpYield=True\nrandUniExpYield=True\nmonExpYieldMin=25\n"
+            + "monExpYieldMax=75\nstaExpYieldMin=15\nstaExpYieldMax=45\nbegExpYieldMin=15\nbegExpYieldMax=45\n"
+            + "intExpYieldMin=18\nintExpYieldMax=54\nadvExpYieldMin=20\nadvExpYieldMax=60\nmasExpYieldMin=20\n"
+            + "masExpYieldMax=60\nuniExpYieldMin=25\nuniExpYieldMax=75\nunitsToScale=True\nrandMounts=True\n"
+            + "setArmorAni=True\nprovideClassAni=True\nrandClassAni=False\nrandTierLv=False\n"
             + "randBegTierLv=True\nrandIntTierLv=True\nrandAdvTierLv=True\nrandMasTierLv=True\nbegTierLvMin=4\n"
-            + "begTierLvMax=6\nintTierLvMin=8\nintTierLvMax=12\nadvTierLvMin=16\nadvTierLvMax=24\nmasTierLvMin=24\n"
-            + "masTierLvMax=36\nremoveGenderRestrictions=True\nrandBarrierBreakItem=False\n"
-            + "allowNonMineralBarrierBreakItem=False\nrandBarrierAb=False\nrandLatentAb=True\nrandWeapons=True\n"
-            + "randSpells=True\nrandTurrets=False\nrandGambits=True\nrandMonsterAoe=True\n"
-            + "randAtkStatusEffects=True\natkStatusEffectsP=10\nrandAtkEffectiveness=True\natkEffectivenessP=10\n"
-            + "atkEffectivenessPreserveBows=False\nrandAtkCrit=False\natkCritP=30\natkCritMax=50\n"
-            + "randAtkDoubleAttack=False\natkDoubleAttackP=5\natkDoubleAttackPreserveGauntlets=True\n"
-            + "randAtkRange=True\nrandAtkRangeP=10\natkRangeBinomial=True\natkRangeLinear=False\n"
-            + "atkRangeLinearDev=2\natkRangeProportional=False\natkRangeProportionalDev=1\n"
-            + "atkRangeExponential=False\natkRangeExponentialDev=2\nrandAtkDurability=True\nrandAtkDurabilityP=50\n"
-            + "atkDurabilityBinomial=False\natkDurabilityLinear=False\natkDurabilityLinearDev=10\n"
-            + "atkDurabilityProportional=True\natkDurabilityProportionalDev=0.5\natkDurabilityExponential=False\n"
+            + "begTierLvMax=6\nintTierLvMin=8\nintTierLvMax=12\nadvTierLvMin=16\nadvTierLvMax=24\n"
+            + "masTierLvMin=24\nmasTierLvMax=36\nremoveGenderRestrictions=True\nrandBarrierBreakItem=False\n"
+            + "allowNonMineralBarrierBreakItem=False\nrandBarrierAb=False\nrandLatentAb=True\n"
+            + "randWeapons=True\nrandSpells=True\nrandTurrets=False\nrandGambits=True\nrandMonsterAoe=True\n"
+            + "randAtkStatusEffects=True\natkStatusEffectsP=10\nrandAtkEffectiveness=True\n"
+            + "atkEffectivenessP=10\natkEffectivenessPreserveBows=False\nrandAtkCrit=False\natkCritP=30\n"
+            + "atkCritMax=50\nrandAtkDoubleAttack=False\natkDoubleAttackP=5\n"
+            + "atkDoubleAttackPreserveGauntlets=True\nrandAtkRange=True\nrandAtkRangeP=10\n"
+            + "atkRangeBinomial=True\natkRangeLinear=False\natkRangeLinearDev=2\natkRangeProportional=False\n"
+            + "atkRangeProportionalDev=1\natkRangeExponential=False\natkRangeExponentialDev=2\n"
+            + "randAtkDurability=True\nrandAtkDurabilityP=50\natkDurabilityBinomial=False\n"
+            + "atkDurabilityLinear=False\natkDurabilityLinearDev=10\natkDurabilityProportional=False\n"
+            + "atkDurabilityProportionalDev=0.5\natkDurabilityExponential=False\n"
             + "atkDurabilityExponentialDev=2\nrandAtkMight=True\nrandAtkMightP=50\natkMightBinomial=False\n"
-            + "atkMightLinear=False\natkMightLinearDev=5\natkMightProportional=True\natkMightProportionalDev=0.5\n"
-            + "atkMightExponential=False\natkMightExponentialDev=2\nrandAtkHit=True\nrandAtkHitP=50\n"
-            + "atkHitBinomial=False\natkHitLinear=False\natkHitLinearDev=25\natkHitProportional=True\n"
-            + "atkHitProportionalDev=0.25\natkHitExponential=False\natkHitExponentialDev=1.5\nrandAtkWeight=True\n"
-            + "randAtkWeightP=50\natkWeightBinomial=True\natkWeightLinear=False\natkWeightLinearDev=6\n"
-            + "atkWeightProportional=False\natkWeightProportionalDev=0.5\natkWeightExponential=False\n"
-            + "atkWeightExponentialDev=2\nrandAtkPhysicalMagicSwitch=True\nrandAtkPhysicalMagicSwitchP=10\n"
-            + "randAtkIgnoreDefRes=False\nrandAtkIgnoreDefResP=0.5\nrandAtkLeaveAt1=False\nrandAtkLeaveAt1P=0.5\n"
-            + "randCa=True\nrandCaAvoid=True\nrandCaAvoidP=20\nrandCaAvoidMax=25\nrandCaCrit=False\n"
-            + "randCaCritP=35\nrandCaCritMax=40\nrandCaEffects=True\nrandCaEffectsP=75\nrandCaEffectiveness=True\n"
+            + "atkMightLinear=False\natkMightLinearDev=5\natkMightProportional=False\n"
+            + "atkMightProportionalDev=0.5\natkMightExponential=False\natkMightExponentialDev=2\n"
+            + "randAtkHit=True\nrandAtkHitP=50\natkHitBinomial=False\natkHitLinear=False\natkHitLinearDev=25\n"
+            + "atkHitProportional=False\natkHitProportionalDev=0.25\natkHitExponential=False\n"
+            + "atkHitExponentialDev=1.5\nrandAtkWeight=True\nrandAtkWeightP=50\natkWeightBinomial=True\n"
+            + "atkWeightLinear=False\natkWeightLinearDev=6\natkWeightProportional=False\n"
+            + "atkWeightProportionalDev=0.5\natkWeightExponential=False\natkWeightExponentialDev=2\n"
+            + "randAtkPhysicalMagicSwitch=True\nrandAtkPhysicalMagicSwitchP=10\nrandAtkIgnoreDefRes=False\n"
+            + "randAtkIgnoreDefResP=0.5\nrandAtkLeaveAt1=False\nrandAtkLeaveAt1P=0.5\nrandCa=True\n"
+            + "randCaAvoid=True\nrandCaAvoidP=20\nrandCaAvoidMax=25\nrandCaCrit=False\nrandCaCritP=35\n"
+            + "randCaCritMax=40\nrandCaEffects=True\nrandCaEffectsP=75\nrandCaEffectiveness=True\n"
             + "randCaEffectivenessP=20\nrandCaRange=True\nrandCaRangeP=10\ncaRangeBinomial=True\n"
             + "caRangeLinear=False\ncaRangeLinearDev=2\ncaRangeProportional=False\ncaRangeProportionalDev=1\n"
             + "caRangeExponential=False\ncaRangeExponentialDev=2\nrandCaDurabilityCost=True\n"
             + "randCaDurabilityCostP=50\ncaDurabilityCostBinomial=False\ncaDurabilityCostLinear=False\n"
-            + "caDurabilityCostLinearDev=2\ncaDurabilityCostProportional=True\n"
+            + "caDurabilityCostLinearDev=2\ncaDurabilityCostProportional=False\n"
             + "caDurabilityCostProportionalDev=0.5\ncaDurabilityCostExponential=False\n"
             + "caDurabilityCostExponentialDev=2\nrandCaMight=True\nrandCaMightP=50\ncaMightBinomial=False\n"
-            + "caMightLinear=False\ncaMightLinearDev=5\ncaMightProportional=True\ncaMightProportionalDev=0.5\n"
+            + "caMightLinear=False\ncaMightLinearDev=5\ncaMightProportional=False\ncaMightProportionalDev=0.5\n"
             + "caMightExponential=False\ncaMightExponentialDev=2\nrandCaHit=True\ncaHitMin=-35\ncaHitMax=35\n"
             + "randCaHitP=25\nrandBattalions=True\nrandBattalionEndurance=True\nrandBattalionEnduranceP=80\n"
-            + "battalionEnduranceBinomial=False\nbattalionEnduranceLinear=False\nbattalionEnduranceLinearDev=30\n"
-            + "battalionEnduranceProportional=True\nbattalionEnduranceProportionalDev=0.5\n"
-            + "battalionEnduranceExponential=False\nbattalionEnduranceExponentialDev=2\n"
-            + "randBattalionBoostBases=True\nrandBattalionBoostGrowths=True\nrandBattalionStatBoosts=False\n"
+            + "battalionEnduranceBinomial=False\nbattalionEnduranceLinear=False\n"
+            + "battalionEnduranceLinearDev=30\nbattalionEnduranceProportional=False\n"
+            + "battalionEnduranceProportionalDev=0.5\nbattalionEnduranceExponential=False\n"
+            + "battalionEnduranceExponentialDev=2\nrandBattalionBoostBases=True\n"
+            + "randBattalionBoostGrowths=True\nrandBattalionStatBoosts=False\n"
             + "battalionStatBoostsIncludeAll=False\nrandBattalionGambit=True\nshuffleAssets=False\n"
             + "shuffleAssetsGender=False\nshuffleAssetsAge=False\nrandModelData=True\nrandAge=False\nageMin=9\n"
             + "ageMax=73\nrandBirthday=True\nrandAniSet=False\naniSetIncludeCane=False\nrandHeight=True\n"
             + "heightMin=135\nheightMax=204\nmodelSize1Min=0.85\nmodelSize1Max=1.15\nmodelSize2Min=0.85\n"
             + "modelSize2Max=1.16\nmodelPreTsChestSizeMin=0.08\nmodelPreTsChestSizeMax=1.75\n"
-            + "modelPostTsChestSizeMin=0.1\nmodelPostTsChestSizeMax=2.45\nrandCrests=True\ncrest1P=60\ncrest2P=10\n"
-            + "randPersonalAb=True\nbasePersonalAb=True\nnewPersonalAbPostTsP=5\nrandSupportBonuses=True\n"
-            + "randSpecialSupportBonuses=True\nsupportBonusesIncludeMore=False\nrandRecruitmentRequirements=True\n"
-            + "recruitmentRequirementStatsMin=8\nrecruitmentRequirementStatsMax=22\n"
-            + "recruitmentRequirementRanksMin=3\nrecruitmentRequirementRanksMax=6\npreserveCharCaps=False\n"
-            + "randCharCaps=True\nremoveCharCaps=False\nhpCharCapsMin=80\nhpCharCapsMax=200\nstrCharCapsMin=30\n"
-            + "strCharCapsMax=90\nmagCharCapsMin=30\nmagCharCapsMax=90\ndexCharCapsMin=55\ndexCharCapsMax=90\n"
-            + "speCharCapsMin=35\nspeCharCapsMax=90\nlucCharCapsMin=0\nlucCharCapsMax=255\ndefCharCapsMin=35\n"
-            + "defCharCapsMax=70\nresCharCapsMin=35\nresCharCapsMax=70\nchaCharCapsMin=35\nchaCharCapsMax=100\n"
-            + "randCharBases=True\nensureGoodBases=True\nhpCharBasesMin=20\nhpCharBasesMax=35\nstrCharBasesMin=4\n"
+            + "modelPostTsChestSizeMin=0.1\nmodelPostTsChestSizeMax=2.45\nrandCrests=True\ncrest1P=60\n"
+            + "crest2P=10\nrandPersonalAb=True\nbasePersonalAb=True\nnewPersonalAbPostTsP=5\n"
+            + "randSupportBonuses=True\nrandSpecialSupportBonuses=True\nsupportBonusesIncludeMore=False\n"
+            + "randRecruitmentRequirements=True\nrecruitmentRequirementStatsMin=8\n"
+            + "recruitmentRequirementStatsMax=22\nrecruitmentRequirementRanksMin=3\n"
+            + "recruitmentRequirementRanksMax=6\npreserveCharCaps=False\nrandCharCaps=False\n"
+            + "removeCharCaps=False\nhpCharCapsMin=80\nhpCharCapsMax=200\nstrCharCapsMin=30\nstrCharCapsMax=90\n"
+            + "magCharCapsMin=30\nmagCharCapsMax=90\ndexCharCapsMin=55\ndexCharCapsMax=90\nspeCharCapsMin=35\n"
+            + "speCharCapsMax=90\nlucCharCapsMin=0\nlucCharCapsMax=255\ndefCharCapsMin=35\ndefCharCapsMax=70\n"
+            + "resCharCapsMin=35\nresCharCapsMax=70\nchaCharCapsMin=35\nchaCharCapsMax=100\nrandCharBases=True\n"
+            + "ensureGoodBases=True\nhpCharBasesMin=20\nhpCharBasesMax=35\nstrCharBasesMin=4\n"
             + "strCharBasesMax=13\nmagCharBasesMin=4\nmagCharBasesMax=13\ndexCharBasesMin=6\ndexCharBasesMax=7\n"
             + "speCharBasesMin=5\nspeCharBasesMax=10\nlucCharBasesMin=0\nlucCharBasesMax=11\ndefCharBasesMin=3\n"
             + "defCharBasesMax=8\nresCharBasesMin=1\nresCharBasesMax=10\nchaCharBasesMin=1\nchaCharBasesMax=12\n"
@@ -309,28 +324,30 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             + "randMovCharGrowths=False\nrandMovCharGrowthsP=10\nmovCharGrowthsMin=1\nmovCharGrowthsMax=10\n"
             + "randGenericAb=True\nbaseGenericAb=True\npreserveProwessAb=True\nrandGenericCa=True\n"
             + "baseGenericCa=True\nrandCharCa=True\nbaseCharCa=True\nlimitCharCa=True\ncharCaCountMin=2\n"
-            + "charCaCountMax=3\nrandBuddingTalents=True\nmultipleBuddingTalents=True\nbaseBuddingTalents=True\n"
-            + "randBuddingTalentLessonCount=True\nbuddingTalentLessonCountMin=10\nbuddingTalentLessonCountMax=14\n"
-            + "randSpellLists=True\nspellAtD=True\nbaseSpellLists=True\nregularSpellListReasonCountMin=3\n"
-            + "regularSpellListReasonCountMax=3\nregularSpellListFaithCountMin=2\nregularSpellListFaithCountMax=5\n"
+            + "charCaCountMax=3\nrandBuddingTalents=True\nmultipleBuddingTalents=True\n"
+            + "baseBuddingTalents=True\nrandBuddingTalentLessonCount=True\nbuddingTalentLessonCountMin=10\n"
+            + "buddingTalentLessonCountMax=14\nrandSpellLists=True\nspellAtD=True\nbaseSpellLists=True\n"
+            + "regularSpellListReasonCountMin=3\nregularSpellListReasonCountMax=3\n"
+            + "regularSpellListFaithCountMin=2\nregularSpellListFaithCountMax=5\n"
             + "proficientSpellListReasonCountMin=5\nproficientSpellListReasonCountMax=5\n"
             + "proficientSpellListFaithCountMin=5\nproficientSpellListFaithCountMax=5\n"
             + "unknownSpellListReasonCountMin=2\nunknownSpellListReasonCountMax=5\n"
-            + "unknownSpellListFaithCountMin=3\nunknownSpellListFaithCountMax=5\nrandCharAb=True\nbaseCharAb=True\n"
-            + "limitCharAb=True\ncharAbCountMin=1\ncharAbCountMax=3\npreserveGenericCharAb=True\n"
-            + "randCharProfs=True\nstrengthCountMin=2\nstrengthCountMax=5\nweaknessCountMin=1\nweaknessCountMax=4\n"
-            + "randCharStartClasses=False\nrandCharPreCertClasses=True\ncharOptimalClasses=True\n"
-            + "randStartInventories=True\nbaseStartInventories=True\nrandStartInventoryItem=True\n"
-            + "startInventoryItemP=100\nrandFacultyTraining=True\nbaseFacultyTraining=True\nrandSeminars=True\n"
-            + "baseSeminars=True\nrandGoals=True\nbaseGoals=True\nrandStartRanks=True\nbaseStartRanks=True\n"
-            + "randCalendar=False\nrandRareMonsterSighting=False\nrandRareMonsterSightingP=20\n"
-            + "randRestrictFreeday=False\nrandRestrictFreedayP=10\nrandCafeteriaEvent=False\n"
-            + "randCafeteriaEventP=50\nrandChoirEvent=False\nrandChoirEventP=10\nrandGardenEvent=False\n"
-            + "randGardenEventP=10\nrandFishingEvent=False\nrandFishingEventP=30\nshuffleBgm=True\n"
-            + "changeMsg=False\nchangeScr=False\nchangeGwscr=False\nchangeTuscr=False\nchangeBtlscr=False\n"
-            + "changeData1Text=False\nbaseText=True\nqolText=False\nrandText=False\npreserveStringLength=False\n"
-            + "randTextSource=False\nrandChoirProfs=False\nrandCookingProfs=False\nrandMeal=False\n"
-            + "randMealPrefs=False\nrandFishingItems=False\nrandGardeningItems=False\nrandCultivationCosts=False\n"
+            + "unknownSpellListFaithCountMin=3\nunknownSpellListFaithCountMax=5\nrandCharAb=True\n"
+            + "baseCharAb=True\nlimitCharAb=True\ncharAbCountMin=1\ncharAbCountMax=3\n"
+            + "preserveGenericCharAb=True\nrandCharProfs=True\nstrengthCountMin=2\nstrengthCountMax=5\n"
+            + "weaknessCountMin=1\nweaknessCountMax=4\nrandCharStartClasses=False\n"
+            + "randCharPreCertClasses=True\ncharOptimalClasses=True\nrandStartInventories=True\n"
+            + "baseStartInventories=True\nrandStartInventoryItem=True\nstartInventoryItemP=100\n"
+            + "randFacultyTraining=True\nbaseFacultyTraining=True\nrandSeminars=True\nbaseSeminars=True\n"
+            + "randGoals=True\nbaseGoals=True\nrandStartRanks=True\nbaseStartRanks=True\nrandCalendar=False\n"
+            + "randRareMonsterSighting=False\nrandRareMonsterSightingP=20\nrandRestrictFreeday=False\n"
+            + "randRestrictFreedayP=10\nrandCafeteriaEvent=False\nrandCafeteriaEventP=50\n"
+            + "randChoirEvent=False\nrandChoirEventP=10\nrandGardenEvent=False\nrandGardenEventP=10\n"
+            + "randFishingEvent=False\nrandFishingEventP=30\nshuffleBgm=True\nchangeMsg=False\nchangeScr=False\n"
+            + "changeGwscr=False\nchangeTuscr=False\nchangeBtlscr=False\nchangeData1Text=False\nbaseText=True\n"
+            + "qolText=False\nrandText=False\npreserveStringLength=False\nrandTextSource=False\n"
+            + "randChoirProfs=False\nrandCookingProfs=False\nrandMeal=False\nrandMealPrefs=False\n"
+            + "randFishingItems=False\nrandGardeningItems=False\nrandCultivationCosts=False\n"
             + "randGiftPrefs=False\nrandSaintStatueCosts=False\nrandSaintStatuePerks=False\n"
             + "randInfluencerCosts=False\nrandQuestRewards=False\nrandGroupTaskGold=False\n"
             + "randGroupTaskSkills=False\nrandGroupTaskItems=False\nrandGroupTaskProfs=False\n"
@@ -340,42 +357,46 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             + "randLectureExp=False\nrandProfLvExpReq=False\nrandFunds=False\nrandLecturePointCount=False\n"
             + "randBattlePointCount=False\nrandAdjutantCount=False\nrandActivityPointCount=False\n"
             + "unlockMasterClasses=True\nrandRepairItems=False\nrandForgeCosts=False\nrandForgeItems=False\n"
-            + "randForgeWeapons=True\npreserveForgeWeaponTypes=False\nrandForgeProfLvReq=False\nrandMapClass=True\n"
-            + "includeMonsterMapClass=False\nmapGroupClass=True\nmapIndividualClass=False\nrandMapInventory=True\n"
-            + "mapInventoryP=10\nmapInventoryForceCom=True\nrandMapWeapons=True\nbaseMapWeapons=True\n"
-            + "randMapEquipment=True\nmapEquipmentP=20\nrandMapItems=True\nmapItemsP=20\nrandMapDrops=True\n"
-            + "mapDropsP=20\nrandMapAb=False\nmapAbP=10\nmapAbForceCom=False\nbaseMapAb=False\n"
-            + "randMapBattalionId=False\nrandMapBattalion=False\nmapBattalionP=10\nmapBattalionForceCom=False\n"
-            + "randMapCa=False\nmapCaP=10\nmapCaForceCom=False\nbaseMapCa=False\nrandMapSpellId=False\n"
-            + "randMapSpell=False\nmapSpellP=10\nmapSpellForceCom=False\nbaseMapSpell=False\nrandChestItem=True\n"
-            + "randChestItemType=True\nrandChestItemTypeP=50\nmapExtraEnemies=True\nmapExtraEnemiesMin=10\n"
-            + "mapExtraEnemiesMax=10\nmapMaxAllies=False\nrandAllyMapSpawn=False\nrandNpcMapSpawn=False\n"
-            + "randEnemyMapSpawn=True\nrandComMapSpawn=False\nrandMapSpawnP=15\nchangeLv=True\nlvMultiplier=150\n"
-            + "amplifyMaddening=False\namplifyMaddeningAmount=50\nensureLowLvEarly=True\n"
-            + "RandomizerExtras.evenClassVariety=True\nRandomizerExtras.classVarietySafety=25\n"
-            + "RandomizerExtras.blockAbilities=True\n"
+            + "randForgeWeapons=True\npreserveForgeWeaponTypes=False\nrandForgeProfLvReq=False\n"
+            + "randMapClass=True\nincludeMonsterMapClass=False\nmapGroupClass=True\nmapIndividualClass=False\n"
+            + "randMapInventory=True\nmapInventoryP=10\nmapInventoryForceCom=True\nrandMapWeapons=True\n"
+            + "baseMapWeapons=True\nrandMapEquipment=True\nmapEquipmentP=20\nrandMapItems=True\nmapItemsP=20\n"
+            + "randMapDrops=True\nmapDropsP=20\nrandMapAb=False\nmapAbP=10\nmapAbForceCom=False\n"
+            + "baseMapAb=False\nrandMapBattalionId=False\nrandMapBattalion=False\nmapBattalionP=10\n"
+            + "mapBattalionForceCom=False\nrandMapCa=False\nmapCaP=10\nmapCaForceCom=False\nbaseMapCa=False\n"
+            + "randMapSpellId=False\nrandMapSpell=False\nmapSpellP=10\nmapSpellForceCom=False\n"
+            + "baseMapSpell=False\nrandChestItem=True\nrandChestItemType=True\nrandChestItemTypeP=50\n"
+            + "mapExtraEnemies=True\nmapExtraEnemiesMin=10\nmapExtraEnemiesMax=10\nmapMaxAllies=False\n"
+            + "randAllyMapSpawn=False\nrandNpcMapSpawn=False\nrandEnemyMapSpawn=True\nrandComMapSpawn=False\n"
+            + "randMapSpawnP=15\nchangeLv=False\nlvMultiplier=150\namplifyMaddening=False\n"
+            + "amplifyMaddeningAmount=50\nensureLowLvEarly=False\n"
             + "RandomizerExtras.blockedAbilities=148,154,158,190,191,193,195,197,198,199,201,205,206,207,225,226,240,246,247,249\n"
-            + "RandomizerExtras.limitSiegeTomes=True\nRandomizerExtras.maxEnemyWeaponRange=4\n"
-            + "RandomizerExtras.siegeChance=10\nRandomizerExtras.growthShift=10\n"
-            + "RandomizerMore.protectBossAbilities=True\nRandomizerMore.protectBossStats=True\n"
-            + "RandomizerMore.bossScalingShare=75\nRandomizerMore.uniqueClassAbilities=True\n"
-            + "RandomizerMore.uniqueTierMastery=True\nRandomizerMore.uniqueTierMasteryArt=True\n"
-            + "RandomizerMore.uniquePersonalAbilities=True\nRandomizerMore.evenGrowthTotals=False\n"
+            + "RandomizerExtras.blockAbilities=True\nRandomizerExtras.limitSiegeTomes=True\n"
+            + "RandomizerExtras.maxEnemyWeaponRange=4\nRandomizerExtras.siegeChance=10\n"
+            + "RandomizerExtras.growthShift=10\nRandomizerExtras.evenClassVariety=True\n"
+            + "RandomizerExtras.classVarietySafety=25\nRandomizerMore.protectBossAbilities=True\n"
+            + "RandomizerMore.protectBossStats=True\nRandomizerMore.bossScalingShare=75\n"
+            + "RandomizerMore.uniqueClassAbilities=True\nRandomizerMore.uniqueTierMastery=True\n"
+            + "RandomizerMore.uniqueTierMasteryArt=True\nRandomizerMore.uniquePersonalAbilities=True\n"
+            + "RandomizerMore.clampGrowths=True\nRandomizerMore.growthClampMin=10\n"
+            + "RandomizerMore.growthClampMax=70\nRandomizerMore.evenGrowthTotals=False\n"
             + "RandomizerMore.growthTotalTolerance=40\nRandomizerMore.protectGrowthIdentity=True\n"
-            + "RandomizerMore.evenStatTotals=False\nRandomizerMore.statTotalTolerance=25\n"
-            + "RandomizerMore.clampGrowths=True\nRandomizerMore.growthClampMin=15\n"
-            + "RandomizerMore.growthClampMax=105\nRandomizerMore.clampStatBoosts=True\n"
-            + "RandomizerMore.statBoostClampMin=-4\nRandomizerMore.statBoostClampMax=12\n"
-            + "RandomizerMore.clampStatBases=True\nRandomizerMore.statBaseClampMin=4\n"
-            + "RandomizerMore.statBaseClampMax=99\nRandomizerBig.swapClassStatProfiles=False\n"
+            + "RandomizerMore.clampStatBoosts=True\nRandomizerMore.clampStatBases=True\n"
+            + "RandomizerMore.evenStatTotals=False\nRandomizerBig.swapClassStatProfiles=False\n"
             + "RandomizerBig.swapClassGrowthProfiles=False\nRandomizerBig.shuffleCharacterSheets=False\n"
-            + "RandomizerBig.swapScope=0\nRandomizerBig.bossRemix=False\nRandomizerBig.weaponGraftChance=40\n"
+            + "RandomizerBig.bossRemix=False\nRandomizerBig.weaponGraftChance=40\n"
             + "RandomizerBig.weaponFromArtChance=10\nRandomizerBig.weaponFromGambitChance=10\n"
-            + "RandomizerBig.artGraftChance=40\nRandomizerBig.artFromWeaponChance=10\n"
-            + "RandomizerBig.gambitGraftChance=40\nRandomizerBig.gambitFromWeaponChance=10\n"
-            + "RandomizerBig.uniqueWeaponEffects=False\nRandomizerBig.weaponDonorsDifferInType=False\n";
+            + "RandomizerBig.artGraftChance=10\nRandomizerBig.artFromWeaponChance=5\n"
+            + "RandomizerBig.gambitGraftChance=30\nRandomizerBig.gambitFromWeaponChance=5\n"
+            + "RandomizerBig.uniqueWeaponEffects=True\nRandomizerBig.weaponDonorsDifferInType=False\n"
+            + "RandomizerBig.swapScope=0\nRandomizerMore.statBoostClampMin=-3\n"
+            + "RandomizerMore.statBoostClampMax=10\nRandomizerMore.statBaseClampMin=3\n"
+            + "RandomizerMore.statBaseClampMax=90\nRandomizerMore.statTotalTolerance=25\n"
+            + "RandomizerExtras.classIdentity=True\nRandomizerExtras.classDefenseLimit=50\n"
+            + "RandomizerExtras.flatHpTrim=0\nRandomizerExtras.flatDefTrim=0\nRandomizerExtras.flatResTrim=0\n"
+            + "RandomizerBig.describeWeaponEffects=True\nspellFirstRank=4\n";
 
-        private const string builtInRunName = "My run - the 1.8.2 debug report";
+        private const string builtInRunName = "My run - No Monastery 2.1, 2026-10-24";
 
         // Rank 4 is C. No Monastery starts units in intermediate classes, so a
         // spell written at the game's usual D is already known on the first
@@ -391,12 +412,23 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private const int modEnemyGrowthShift = 30;
         private const int modClassDefenseLimit = 50;
 
+        // The same argument, one step further: a flat subtraction from the class
+        // bases. The base is the level 1 value and a floor for every unit in the
+        // class, so this is what un-walls the first maps; at level 40 the same
+        // two or three points are noise. Boost and growth are not touched.
+        private const int modFlatHpTrim = 6;
+        private const int modFlatDefTrim = 2;
+        private const int modFlatResTrim = 2;
+
         private static void appendModBulkLines(StringBuilder text)
         {
             text.AppendLine("RandomizerExtras.growthShift=" + modEnemyGrowthShift.ToString());
             text.AppendLine("RandomizerExtras.classIdentity=True");
             text.AppendLine("RandomizerExtras.classDefenseLimit=" + modClassDefenseLimit.ToString());
             text.AppendLine("RandomizerBig.describeWeaponEffects=True");
+            text.AppendLine("RandomizerExtras.flatHpTrim=" + modFlatHpTrim.ToString());
+            text.AppendLine("RandomizerExtras.flatDefTrim=" + modFlatDefTrim.ToString());
+            text.AppendLine("RandomizerExtras.flatResTrim=" + modFlatResTrim.ToString());
         }
         private const string builtInModSafeName = "No Monastery (mod safe)";
         private const string builtInPluginSafeName = "No Monastery 2.1 (plugin, mod safe)";
@@ -490,7 +522,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             Preset builtIn = new Preset();
             builtIn.Name = builtInRunName;
             builtIn.Description = countLines(builtInRunData).ToString()
-                + " values, straight out of the 1.8.2 debug report next to the exe";
+                + " values: his own preset file of 2026-10-24 plus the range limits it was missing";
             builtIn.Data = builtInRunData;
             builtIn.BuiltIn = true;
             cache.Add(builtIn);
@@ -499,7 +531,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             modSafe.Name = builtInModSafeName;
             modSafe.Description = "No Monastery 1.3.3, the data-file release: the same run with everything"
                 + " the mod ships handed back to it (" + ModSupport.conflictCount(ModSupport.kindDataMod).ToString()
-                + " options off), first spell at C, 30% of the enemy growth shifted into HP";
+                + " options off), first spell at C, 30% of the enemy growth shifted into HP,"
+                + " -6 HP / -2 Def / -2 Res on every class base";
             modSafe.Data = builtInModSafeData();
             modSafe.BuiltIn = true;
             cache.Add(modSafe);
@@ -508,7 +541,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             pluginSafe.Name = builtInPluginSafeName;
             pluginSafe.Description = "No Monastery 2.1, the Skyline plugin release: the same run with only"
                 + " the " + ModSupport.conflictCount(ModSupport.kindPluginMod).ToString()
-                + " options the plugin recalculates turned off, first spell at C, 30% of the enemy growth shifted into HP";
+                + " options the plugin recalculates turned off, first spell at C,"
+                + " 30% of the enemy growth shifted into HP, -6 HP / -2 Def / -2 Res on every class base";
             pluginSafe.Data = builtInPluginSafeData();
             pluginSafe.BuiltIn = true;
             cache.Add(pluginSafe);
@@ -593,14 +627,28 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             return type == typeof(bool) || type == typeof(int) || type == typeof(double);
         }
 
-        // Counters (statFoo) and the built in name are not options.
+        // The counters are named stat<Something>, which is also how a few of the
+        // real options start (the range limits below). Skipping every name that
+        // begins with "stat" silently dropped those numbers from every preset
+        // and left them on their defaults when one was applied, so the handful
+        // of options are listed here by name.
+        private static readonly string[] statNamedOptions =
+        {
+            "statBoostClampMin", "statBoostClampMax",
+            "statBaseClampMin", "statBaseClampMax",
+            "statTotalTolerance"
+        };
+
         private static bool skipExtra(string name)
         {
             if (name == null)
                 return true;
-            if (name.StartsWith("stat", StringComparison.Ordinal))
-                return true;
-            return false;
+            if (!name.StartsWith("stat", StringComparison.Ordinal))
+                return false;
+            for (int i = 0; i < statNamedOptions.Length; i++)
+                if (statNamedOptions[i] == name)
+                    return false;
+            return true;
         }
 
         // Everything the configuration consists of, in preset file form.

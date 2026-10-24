@@ -395,7 +395,7 @@ range, monster rows, the mastery values in use, the Dancer row, and any populate
 class rows outside the range the randomizer writes (88..99, except 91) - the mod
 has one at row 89, and those rows are deliberately left alone.
 
-**Use the mod-safe preset** applies the 1.8.2 run with everything the release
+**Use the mod-safe preset** applies the recorded run with everything the release
 that was found owns turned off, and switches mod mode on. It picks the matching
 one by itself: 1.3.3 gets the 38-option data-file preset, 2.1 gets the 3-option
 plugin preset, and with no mod checked it applies the 1.3.3 one.
@@ -538,15 +538,17 @@ Three presets are built in:
 
 | Preset | What it is |
 | --- | --- |
-| **My run - the 1.8.2 debug report** | The exact configuration of the run recorded in `FE3H Randomizer Debug.txt`: all 1,050 values of its settings dump, plus the extra options read out of the same report's NEW / MORE / BIG sections. Applying it repeats that run. |
+| **My run - No Monastery 2.1, 2026-10-24** | The owner's own *Save current settings as preset* file from that run: all 1,099 values, including the five range limits the saver used to drop and the options added since. Applying it repeats that run. |
 | **No Monastery (mod safe)** | No Monastery **1.3.3** (the data-file release): the same run with the 38 options the mod ships written off explicitly, mod mode on and the mod's mastery EXP kept. |
 | **No Monastery 2.1 (plugin, mod safe)** | No Monastery **2.1 "with Aldebaran"** (the Skyline plugin): the same run with only the 3 options the plugin recalculates written off - level scaling and the mastery abilities / combat arts it hands out by skill rank - mod mode on, and mastery EXP left randomised because the plugin has no values of its own to keep. |
 
-Both are generated from that report rather than typed in by hand, so the values
-match it one for one. The mod-safe one does not merely *omit* the conflicting
-options: it writes each of them as `False` after the run's values, because the
-tool's default for a few (the mastery EXP requirements, for instance) is on and
-a preset is applied on top of the defaults.
+All three are generated from that saved file rather than typed in by hand, so the
+values match it one for one; his machine's paths and mod switches (`ModSupport.*`)
+are stripped from the base preset and put back by the two mod ones. The mod-safe
+presets do not merely *omit* the conflicting options: they write each of them as
+`False` after the run's values, because the tool's default for a few (the mastery
+EXP requirements, for instance) is on and a preset is applied on top of the
+defaults.
 
 Both No Monastery presets also change the three balance values of 1.12.8, because
 the mod itself makes the problem worse - it starts units in intermediate classes
@@ -559,10 +561,18 @@ into Def and Res:
 | Class identity | on (default) | on, written out | so the preset does not depend on a default that may change |
 | Defence limit | 50% (default) | 50%, written out | clamp the class base Def / Res, which is a floor for every enemy in that class |
 | Weapon effect text | on (default) | on, written out | a grafted effect has to be readable in the item screen |
+| Flat class base trim | off | **-6 HP, -2 Def, -2 Res** | the level 1 value is the part that makes the first maps feel walled |
 
 The debug report prints the applied preset name at the top together with how
 many values it set and how many lines it had to skip - a preset that silently
 half-applies is visible at a glance.
+
+Until 1.12.9 the saver dropped every option whose name begins with `stat`, which
+is how a preset could be missing the five range limits (`statBoostClampMin/Max`,
+`statBaseClampMin/Max`, `statTotalTolerance`): they were neither saved nor
+restored, so a preset always ran those numbers at the tool's defaults. They are
+saved now, and any preset file that predates the fix simply leaves them at the
+defaults.
 
 ### Range limits, next to the thing they limit
 
@@ -628,6 +638,9 @@ effectiveness bits (Infantry / Heavy Armor / Cavalry / Flying / Dragon / Monster
 and the property bits (magic damage, ignores Def/Res, leaves the target at 1 HP,
 attacks twice). The vanilla flavour text is kept underneath when it fits, so a
 weapon does not lose its identity, and the summary is always the first line. It
+is dropped when the weapon's *properties* changed, because a vanilla line such as
+"will attack twice when initiating combat" would then contradict the line above
+it. It
 covers both sources of a changed effect: the *status effect* option on the
 Weapons tab and the effect remix on the Extra options tab.
 
@@ -668,6 +681,31 @@ halves of that:
 
 Both numbers, the samples and a PASS line are in the debug report under
 `--- CLASS IDENTITY ---`.
+
+### Flat enemy bulk trim
+
+**Extra options > Flat enemy bulk trim** subtracts a fixed amount of HP / Def /
+Res from **every class base**. 0 on a row means that stat is not trimmed, so the
+default (0 / 0 / 0) is off.
+
+Why a flat subtraction instead of a percentage: a class base is what a level 1
+unit of that class has, and it is a floor for every unit in the class. That is
+the number that makes the first few maps feel walled, and at level 40 the same
+two or three points are noise. -2 Def, -2 Res and -6 HP is the setting both
+No Monastery presets use.
+
+It runs as the very last stat pass, after the range limits, so nothing can clamp
+it back up; monster and boss rows are skipped, and boosts and growths are not
+touched. The game keeps **one class table**, so a class trimmed here is trimmed
+for your own units of that class as well - the debug report prints that note and
+every class it changed:
+
+```
+flat trim applied    : 84   (HP -6, Def -2, Res -2 off every class base, last)
+    (the game keeps one class table, so the player's own units of a trimmed class are trimmed as well)
+    Myrmidon base HP 20 -> 14, Def 5 -> 3, Res 2 -> 0
+    Soldier base HP 20 -> 14, Def 5 -> 3, Res 2 -> 0
+```
 
 ### Abilities that are never handed out
 
@@ -717,10 +755,9 @@ This matters with a total conversion. No Monastery starts every unit in an
 intermediate class, which means the rank D that vanilla only reaches after a few
 weeks is already there on the first map - so *every* character can cast from
 turn one, which is not what the option promises. Pick **C** (or later) to push
-the first spell back to a rank that still has to be earned. Both built-in
-No Monastery presets now apply at C for that reason; the plain
-*My run - the 1.8.2 debug report* preset keeps D, exactly like the run it comes
-from.
+the first spell back to a rank that still has to be earned. All three built-in
+presets apply at C: the recorded run was a No Monastery run, so it was played at
+C and the preset keeps it.
 
 The debug report prints the rank under the run counters
 (`first character spell rank : C (rank 4)`), and when mod mode is on while the

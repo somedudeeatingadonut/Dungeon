@@ -4268,7 +4268,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             // msgdata.bin is also written when only the weapon descriptions
             // changed (RandomizerBig.describeWeaponEffects), because that text
             // lives in this file.
-            if (Randomizer.msgLoaded && (settings.changeMsg || RandomizerBig.describeWeaponEffects))
+            if (Randomizer.msgLoaded && (settings.changeMsg || RandomizerBig.statWeaponDescriptionsDone > 0))
             {
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
                 saveFileDialog.FileName = "msgdata.bin";

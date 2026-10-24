@@ -210,6 +210,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("Max enemy weapon range  : " + RandomizerExtras.maxEnemyWeaponRange);
             text.AppendLine("Siege bypass chance     : " + RandomizerExtras.siegeChance + "%");
             text.AppendLine("Growth shift            : " + RandomizerExtras.growthShift + "%");
+            text.AppendLine("Class identity          : " + RandomizerExtras.classIdentity
+                + (RandomizerExtras.classIdentity
+                    ? "  (Def / Res allowance " + RandomizerExtras.classDefenseLimit + "%)" : ""));
+            text.AppendLine("Weapon effect text      : " + RandomizerBig.describeWeaponEffects);
+            text.AppendLine("Flat class base trim    : HP -" + RandomizerExtras.flatHpTrim
+                + ", Def -" + RandomizerExtras.flatDefTrim
+                + ", Res -" + RandomizerExtras.flatResTrim
+                + (RandomizerExtras.flatHpTrim == 0 && RandomizerExtras.flatDefTrim == 0
+                    && RandomizerExtras.flatResTrim == 0 ? "  (off)" : ""));
             text.AppendLine();
         }
 
@@ -664,6 +673,39 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             foreach (string sample in RandomizerExtras.defenseClampSamples)
                 text.AppendLine("    " + sample);
 
+            text.AppendLine("flat trim applied    : " + RandomizerExtras.statFlatTrimmed
+                + "   (HP -" + RandomizerExtras.flatHpTrim + ", Def -"
+                + RandomizerExtras.flatDefTrim + ", Res -" + RandomizerExtras.flatResTrim
+                + " off every class base, last)");
+            text.AppendLine("    (the game keeps one class table, so the player's own units of a"
+                + " trimmed class are trimmed as well)");
+            foreach (string sample in RandomizerExtras.flatTrimSamples)
+                text.AppendLine("    " + sample);
+
+            // Its own check, independent of the identity pass: the trim is set on
+            // the tab, so the report has to say whether it actually did anything.
+            bool trimWanted = RandomizerExtras.flatHpTrim > 0 || RandomizerExtras.flatDefTrim > 0
+                || RandomizerExtras.flatResTrim > 0;
+            if (!trimWanted)
+            {
+                text.AppendLine("(flat trim is 0 / 0 / 0 - off)");
+            }
+            else if (Randomizer.classData == null)
+            {
+                text.AppendLine("(class data was not written in this run, nothing to trim)");
+            }
+            else if (RandomizerExtras.statFlatTrimmed == 0)
+            {
+                warnings.Add("the flat class base trim is set to -" + RandomizerExtras.flatHpTrim
+                    + " / -" + RandomizerExtras.flatDefTrim + " / -" + RandomizerExtras.flatResTrim
+                    + " but no class base changed");
+            }
+            else
+            {
+                passes.Add("flat trim: " + RandomizerExtras.statFlatTrimmed.ToString()
+                    + " class base(s) lost HP / Def / Res");
+            }
+
             if (!RandomizerExtras.classIdentity)
             {
                 text.AppendLine("(identity pass off - class stats are whatever the randomizer rolled)");
@@ -691,12 +733,27 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("describe effects     : " + RandomizerBig.describeWeaponEffects);
             text.AppendLine("msgdata.bin loaded   : " + Randomizer.msgLoaded);
             text.AppendLine("descriptions written : " + RandomizerBig.statWeaponDescriptionsDone);
+            if (RandomizerBig.statWeaponTextMissing > 0)
+            {
+                text.AppendLine("no description entry : " + RandomizerBig.statWeaponTextMissing
+                    + " changed weapon(s) - the message table does not run from index "
+                    + RandomizerBig.weaponDescriptionStart + " in this file");
+                warnings.Add(RandomizerBig.statWeaponTextMissing.ToString()
+                    + " weapon(s) changed but have no description entry where the tool looks"
+                    + " (" + RandomizerBig.weaponDescriptionStart + " + weapon id)");
+            }
 
             bool remix = RandomizerBig.anyEffectRemix();
+            text.AppendLine("item data loaded     : " + (Randomizer.itemData != null));
             if (!RandomizerBig.describeWeaponEffects)
             {
                 text.AppendLine("(off - the item screen keeps the vanilla text, so a grafted effect"
                     + " only shows when it fires)");
+            }
+            else if (Randomizer.itemData == null)
+            {
+                text.AppendLine("(the weapon table was not written in this run, so there is nothing"
+                    + " to describe)");
             }
             else if (!Randomizer.msgLoaded)
             {
