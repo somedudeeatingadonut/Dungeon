@@ -436,6 +436,19 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 }
 
                 loadedNames.Add(spec.FileName);
+
+                // A mod's copy of a file is bigger than the game's, and in mod mode
+                // the offset maps match it, so it is not an "unexpected size".
+                bool modCopy = false;
+                try
+                {
+                    modCopy = ModSupport.modMode
+                        && ModSupport.isKnownModSize(spec.FileName, new FileInfo(chosen).Length);
+                }
+                catch
+                {
+                }
+
                 if (sizeLooksRight)
                     this.batchWriteLog("  loaded    " + spec.FileName + "  ->  " + chosen);
                 else if (modCopy)
