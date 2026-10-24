@@ -748,17 +748,26 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                 if (served.Count < expected)
                 {
-                    text.AppendLine("WARN  " + TierName(tier) + " only served " + served.Count.ToString()
-                        + " weapon types out of " + expected.ToString()
-                        + " dealt (safety " + safety.ToString() + "%)");
-                    if (safety >= 100 && served.Count < expected)
+                    if (safety >= 100)
                     {
+                        // At 100% every tier is supposed to cover every type it was
+                        // dealt, so a shortfall is a real failure.
+                        text.AppendLine("WARN  " + TierName(tier) + " only served " + served.Count.ToString()
+                            + " weapon types out of " + expected.ToString()
+                            + " dealt (safety " + safety.ToString() + "%)");
                         failures.Add(TierName(tier) + " did not get all weapon types at 100% safety");
                         anyFailure = true;
                     }
                     else
                     {
-                        warnings.Add(TierName(tier) + " served fewer weapon types than it was dealt");
+                        // Below 100% the shortfall is the setting doing its job: the
+                        // safety dial decides how much of the spread is guaranteed
+                        // and how much is left to the ordinary random draw. Worth
+                        // printing, not worth a warning.
+                        text.AppendLine("note  " + TierName(tier) + " served " + served.Count.ToString()
+                            + " of " + expected.ToString() + " types it was dealt - at "
+                            + safety.ToString() + "% safety the rest is left to chance"
+                            + " (raise the safety dial for a fuller spread)");
                     }
                 }
             }
@@ -1074,8 +1083,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 int newOffenders = 0;
                 int spellOffenders = 0;
                 int newSpellOffenders = 0;
-                List<string> samples = new List<string>();
-                List<string> spellSamples = new List<string>();
+                // NEW offenders first: a new one is the interesting case, and the
+                // list used to fill up with rows that were already in vanilla.
+                List<string> newSamples = new List<string>();
+                List<string> oldSamples = new List<string>();
+                List<string> newSpellSamples = new List<string>();
+                List<string> oldSpellSamples = new List<string>();
 
                 for (int scenario = 0; scenario < Randomizer.baiOffsets.Length; scenario++)
                 {
@@ -1127,12 +1140,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 }
                                 if (!wasThere)
                                     newOffenders++;
-                                if (samples.Count < 15)
-                                {
-                                    samples.Add("  scenario " + scenario.ToString() + " unit " + unit.ToString()
-                                        + " : weapon " + weaponId.ToString() + " range " + range.ToString()
-                                        + (wasThere ? " (same as vanilla)" : " (NEW)"));
-                                }
+                                string sample = "  scenario " + scenario.ToString() + " unit " + unit.ToString()
+                                    + " : weapon " + weaponId.ToString() + " range " + range.ToString()
+                                    + (wasThere ? " (same as vanilla)" : " (NEW)");
+                                if (wasThere)
+                                    oldSamples.Add(sample);
+                                else if (newSamples.Count < 15)
+                                    newSamples.Add(sample);
                             }
 
                             // the two enemy spell slots, stored as spell index + 1
@@ -1150,11 +1164,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                     && Randomizer.baiSectionDataV[spellVanillaOffset] == rawSpell;
                                 if (!spellWasThere)
                                     newSpellOffenders++;
-                                if (spellSamples.Count < 10)
-                                    spellSamples.Add("  scenario " + scenario.ToString() + " unit " + unit.ToString()
-                                        + " : spell " + spellId.ToString() + " range "
-                                        + RandomizerExtras.spellRange(spellId).ToString()
-                                        + (spellWasThere ? " (same as vanilla)" : " (NEW)"));
+                                string spellSample = "  scenario " + scenario.ToString() + " unit " + unit.ToString()
+                                    + " : spell " + spellId.ToString() + " range "
+                                    + RandomizerExtras.spellRange(spellId).ToString()
+                                    + (spellWasThere ? " (same as vanilla)" : " (NEW)");
+                                if (spellWasThere)
+                                    oldSpellSamples.Add(spellSample);
+                                else if (newSpellSamples.Count < 10)
+                                    newSpellSamples.Add(spellSample);
                             }
                         }
                     }
@@ -1164,15 +1181,30 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 text.AppendLine("out of range spell slots   : " + spellOffenders.ToString()
                     + "   (" + newSpellOffenders.ToString() + " new, "
                     + (spellOffenders - newSpellOffenders).ToString() + " same as vanilla)");
-                foreach (string spellSample in spellSamples)
+                foreach (string spellSample in newSpellSamples)
                     text.AppendLine(spellSample);
+                for (int i = 0; i < oldSpellSamples.Count && i < 10; i++)
+                    text.AppendLine(oldSpellSamples[i]);
                 text.AppendLine("out of range weapon slots  : " + offenders.ToString()
                     + "   (" + newOffenders.ToString() + " new, "
                     + (offenders - newOffenders).ToString() + " same as vanilla"
                     + ", bypass chance " + RandomizerExtras.siegeChance.ToString()
                     + "%, bypass rolls won " + RandomizerExtras.statSiegeBypassRolls.ToString() + ")");
-                foreach (string sample in samples)
+                foreach (string sample in newSamples)
                     text.AppendLine(sample);
+                for (int i = 0; i < oldSamples.Count && i < 15; i++)
+                    text.AppendLine(oldSamples[i]);
+
+                if (newSpellOffenders > 0 && RandomizerExtras.siegeChance <= 0)
+                    warnings.Add(newSpellOffenders.ToString()
+                        + " new out of range spell(s) on map units while the bypass chance is 0%");
+                else if (newSpellOffenders == 0)
+                    passes.Add("siege limit: no new out of range spell on a map unit"
+                        + (spellOffenders > 0 ? " (" + spellOffenders.ToString()
+                            + " were already there in vanilla)" : ""));
+                else
+                    passes.Add("siege limit: " + newSpellOffenders.ToString()
+                        + " new out of range spell(s) allowed by the bypass chance");
 
                 if (newOffenders > 0 && RandomizerExtras.siegeChance <= 0)
                     warnings.Add(newOffenders.ToString()
@@ -1243,7 +1275,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
 
             text.AppendLine("classes with changed enemy growths: " + changed.ToString()
-                + "  (counter says " + RandomizerExtras.statGrowthShiftedClasses.ToString() + ")");
+                + "   (the growth shift itself changed "
+                + RandomizerExtras.statGrowthShiftedClasses.ToString() + ")");
+            if (changed > RandomizerExtras.statGrowthShiftedClasses)
+                text.AppendLine("    the rest differ from vanilla because their growths were randomized,"
+                    + " not shifted");
             text.AppendLine("stat      enemy growth total  before -> after   |  player before -> after");
             for (int stat = 0; stat < 9; stat++)
                 text.AppendLine(statNames[stat].PadRight(8)

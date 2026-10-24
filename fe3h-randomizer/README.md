@@ -431,6 +431,30 @@ randomizer writes. `DATA1.bin` is patched in place by section offset and No
 Monastery does not ship it, so nothing there moves. The randomizer writes class
 rows 0..99; the mod's extra class row 100 is left alone.
 
+### Reading the debug report
+
+The summary counts **passes**, **warnings** and **failures**, and only a `FAIL` means
+something went wrong. Two of the warnings are settings doing their job rather than
+faults:
+
+* **`X served fewer weapon types than it was dealt`** — only a warning at safety
+  levels below 100 %, where the dial deliberately leaves part of the spread to the
+  ordinary draw. It is printed as a `note` line in the class variety section, and
+  becomes a real `FAIL` at 100 % safety. Raise the safety dial on the Extra options
+  tab for a fuller spread.
+* **`tab switching is still slow`** — the Extra options tab paints in ~300 ms on
+  some machines; it changes nothing about the output.
+
+The range check now gives spells the same verdict as weapons: a *new* out-of-range
+spell or weapon on a map unit is only expected from the **siege bypass chance**, so
+the report says `allowed by the bypass chance` when the chance is above 0 and warns
+when it is exactly 0 %. New offenders are listed before the ones that were already
+in the vanilla data, so they are never buried.
+
+`classes with changed enemy growths : N (the growth shift itself changed M)` — N
+counts every class whose growths differ from vanilla, which includes plain growth
+randomization; M counts the ones the growth shift moved.
+
 ### When a run stops with an error
 
 The debug report names the stage the randomizer had reached (`Last stage : weapons: row 240`,

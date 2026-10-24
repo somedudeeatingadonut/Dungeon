@@ -847,9 +847,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (data == null || offset < 0 || offset >= data.Length)
                 return;
             int value = signed ? (int)(sbyte)data[offset] : (int)data[offset];
-            if (!signed && value == 0)
-                return;
+            // A 0 that was already 0 is this slot's own value (a stat that does not
+            // grow), so it is left alone. A 0 the randomizer rolled into a slot
+            // that did grow is a real value now, and the floor applies to it too:
+            // "0% to 70%" in the report used to mean the floor had been skipped.
             if (vanilla != null && offset < vanilla.Length && vanilla[offset] == data[offset])
+                return;
+            if (!signed && value == 0 && (vanilla == null || offset >= vanilla.Length))
                 return;
             int clamped = value < low ? low : (value > high ? high : value);
             if (clamped == value)

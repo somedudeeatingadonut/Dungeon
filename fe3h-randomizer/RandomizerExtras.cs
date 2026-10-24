@@ -334,6 +334,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int pickRandomEnemySpell(int count)
         {
             int spell = Randomizer.rng.Next(0, count);
+            if (count > 0)
+                statSpellPicks++;
             if (!limitSiegeTomes || maxEnemyWeaponRange <= 0 || count <= 0)
                 return spell;
             if (siegeAllowedThisTime() || spellRangeAllowed(spell))
