@@ -3213,6 +3213,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             RandomizerExtras.beginRandomization();
             Randomizer.settingsForDebug = settings;
+            fallbackInterpolationUses = 0;
+            noteStage("starting");
             /*
             if (data1Loaded) // replace all enemies with commanders
             {
@@ -3402,6 +3404,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             List<int>[] classWeaponTypes = new List<int>[100];
             RandomizerExtras.beginClassVariety(classWeaponTypes);
+            noteStage("setting up");
 
             List<int> eBattalions = new List<int>();
             List<int> dBattalions = new List<int>();
@@ -3795,9 +3798,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 Randomizer.classDataV.CopyTo((Array)Randomizer.classData, 0);
 
                 changelog += "\n\n\n---CLASS DATA---";
+                noteStage("classes");
 
                 for (int index = 0; index < 100; ++index)
                 {
+                    if ((index & 7) == 0)
+                        noteStage("classes: row " + index.ToString());
                     long blockMod = classBlockLen * (long)index;
                     long certMod = classCertLen * (long)index;
                     long abMod = classAbLen * (long)index;
@@ -5666,6 +5672,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     }
                 }
 
+                noteStage("monster classes");
                 for (int index = 0; index < 30; index++)
                 {
                     long monsterMod = classMonsterLen * (long)index;
@@ -5706,13 +5713,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             if (Randomizer.itemLoaded)
             {
+                noteStage("items");
                 Randomizer.itemData = new byte[Randomizer.itemDataV.Length];
                 Randomizer.itemDataV.CopyTo((Array)Randomizer.itemData, 0);
                 if (settings.randWeapons)
                 {
                     changelog += "\n\n\n---WEAPONS---";
+                    noteStage("weapons");
                     for (int index = 0; index < 500; ++index)
                     {
+                        if ((index & 15) == 0)
+                            noteStage("weapons: row " + index.ToString());
                         long weaponMod = weaponBlockLen * (long)index;
 
                         if (settings.randAtkRange && p(settings.randAtkRangeP) && itemData[weaponBlockStart + weaponMod + 7L] < 100)
@@ -6825,6 +6836,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             if (Randomizer.personLoaded)
             {
+                noteStage("characters");
                 if (settings.shuffleAssets)
                 {
                     changelog += "\n\n\n---MODEL SWAPS---\n";
@@ -8599,6 +8611,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (calendarLoaded)
             {
+                noteStage("calendar");
                 Randomizer.calendarData = new byte[Randomizer.calendarDataV.Length];
                 Randomizer.calendarDataV.CopyTo((Array)Randomizer.calendarData, 0);
 
@@ -8699,6 +8712,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (lobbyLoaded)
             {
+                noteStage("lobby");
                 Randomizer.lobbyData = new byte[Randomizer.lobbyDataV.Length];
                 Randomizer.lobbyDataV.CopyTo((Array)Randomizer.lobbyData, 0);
 
@@ -8807,6 +8821,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (activityLoaded)
             {
+                noteStage("activities");
                 Randomizer.activityData = new byte[Randomizer.activityDataV.Length];
                 Randomizer.activityDataV.CopyTo((Array)Randomizer.activityData, 0);
 
@@ -9089,6 +9104,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (groupWorkLoaded)
             {
+                noteStage("group work");
                 Randomizer.groupWorkData = new byte[Randomizer.groupWorkDataV.Length];
                 Randomizer.groupWorkDataV.CopyTo((Array)Randomizer.groupWorkData, 0);
 
@@ -9162,6 +9178,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (presentLoaded)
             {
+                noteStage("presents");
                 Randomizer.presentData = new byte[Randomizer.presentDataV.Length];
                 Randomizer.presentDataV.CopyTo((Array)Randomizer.presentData, 0);
 
@@ -9336,6 +9353,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (shopLoaded)
             {
+                noteStage("shops");
                 Randomizer.shopData = new byte[Randomizer.shopDataV.Length];
                 Randomizer.shopDataV.CopyTo((Array)Randomizer.shopData, 0);
 
@@ -10257,6 +10275,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (questLoaded)
             {
+                noteStage("quests");
                 Randomizer.questData = new byte[Randomizer.questDataV.Length];
                 Randomizer.questDataV.CopyTo((Array)Randomizer.questData, 0);
 
@@ -10331,6 +10350,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (BGMLoaded)
             {
+                noteStage("music");
                 Randomizer.BGMData = new byte[Randomizer.BGMDataV.Length];
                 Randomizer.BGMDataV.CopyTo((Array)Randomizer.BGMData, 0);
 
@@ -10397,6 +10417,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                             BGMData[BGMLinkLocations[i] - 8 + j] = newTracks[i][j];
                 }
             }
+            noteStage("text");
             if (msgLoaded && settings.changeMsg && settings.qolText)
             {
                 msgStrings[1029] = "Growth Rates";
@@ -10703,6 +10724,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (data1Loaded)
             {
+                noteStage("map data");
                 Randomizer.baiSectionData = new byte[Randomizer.baiSectionDataV.Length];
                 Randomizer.baiSectionDataV.CopyTo((Array)Randomizer.baiSectionData, 0);
 
@@ -11399,6 +11421,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             if (scenarioLoaded)
             {
+                noteStage("scenario and levels");
                 Randomizer.scenarioData = new byte[Randomizer.scenarioDataV.Length];
                 Randomizer.scenarioDataV.CopyTo((Array)Randomizer.scenarioData, 0);
             }
@@ -11458,7 +11481,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     scenarioData[scenarioStart + scenarioMod + 35] = (byte)Math.Round(Math.Max(1, Math.Min(99, scenarioData[scenarioStart + scenarioMod + 35] * settings.lvMultiplier / 100)));
                 }
 
+            noteStage("final passes");
             RandomizerExtras.applyAfterRandomization();
+            noteStage("finished");
 
             changelog += "\n\n\n---RANDOMIZATION SETTINGS---";
             changelog += "\n\n" + ObjectDumper.Dump(settings, 0);
@@ -11948,8 +11973,104 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 return roundTo(proportionalRng(target, proportionalDev), roundIncrement);
             if (exponential)
                 return roundTo(exponentialRng(target, exponentialDev), roundIncrement);
-            else
-                throw new Exception();
+
+            // No style selected at all. A preset (or a hand-edited one, or the
+            // last style box being unticked) can leave all four off; throwing
+            // here used to kill the whole run with an empty error message. The
+            // linear style is used instead, and the report says so.
+            fallbackInterpolationUses++;
+            return roundTo(linearRng(target, linearDev), roundIncrement);
+        }
+
+        // How many values were rolled with the fallback above. Reset per run.
+        public static int fallbackInterpolationUses;
+
+        // ------------------------------------------------------ stage markers
+        // Written to by the sections of randomize(); the debug report prints it,
+        // so a crash says where it happened instead of only that it happened.
+        public static string debugStage = "not started";
+
+        internal static void noteStage(string stage)
+        {
+            debugStage = stage;
+        }
+
+        // Options that use an interpolation style but have every style switched
+        // off. Any of them would have stopped the run the moment it rolled a
+        // value, so they are reported before the run starts.
+        public static List<string> missingInterpolationStyles(Settings settings)
+        {
+            List<string> missing = new List<string>();
+            if (settings == null)
+                return missing;
+
+            System.Reflection.FieldInfo[] fields = typeof(Settings).GetFields(
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            for (int i = 0; i < fields.Length; i++)
+            {
+                System.Reflection.FieldInfo field = fields[i];
+                if (field.FieldType != typeof(bool) || !field.Name.EndsWith("Binomial", StringComparison.Ordinal))
+                    continue;
+                string group = field.Name.Substring(0, field.Name.Length - "Binomial".Length);
+                if (anyStyleOn(settings, group))
+                    continue;
+
+                // Which option would roll through this group.
+                string option = "rand" + char.ToUpper(group[0], System.Globalization.CultureInfo.InvariantCulture)
+                    + group.Substring(1);
+                if (!boolAt(settings, option))
+                    continue;
+                // A 0% chance means the roll never succeeds, so it cannot stop a
+                // run and is not worth warning about. The percent fields are
+                // doubles in Settings.
+                string percent = option + "P";
+                if (doubleAt(settings, percent) <= 0)
+                    continue;
+                missing.Add(option + " (all four styles are off, so it would have used Linear)");
+            }
+            return missing;
+        }
+
+        private static bool anyStyleOn(Settings settings, string group)
+        {
+            return boolAt(settings, group + "Binomial") || boolAt(settings, group + "Linear")
+                || boolAt(settings, group + "Proportional") || boolAt(settings, group + "Exponential");
+        }
+
+        private static bool boolAt(Settings settings, string name)
+        {
+            System.Reflection.FieldInfo field = typeof(Settings).GetField(name,
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            if (field == null || field.FieldType != typeof(bool))
+                return false;
+            try
+            {
+                return (bool)field.GetValue(settings);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static double doubleAt(Settings settings, string name)
+        {
+            System.Reflection.FieldInfo field = typeof(Settings).GetField(name,
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            if (field == null)
+                return 0;
+            try
+            {
+                object value = field.GetValue(settings);
+                if (value is double)
+                    return (double)value;
+                if (value is int)
+                    return (int)value;
+            }
+            catch
+            {
+            }
+            return 0;
         }
 
         private static int roundTo(int target, int roundIncrement)

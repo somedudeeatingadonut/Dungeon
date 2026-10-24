@@ -411,6 +411,24 @@ randomizer writes. `DATA1.bin` is patched in place by section offset and No
 Monastery does not ship it, so nothing there moves. The randomizer writes class
 rows 0..99; the mod's extra class row 100 is left alone.
 
+### When a run stops with an error
+
+The debug report names the stage the randomizer had reached (`Last stage : weapons: row 240`,
+for instance) and, when the run died with an exception, a **CRASH DETAIL** block with its
+type, its message, its stack trace and the stage marker. A crash report is therefore
+enough to find the code that stopped.
+
+One crash has its own message now. Every randomized number is rolled through one of four
+interpolation styles - Binomial, Linear, Proportional, Exponential - and an option whose
+four style boxes are **all unticked** used to stop the whole run with an empty error the
+moment it rolled a value. That is easy to hit by unticking Proportional on the Weapon or
+Class tabs, or by hand-editing a preset. In that case:
+
+* before the run, a dialog lists every such option and says they will use **Linear**;
+* the run then completes, and the report counts the values rolled that way and warns about it.
+
+Tick one style per option (or untick the option itself) to go back to an exact choice.
+
 ### Presets - save the whole configuration
 
 The **Presets** row at the top of the Extra options tab stores everything at

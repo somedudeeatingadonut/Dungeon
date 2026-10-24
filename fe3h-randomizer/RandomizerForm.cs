@@ -3992,6 +3992,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private void randomizeAndSave_button_Click(object sender, EventArgs e)
         {
             Randomizer.changelog = "\nBy Bly, Nifyr";
+            RandomizerDebug.crashDetail = "";
             if (!string.IsNullOrEmpty(this.seed_textBox.Text))
             {
                 if (!Randomizer.isDigitsOnly(this.seed_textBox.Text))
@@ -4023,6 +4024,30 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             else
             {
+                // Added by Randomizer.cs: an option whose four interpolation styles
+                // are all off (easy to do by unticking Proportional in the UI, or by
+                // hand-editing a preset) used to stop the run mid-way with an empty
+                // error. The run now falls back to Linear - say so first.
+                System.Collections.Generic.List<string> noStyle =
+                    Randomizer.missingInterpolationStyles(settings);
+                if (noStyle.Count > 0)
+                {
+                    System.Text.StringBuilder note = new System.Text.StringBuilder();
+                    note.AppendLine("These options are on, but none of their interpolation styles is:");
+                    note.AppendLine("(Binomial / Linear / Proportional / Exponential)");
+                    note.AppendLine();
+                    for (int i = 0; i < noStyle.Count; i++)
+                        note.AppendLine("  " + noStyle[i]);
+                    note.AppendLine();
+                    note.AppendLine("They will use the Linear style so the run can finish. Untick the option,");
+                    note.AppendLine("or tick one of its styles (Class / Character / Weapon tabs), to control it.");
+                    note.AppendLine();
+                    note.AppendLine("Randomize anyway?");
+                    if (MessageBox.Show(note.ToString(), "No interpolation style selected",
+                            MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK)
+                        return;
+                }
+
                 // Added by ModSupport.cs: a mod that moved a table would make every
                 // write land in the wrong place, so this is asked before the run.
                 if (!ModSupport.confirmOffsets())
@@ -4038,9 +4063,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 {
                     string folder = (this.batchOutputFolder != null && this.batchOutputFolder.Length > 0)
                         ? this.batchOutputFolder : Application.StartupPath;
+                    RandomizerDebug.crashDetail = describeException(exception);
                     RandomizerDebug.WriteReport(folder, "CRASH during randomization");
+                    string message = exception.Message;
+                    if (message == null || message.Trim().Length == 0)
+                        message = "the error has no message (" + exception.GetType().Name + ")";
                     MessageBox.Show("The randomization stopped with an error:\n\n"
-                        + exception.Message
+                        + message
+                        + "\n\nLast stage: " + (Randomizer.debugStage == null ? "(unknown)" : Randomizer.debugStage)
                         + "\n\nA debug report with the full details was written to:\n"
                         + (RandomizerDebug.lastReportPath == null ? "(could not be written)" : RandomizerDebug.lastReportPath),
                         "Randomization failed", MessageBoxButtons.OK, MessageBoxIcon.Hand);
@@ -4064,6 +4094,36 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 }
             }
             Randomizer.warnings = "";
+        }
+
+        // Everything the report needs about an exception: what it was, what it
+        // said (some of them say nothing at all), the frames, and the stage the
+        // randomizer had reached. Written into the debug report.
+        private static string describeException(Exception exception)
+        {
+            if (exception == null)
+                return "(no exception)";
+            System.Text.StringBuilder text = new System.Text.StringBuilder();
+            Exception current = exception;
+            int depth = 0;
+            while (current != null && depth < 4)
+            {
+                text.AppendLine((depth == 0 ? "Exception    : " : "Inner " + depth.ToString() + "      : ")
+                    + current.GetType().FullName);
+                text.AppendLine("Message      : "
+                    + (current.Message == null || current.Message.Trim().Length == 0
+                        ? "(empty - this error carries no text)" : current.Message.Trim()));
+                if (current.StackTrace != null)
+                {
+                    text.AppendLine("Stack trace  :");
+                    text.AppendLine(current.StackTrace.TrimEnd());
+                }
+                current = current.InnerException;
+                depth++;
+            }
+            text.AppendLine("Last stage   : " + (Randomizer.debugStage == null ? "(unknown)" : Randomizer.debugStage));
+            text.AppendLine("Random nums  : " + (Randomizer.rng == null ? "n/a" : Randomizer.rng.GetRandomNumberCount().ToString()));
+            return text.ToString();
         }
 
         private void saveFiles()

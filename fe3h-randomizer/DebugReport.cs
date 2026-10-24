@@ -29,6 +29,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static string lastReportPath = "";
         public static string lastSummary = "";
 
+        // Filled in by the caller when a run stopped with an exception, so the
+        // report says what went wrong and where - it used to say only that the
+        // run was a crash, which made a crash report useless.
+        public static string crashDetail = "";
+
+
         private static readonly string[] statNames = { "HP", "Str", "Mag", "Dex", "Spd", "Lck", "Def", "Res", "Cha" };
         private static readonly string[] weaponTypeNames =
             { "Sword", "Lance", "Axe", "Bow", "Brawl", "Magic", "???", "Dark" };
@@ -84,6 +90,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             List<string> failures = new List<string>();
 
             AppendHeader(text, reason);
+            AppendCrashDetail(text);
             AppendEnvironment(text);
             AppendPerformance(text, warnings);
             AppendOptions(text);
@@ -119,6 +126,19 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         ? ", " + RandomizerPresets.lastAppliedSkipped.ToString() + " line(s) skipped"
                         : "") + ")");
             text.AppendLine("Random numbers generated: " + (Randomizer.rng == null ? "n/a" : Randomizer.rng.GetRandomNumberCount().ToString()));
+            text.AppendLine("Last stage   : " + (Randomizer.debugStage == null ? "(none)" : Randomizer.debugStage));
+            if (Randomizer.fallbackInterpolationUses > 0)
+                text.AppendLine("Interpolation: " + Randomizer.fallbackInterpolationUses.ToString()
+                    + " value(s) rolled with the Linear style because the option had no style on");
+            text.AppendLine();
+        }
+
+        private static void AppendCrashDetail(StringBuilder text)
+        {
+            if (crashDetail == null || crashDetail.Length == 0)
+                return;
+            text.AppendLine("--- CRASH DETAIL -----------------------------------------------");
+            text.AppendLine(crashDetail.TrimEnd());
             text.AppendLine();
         }
 
@@ -1239,6 +1259,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private static void AppendSummary(StringBuilder text, List<string> passes,
             List<string> warnings, List<string> failures)
         {
+            if (Randomizer.fallbackInterpolationUses > 0)
+                warnings.Add(Randomizer.fallbackInterpolationUses.ToString()
+                    + " value(s) were rolled with the Linear style: an option was on while all four of"
+                    + " its interpolation styles were off (Binomial / Linear / Proportional /"
+                    + " Exponential). Tick one of them to control how it is distributed");
             text.AppendLine("--- SUMMARY ----------------------------------------------------");
             text.AppendLine("passed  : " + passes.Count.ToString());
             text.AppendLine("warnings: " + warnings.Count.ToString());
