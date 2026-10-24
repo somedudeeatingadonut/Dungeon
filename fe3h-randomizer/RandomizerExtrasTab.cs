@@ -56,6 +56,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private TextBox extrasModOriginals_textBox;
         private Label extrasModOffsets_label;
         private CheckBox extrasModMastery_checkBox;
+        private CheckBox extrasModNoMonastery_checkBox;
         private ComboBox extrasPreset_comboBox;
         private Label extrasPresetInfo_label;
         private CheckBox extrasDebugAuto_checkBox;
@@ -340,6 +341,27 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasModMastery_checkBox.Text = "Keep the mod's class mastery EXP requirements";
                 this.extrasModMastery_checkBox.CheckedChanged += new EventHandler(this.extrasModMastery_checkBox_CheckedChanged);
                 addFullRow(layout, this.extrasModMastery_checkBox);
+
+                // ---- No Monastery mode: the parts of the run the mod makes pointless
+                this.extrasModNoMonastery_checkBox = new CheckBox();
+                this.extrasModNoMonastery_checkBox.AutoSize = true;
+                this.extrasModNoMonastery_checkBox.Checked = ModSupport.noMonasteryMode;
+                this.extrasModNoMonastery_checkBox.Enabled = ModSupport.modMode;
+                this.extrasModNoMonastery_checkBox.Text =
+                    "No Monastery mode: leave out the exploration and teaching options the mod removes";
+                this.extrasModNoMonastery_checkBox.CheckedChanged +=
+                    new EventHandler(this.extrasModNoMonastery_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasModNoMonastery_checkBox);
+
+                Label noMonasteryInfo = helpLabel(
+                    "The mod deletes exploration and weekly teaching, so goals, seminars, faculty training,\r\n"
+                    + "dining hall / choir / greenhouse / fishing events, free day limits and rare monster\r\n"
+                    + "sightings only write tables the game no longer opens. This mode leaves those out of\r\n"
+                    + "the run (your ticks are kept, they just do not run), names every skipped option in\r\n"
+                    + "the changelog and the debug report, switches mod mode on, and sets the first\r\n"
+                    + "character spell to C - the mod starts units in intermediate classes, where the\r\n"
+                    + "game's usual D is already earned and every unit would cast from level 1.");
+                addFullRow(layout, noMonasteryInfo);
 
                 FlowLayoutPanel modButtons = new FlowLayoutPanel();
                 modButtons.AutoSize = true;
@@ -1076,6 +1098,40 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             ModSupport.modMode = this.extrasModMode_checkBox.Checked;
             if (this.extrasModMastery_checkBox != null)
                 this.extrasModMastery_checkBox.Enabled = ModSupport.modMode;
+            if (this.extrasModNoMonastery_checkBox != null)
+            {
+                this.extrasModNoMonastery_checkBox.Enabled = ModSupport.modMode;
+                // The mode only means something with mod mode on, so it goes
+                // with it rather than staying on behind a disabled box.
+                if (!ModSupport.modMode && this.extrasModNoMonastery_checkBox.Checked)
+                    this.extrasModNoMonastery_checkBox.Checked = false;
+            }
+        }
+
+        private void extrasModNoMonastery_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasModNoMonastery_checkBox == null)
+                return;
+            ModSupport.noMonasteryMode = this.extrasModNoMonastery_checkBox.Checked;
+            if (!ModSupport.noMonasteryMode)
+                return;
+
+            // The mod's own values are what the game reads, so mod mode goes with
+            // it. Turning that on here also writes the conflicting options off.
+            ModSupport.modMode = true;
+            if (this.extrasModMode_checkBox != null)
+                this.extrasModMode_checkBox.Checked = true;
+            if (this.extrasModMastery_checkBox != null)
+                this.extrasModMastery_checkBox.Enabled = true;
+
+            // No Monastery starts every unit in an intermediate class, so the
+            // rank D spell is there at level 1; C is the first rank that has to
+            // be earned in play.
+            if (settings != null)
+            {
+                settings.spellFirstRank = 4;
+                updateAllDisplay();
+            }
         }
 
         private void extrasModMastery_checkBox_CheckedChanged(object sender, EventArgs e)
@@ -1358,6 +1414,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasModMode_checkBox.Checked = ModSupport.modMode;
             if (this.extrasModMastery_checkBox != null)
                 this.extrasModMastery_checkBox.Checked = ModSupport.keepMasteryExp;
+            if (this.extrasModNoMonastery_checkBox != null)
+                this.extrasModNoMonastery_checkBox.Checked = ModSupport.noMonasteryMode;
 
             MessageBox.Show("Applied \"" + preset.Name + "\".\r\n\r\n"
                 + applied.ToString() + " setting(s) set"

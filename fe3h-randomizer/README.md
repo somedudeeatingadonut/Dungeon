@@ -252,6 +252,35 @@ and otherwise where you last picked a folder. The path box beside the button
 takes a pasted path too, so a mod a dozen folders down is one paste away. The
 same dialog is used for the game-files and output folders on the Batch tab.
 
+#### No Monastery mode: leave out what the mod deletes
+
+The mod does not just conflict with a handful of options - it removes whole
+systems. Exploration and the weekly teaching loop are gone, so an option that
+only writes the tables behind them produces a changelog entry for a screen the
+game will never open, and buries the options that do matter.
+
+**No Monastery mode** sits under the mod-mode box on the Extra options tab, and
+does four things when it is ticked:
+
+| What | Why |
+| --- | --- |
+| Switches mod mode on | the mod's own values are what the game reads |
+| Leaves 9 options out of the run | goals, seminars, faculty training, dining hall / choir / greenhouse / fishing events, free day limits, rare monster sightings |
+| Sets the first character spell to **C** | the mod starts units in intermediate classes, so the game's usual D is already earned and every unit would cast from level 1 |
+| Names every skipped option in the changelog and the debug report | a skip that nobody can see is worse than a wasted pass |
+
+The ticks are **not** cleared - the run simply uses a copy of the settings with
+those switches off, and the report lists them under
+`left out of this run : 9 option(s) - weekly goals, seminars, ...`. Untick the
+mode and the next run is exactly what the boxes say again.
+
+Calendar randomization is deliberately **not** skipped: the mod ships its own
+calendar, so a randomized day type can land on a week the mod no longer has.
+The report prints a note when that option is on with the mode.
+
+Both built-in No Monastery presets apply the mode, so applying one gets all of
+the above in one click.
+
 #### The 2.1 plugin: what still fights it
 
 Because 2.1 changes the game by code instead of by data, the list of options it

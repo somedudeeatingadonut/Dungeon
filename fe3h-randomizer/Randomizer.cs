@@ -3213,6 +3213,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             RandomizerExtras.beginRandomization();
             Randomizer.settingsForDebug = settings;
+            // No Monastery mode leaves the options the mod removes out of this
+            // run; say so at the top of the changelog, where the rest of the
+            // run is described.
+            if (ModSupport.noMonasterySkipped.Count > 0)
+                changelog += "\n\nNo Monastery mode - left vanilla because the mod removes them: "
+                    + ModSupport.noMonasterySkippedText();
             fallbackInterpolationUses = 0;
             noteStage("starting");
             /*

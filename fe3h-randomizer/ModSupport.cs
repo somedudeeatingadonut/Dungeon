@@ -94,6 +94,123 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             return isPluginKind();
         }
 
+        // ------------------------------------------------- No Monastery mode
+        // A total conversion does not only conflict with a few options, it
+        // removes whole systems. No Monastery deletes exploration and the
+        // weekly teaching loop, so every option that only writes the tables
+        // behind those screens produces a changelog entry for something the
+        // game will never show - and, worse, hides the options that do matter
+        // in a changelog nobody reads to the end.
+        //
+        // This mode leaves those options out of the run itself. The settings
+        // the user picked are not touched: the mode hands the randomizer a copy
+        // with those flags off, and every skipped option is named in the
+        // changelog and in the debug report, so nothing disappears silently.
+        public static bool noMonasteryMode = false;
+
+        // What the current run left out because of the mode above.
+        public static List<string> noMonasterySkipped = new List<string>();
+
+        // Options that only write exploration / weekly teaching data, i.e. the
+        // systems No Monastery removes. Nothing here changes a class, a
+        // character, a weapon or a map enemy, so the run is otherwise identical.
+        private static readonly string[] monasteryOnlyOptions =
+        {
+            "randGoals",
+            "randSeminars",
+            "randFacultyTraining",
+            "randRareMonsterSighting",
+            "randRestrictFreeday",
+            "randCafeteriaEvent",
+            "randChoirEvent",
+            "randGardenEvent",
+            "randFishingEvent"
+        };
+
+        public static string monasteryOptionLabel(string name)
+        {
+            switch (name)
+            {
+                case "randGoals": return "weekly goals";
+                case "randSeminars": return "seminars";
+                case "randFacultyTraining": return "faculty training";
+                case "randRareMonsterSighting": return "rare monster sightings";
+                case "randRestrictFreeday": return "exploration day limits";
+                case "randCafeteriaEvent": return "dining hall events";
+                case "randChoirEvent": return "choir practice";
+                case "randGardenEvent": return "greenhouse events";
+                case "randFishingEvent": return "fishing events";
+                default: return name;
+            }
+        }
+
+        public static string noMonasterySkippedText()
+        {
+            if (noMonasterySkipped == null || noMonasterySkipped.Count == 0)
+                return "nothing";
+            StringBuilder text = new StringBuilder();
+            for (int i = 0; i < noMonasterySkipped.Count; i++)
+            {
+                if (i > 0)
+                    text.Append(", ");
+                text.Append(monasteryOptionLabel(noMonasterySkipped[i]));
+            }
+            return text.ToString();
+        }
+
+        // The settings the run actually uses. Without the mode this is the same
+        // object that was handed in; with it, it is a copy with the options the
+        // mod removes switched off, so the UI keeps showing what was picked.
+        public static Settings adaptSettings(Settings settings)
+        {
+            noMonasterySkipped = new List<string>();
+            if (settings == null || !noMonasteryMode)
+                return settings;
+
+            Settings copy = copySettings(settings);
+            for (int i = 0; i < monasteryOnlyOptions.Length; i++)
+            {
+                System.Reflection.FieldInfo field = typeof(Settings).GetField(
+                    monasteryOnlyOptions[i],
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (field == null || field.FieldType != typeof(bool))
+                    continue;
+                try
+                {
+                    if (!(bool)field.GetValue(copy))
+                        continue;
+                    field.SetValue(copy, false);
+                    noMonasterySkipped.Add(monasteryOnlyOptions[i]);
+                }
+                catch
+                {
+                }
+            }
+            return copy;
+        }
+
+        // A plain field-for-field copy of the settings. Every public field is a
+        // bool, an int or a double, so this is exact.
+        private static Settings copySettings(Settings settings)
+        {
+            Settings copy = new Settings();
+            System.Reflection.FieldInfo[] fields = typeof(Settings).GetFields(
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            for (int i = 0; i < fields.Length; i++)
+            {
+                if (!fields[i].FieldType.IsValueType)
+                    continue;
+                try
+                {
+                    fields[i].SetValue(copy, fields[i].GetValue(settings));
+                }
+                catch
+                {
+                }
+            }
+            return copy;
+        }
+
         public static void clearModKind()
         {
             modKind = kindNone;

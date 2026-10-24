@@ -97,6 +97,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             AppendMoreOptions(text, passes, warnings, failures);
             AppendBigOptions(text, passes, warnings, failures);
             AppendInputs(text, warnings);
+            AppendModMode(text, passes, warnings);
             ModSupport.appendReport(text, passes, warnings, failures);
             AppendCounters(text, passes, warnings);
             AppendClassVarietyCheck(text, passes, warnings, failures);
@@ -638,6 +639,39 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 state = path + "  [could not stat: " + exception.Message + "]";
             }
             text.AppendLine(label + " : loaded  " + state);
+        }
+
+        // ------------------------------------------------ total conversion mode
+        private static void AppendModMode(StringBuilder text, List<string> passes,
+            List<string> warnings)
+        {
+            text.AppendLine("--- TOTAL CONVERSION MOD ---------------------------------------");
+            text.AppendLine("mod mode             : " + ModSupport.modMode);
+            text.AppendLine("no monastery mode    : " + ModSupport.noMonasteryMode);
+            text.AppendLine("mod recognised       : " + (ModSupport.modKind == null || ModSupport.modKind.Length == 0
+                ? "none - press \"Check the mod\" on the Extra options tab" : ModSupport.modKind));
+            text.AppendLine("table offsets        : " + ModSupport.offsetsStatus);
+            if (ModSupport.noMonasteryMode)
+            {
+                text.AppendLine("left out of this run : " + (ModSupport.noMonasterySkipped.Count == 0
+                    ? "nothing - the options the mod removes were already off"
+                    : ModSupport.noMonasterySkipped.Count.ToString() + " option(s) - "
+                        + ModSupport.noMonasterySkippedText()));
+                if (ModSupport.noMonasterySkipped.Count == 0)
+                    passes.Add("No Monastery mode: every option that writes the mod's removed content was already off");
+                else
+                    passes.Add("No Monastery mode left out " + ModSupport.noMonasterySkipped.Count.ToString()
+                        + " option(s) the mod removes (" + ModSupport.noMonasterySkippedText() + ")");
+                if (ModSupport.modKind == null || ModSupport.modKind.Length == 0)
+                    warnings.Add("No Monastery mode is on, but no mod folder has been checked -"
+                        + " the skip list still applies, yet nothing tells the tool which release it is");
+                // The calendar is the mod's own business: with exploration gone a
+                // randomized day type can land on a week the mod no longer has.
+                if (Randomizer.settingsForDebug != null && Randomizer.settingsForDebug.randCalendar)
+                    text.AppendLine("note                 : calendar randomization is still on - the mod"
+                        + " ships its own calendar, so check the first month before playing far");
+            }
+            text.AppendLine();
         }
 
         private static void AppendCounters(StringBuilder text, List<string> passes, List<string> warnings)

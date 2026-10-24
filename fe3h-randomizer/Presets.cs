@@ -413,6 +413,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 text.AppendLine(ModSupport.conflictKeyAt(ModSupport.kindDataMod, i) + "=False");
             text.AppendLine("ModSupport.modMode=True");
             text.AppendLine("ModSupport.keepMasteryExp=True");
+            text.AppendLine("ModSupport.noMonasteryMode=True");
             // The mod starts units in intermediate classes, so a rank D first
             // spell is earned at level 1 and everybody can cast from the start.
             text.AppendLine("spellFirstRank=" + firstSpellRankForMod.ToString());
@@ -448,6 +449,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 text.AppendLine(ModSupport.conflictKeyAt(ModSupport.kindPluginMod, i) + "=False");
             text.AppendLine("ModSupport.modMode=True");
             text.AppendLine("ModSupport.keepMasteryExp=False");
+            text.AppendLine("ModSupport.noMonasteryMode=True");
             text.AppendLine("spellFirstRank=" + firstSpellRankForMod.ToString());
             return text.ToString();
         }

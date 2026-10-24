@@ -4027,12 +4027,19 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             else
             {
+                // ModSupport.cs: with No Monastery mode on, the options that only
+                // write the exploration and teaching tables the mod deletes are
+                // left out of this run. The copy is what the run uses from here
+                // on, so the interpolation check below cannot complain about an
+                // option that is not going to run.
+                Settings runSettings = ModSupport.adaptSettings(settings);
+
                 // Added by Randomizer.cs: an option whose four interpolation styles
                 // are all off (easy to do by unticking Proportional in the UI, or by
                 // hand-editing a preset) used to stop the run mid-way with an empty
                 // error. The run now falls back to Linear - say so first.
                 System.Collections.Generic.List<string> noStyle =
-                    Randomizer.missingInterpolationStyles(settings);
+                    Randomizer.missingInterpolationStyles(runSettings);
                 if (noStyle.Count > 0)
                 {
                     System.Text.StringBuilder note = new System.Text.StringBuilder();
@@ -4066,7 +4073,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 // report with the stack trace instead of only showing a dialog.
                 try
                 {
-                    Randomizer.randomizeTrue(settings);
+                    Randomizer.randomizeTrue(runSettings);
                 }
                 catch (Exception exception)
                 {
@@ -23427,8 +23434,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             this.checkBox184.Size = new System.Drawing.Size(179, 21);
             this.checkBox184.TabIndex = 2;
             this.checkBox184.Text = "Always Spell on Rank";
-            this.toolTip1.SetToolTip(this.checkBox184, "Every character learns their first spell at a\r\nfixed rank, like the game itself does at D.\r\n"
-        "Set it later if a mod starts units with higher\r\nskill ranks - No Monastery starts in\r\nintermediate classes, so D means a spell at\r\nlevel 1 for everybody.");
+            this.toolTip1.SetToolTip(this.checkBox184, "Every character learns their first spell at a\r\nfixed rank, like the game itself does at D.\r\nSet it later if a mod starts units with higher\r\nskill ranks - No Monastery starts in\r\nintermediate classes, so D means a spell at\r\nlevel 1 for everybody.");
             this.checkBox184.UseVisualStyleBackColor = true;
             this.checkBox184.CheckedChanged += new System.EventHandler(this.checkBox184_CheckedChanged);
             // 
