@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Fire_Emblem_Three_Houses_Randomizer_V2
 {
@@ -44,6 +45,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int gambitFromWeaponChance;   // gambit <- a weapon's effects
         public static bool uniqueWeaponEffects = false;
         public static bool weaponDonorsDifferInType = false;
+
+        // Writing the new effect into the weapon's own description text. The
+        // item text is the only place a player can see what a weapon does, and
+        // a grafted effect that is not written there is invisible until it
+        // fires. This needs msgdata.bin loaded and makes the run write it.
+        public static bool describeWeaponEffects = true;
 
         public static bool anyEffectRemix()
         {
@@ -68,6 +75,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statGambitEffectsGrafted;
         public static int statGambitFromWeaponGrafted;
         public static int statWeaponEffectsRerolled;
+        public static int statWeaponDescriptionsDone;
 
         public static void resetCounters()
         {
@@ -83,6 +91,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statGambitEffectsGrafted = 0;
             statGambitFromWeaponGrafted = 0;
             statWeaponEffectsRerolled = 0;
+            statWeaponDescriptionsDone = 0;
         }
 
         // ------------------------------------------------------------- the run
@@ -470,6 +479,109 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     }
                 }
             }
+        }
+
+        // ------------------------------------------------- weapon description
+        // Where a weapon's description lives in msgdata.bin. The item help text
+        // starts at a fixed index and runs in weapon id order (the same base the
+        // text options already use).
+        public const int weaponDescriptionStart = 11162;
+
+        // Builds the description of one weapon from the data that is actually
+        // being written, so it names whatever the remix put there - including
+        // the parts of the effect that are not an id (magic damage, ignores
+        // Def/Res, leaves at 1 HP, double attack, effectiveness).
+        public static string describeWeapon(byte[] data, int block)
+        {
+            if (data == null || block + weaponSlotProperties >= data.Length)
+                return "";
+            StringBuilder text = new StringBuilder();
+            int effect = data[block + weaponSlotEffect];
+            if (effect != effectNone && effect >= 0 && effect < Randomizer.effectNames.Length
+                && Randomizer.effectNames[effect] != null && Randomizer.effectNames[effect].Length > 0)
+                text.Append("Inflicts ").Append(Randomizer.effectNames[effect]).Append(".\n");
+
+            int effectiveness = data[block + weaponSlotEffectiveness];
+            if (effectiveness != 0)
+            {
+                // Same order and names as Randomizer.getClassTyping, which the
+                // changelog uses for the effectiveness bits.
+                string[] typingNames = { "Infantry", "Heavy Armor", "Cavalry", "Flying", "Dragon", "Monster" };
+                StringBuilder list = new StringBuilder();
+                for (int i = 0; i < typingNames.Length; i++)
+                {
+                    if ((effectiveness & (1 << i)) == 0)
+                        continue;
+                    if (list.Length > 0)
+                        list.Append(" / ");
+                    list.Append(typingNames[i]);
+                }
+                if (list.Length > 0)
+                    text.Append("Effective against ").Append(list.ToString()).Append(".\n");
+            }
+
+            int properties = data[block + weaponSlotProperties];
+            if ((properties & 1) != 0)
+                text.Append("Deals magic damage.\n");
+            if ((properties & 2) != 0)
+                text.Append("Ignores Def/Res.\n");
+            if ((properties & 4) != 0)
+                text.Append("Leaves the target at 1 HP.\n");
+            if ((properties & 32) != 0)
+                text.Append("Attacks twice when initiating combat.\n");
+
+            return text.ToString().TrimEnd('\n');
+        }
+
+        // Rewrites the description of every weapon whose effect changed in this
+        // run. The vanilla text is kept underneath when it fits, so the flavour
+        // line is not lost, but the new effect is always the first line.
+        public static int writeWeaponDescriptions(List<string> strings)
+        {
+            statWeaponDescriptionsDone = 0;
+            if (!describeWeaponEffects || strings == null)
+                return 0;
+            if (Randomizer.itemData == null || Randomizer.itemDataV == null)
+                return 0;
+
+            byte[] data = Randomizer.itemData;
+            byte[] vanilla = Randomizer.itemDataV;
+            for (int index = 0; index < weaponCount; index++)
+            {
+                int block = weaponBlock(index);
+                if (block + weaponSlotProperties >= data.Length)
+                    break;
+                if (Randomizer.weaponNames == null || index >= Randomizer.weaponNames.Length
+                    || Randomizer.weaponNames[index] == null)
+                    continue;
+
+                bool changed = block + weaponSlotProperties < vanilla.Length
+                    && (data[block + weaponSlotEffect] != vanilla[block + weaponSlotEffect]
+                        || data[block + weaponSlotEffectiveness] != vanilla[block + weaponSlotEffectiveness]
+                        || data[block + weaponSlotProperties] != vanilla[block + weaponSlotProperties]);
+                if (!changed)
+                    continue;
+
+                int textIndex = weaponDescriptionStart + index;
+                if (textIndex >= strings.Count)
+                    continue;
+
+                string effect = describeWeapon(data, block);
+                if (effect.Length == 0)
+                    effect = "No special attributes.";
+                string original = strings[textIndex];
+                string combined = effect;
+                if (original != null && original.Length > 0 && !original.StartsWith(effect)
+                    && effect.Length + original.Length < 220)
+                    combined = effect + "\n" + original;
+                if (combined.Length > 240)
+                    combined = combined.Substring(0, 240);
+                if (combined == original)
+                    continue;
+                strings[textIndex] = combined;
+                statWeaponDescriptionsDone++;
+            }
+            return statWeaponDescriptionsDone;
         }
 
         // ------------------------------------------------------- uniqueness

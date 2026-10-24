@@ -40,6 +40,35 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static bool evenClassVariety = false;
         public static int classVarietySafety = 60;
 
+        // A class's weapon type and its stats are randomized by two different
+        // passes, so nothing stops a class from ending up with swords and a
+        // higher Magic base than Strength - which in game reads as "this class
+        // gives the wrong bonuses". The identity pass trades Str and Mag when
+        // they contradict the weapon type the class actually has, and trims the
+        // defensive values so one lucky roll cannot turn an early enemy class
+        // into a wall. Bosses and monster rows are never touched.
+        public static bool classIdentity = true;
+        public static int classDefenseLimit = 50;
+
+        // Abilities that are never handed out, whatever the blocklist says.
+        // These either hand the holder a whole boss's kit (Twin Crests, Ten
+        // Elites, Mighty King of Legend) or make a unit effectively unkillable
+        // (Ancient Dragonskin and friends). They stay out of every pool, every
+        // learnset and every mastery slot, for players and enemies alike.
+        // Dance. Kept as a constant because the Dancer row is given it back
+        // after every pass that could have rotated it away.
+        public const int danceAbility = 158;
+        public static int statDancerDanceRestored;
+
+        public static readonly int[] alwaysBlockedAbilities =
+        {
+            190, 191, 193, 195, 197, 198, 204, 205, 206, 207, 225, 226, 244, 246, 247,
+            // Dance and Special Dance belong to the Dancer alone (the Dancer
+            // row is given Dance back after its slots are rolled), and 154 is
+            // the blank "Missing Number" entry - neither may be dealt out.
+            148, 154, 158
+        };
+
         // Abilities that are dragon / monster only. They are the ones that make
         // randomized runs trivial (Ancient Dragonskin and friends).
         public static readonly int[] defaultBlockedAbilities = { 190, 191, 195, 197, 205, 207 };
@@ -70,6 +99,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statSpreadPasses;
         public static int statFirstSpellRank;
         public static int statBlockedAbilitiesRemoved;
+        public static int statRoleSwaps;
+        public static int statDefenseClamped;
+        public static List<string> roleSwapSamples = new List<string>();
+        public static List<string> defenseClampSamples = new List<string>();
         public static List<int>[] statTypesServedByTier = new List<int>[8];
         public static List<int> statTypesServedGlobal = new List<int>();
         // How many weapon types were actually dealt per tier. The report needs
@@ -99,7 +132,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statSpellsFiltered = 0;
             statGrowthShiftedClasses = 0;
             statSpreadPasses = 0;
+            statBlockedAbilitiesRemoved = 0;
+            statDancerDanceRestored = 0;
             statFirstSpellRank = 0;
+            statRoleSwaps = 0;
+            statDefenseClamped = 0;
+            roleSwapSamples = new List<string>();
+            defenseClampSamples = new List<string>();
             RandomizerMore.resetCounters();
             RandomizerBig.resetCounters();
             ModSupport.resetCounters();
@@ -121,8 +160,20 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private static readonly int[] baseStatOffsets = { 75, 85, 86, 87, 88, 89, 90, 91, 93 };
 
         // ------------------------------------------------------ ability block
+        public static bool isAlwaysBlocked(int ability)
+        {
+            for (int i = 0; i < alwaysBlockedAbilities.Length; i++)
+                if (alwaysBlockedAbilities[i] == ability)
+                    return true;
+            return false;
+        }
+
         public static bool isAbilityBlocked(int ability)
         {
+            // The forced list is checked even when the user turned the blocklist
+            // off: these are the abilities that end a run on their own.
+            if (isAlwaysBlocked(ability))
+                return true;
             if (!blockAbilities || blockedAbilities.Count == 0)
                 return false;
             return blockedAbilities.Contains(ability);
@@ -131,6 +182,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private static int[] cachedAbilityPool;
         private static List<int> cachedAbilityAllowed;
         private static int cachedBlockedCount = -1;
+        private static bool cachedBlocking;
 
         // Called by the UI whenever the blocklist changes.
         public static void notifyBlocklistChanged()
@@ -138,6 +190,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             cachedAbilityPool = null;
             cachedAbilityAllowed = null;
             cachedBlockedCount = -1;
+            cachedBlocking = false;
             filteredObtainableWeapons = null;
         }
 
@@ -146,21 +199,28 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             if (pool == null || pool.Length == 0)
                 return 0;
-            if (!blockAbilities || blockedAbilities.Count == 0)
-                return pool[Randomizer.rng.Next(0, pool.Length)];
 
-            if (cachedAbilityPool != pool || cachedBlockedCount != blockedAbilities.Count)
+            // The key includes the on/off switch: turning the blocklist off does
+            // not change the number of entries in it.
+            if (cachedAbilityPool != pool || cachedBlockedCount != blockedAbilities.Count
+                || cachedBlocking != blockAbilities)
             {
                 cachedAbilityPool = pool;
                 cachedAbilityAllowed = allowedOnly(pool);
                 cachedBlockedCount = blockedAbilities.Count;
+                cachedBlocking = blockAbilities;
             }
             List<int> allowed = cachedAbilityAllowed;
             statAbilityPicks++;
             if (allowed.Count < pool.Length)
                 statAbilityBlockedPicks++;
             if (allowed.Count == 0)
-                return pool[Randomizer.rng.Next(0, pool.Length)];
+            {
+                // Every entry of this pool is blocked, which only happens when
+                // the pool is tiny. Handing out a blocked ability would defeat
+                // the point, so nothing is dealt instead.
+                return replacementAbility();
+            }
             return allowed[Randomizer.rng.Next(0, allowed.Count)];
         }
 
@@ -168,22 +228,28 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             if (pool == null || pool.Count == 0)
                 return 0;
-            if (!blockAbilities || blockedAbilities.Count == 0)
-                return pool[Randomizer.rng.Next(0, pool.Count)];
 
             List<int> allowed = allowedOnly(pool);
             statAbilityPicks++;
             if (allowed.Count < pool.Count)
                 statAbilityBlockedPicks++;
             if (allowed.Count == 0)
-                return pool[Randomizer.rng.Next(0, pool.Count)];
+                return replacementAbility();
             return allowed[Randomizer.rng.Next(0, allowed.Count)];
         }
 
         // Removes the blocked abilities from a pool that is built once.
         public static void removeBlocked(List<int> pool)
         {
-            if (pool == null || !blockAbilities)
+            if (pool == null)
+                return;
+            // The forced list is always removed; the user's list only when the
+            // blocklist is on.
+            for (int i = 0; i < alwaysBlockedAbilities.Length; i++)
+                while (pool.Remove(alwaysBlockedAbilities[i]))
+                {
+                }
+            if (!blockAbilities)
                 return;
             for (int i = 0; i < blockedAbilities.Count; i++)
                 while (pool.Remove(blockedAbilities[i]))
@@ -687,6 +753,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             if (classesLoaded)
             {
+                // Class identity last, so a profile swap or a boss remix cannot
+                // leave a sword class with a mage's stats or an early enemy
+                // class with a fortress's defence.
+                applyClassIdentity();
+
                 // The passes above move whole stat / growth vectors between
                 // classes, which can carry a value that the range limits had
                 // already clamped back in. Clamping again here means the limits
@@ -696,6 +767,184 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 // Runs last, after every other pass has written its values.
                 enforceAbilityBlocklist();
             }
+        }
+
+        // ---------------------------------------------------- class identity
+        // Which weapon types count as physical. 0 sword, 1 lance, 2 axe, 3 bow,
+        // 4 brawl, 5 reason, 6 faith, 7 dark (see Randomizer.getWeaponType).
+        private static bool typeIsPhysical(int type)
+        {
+            return type >= 0 && type < 5;
+        }
+
+        public static void applyClassIdentity()
+        {
+            if (Randomizer.classData == null || Randomizer.classDataV == null)
+                return;
+            if (!classIdentity)
+                return;
+
+            for (int index = 0; index < 100; index++)
+            {
+                // Rows a mod added past 88 are left alone, exactly like the
+                // randomization itself leaves them alone.
+                if (!(index < 88 || index == 91))
+                    continue;
+                if (RandomizerMore.isMonsterClass(index))
+                    continue;
+
+                long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)index;
+                if (block + 94 >= Randomizer.classData.Length || block + 94 >= Randomizer.classDataV.Length)
+                    continue;
+
+                int primaryType = Randomizer.classData[block + 79L];
+                int secondaryType = Randomizer.classData[block + 80L];
+                // 0..7 are the weapon types; anything else is a row this pass
+                // does not understand and must not touch.
+                if (primaryType > 7)
+                    continue;
+                // A row the run did not touch is the vanilla class, and a
+                // vanilla class is not a contradiction to fix: a few existing
+                // rows (59, 86, 91) deliberately have more Mag than Str in a
+                // physical class. Only rows the randomizer changed are checked.
+                if (!classRowChanged(block))
+                    continue;
+                bool physical = typeIsPhysical(primaryType);
+                bool hybrid = secondaryType != 0 && typeIsPhysical(secondaryType) != physical;
+
+                // A class built to use both a physical and a magic weapon on
+                // purpose keeps whatever it rolled: it is not contradicting
+                // itself, it is a hybrid.
+                if (!hybrid)
+                    matchRole(index, block, physical);
+
+                if (classDefenseLimit > 0)
+                    toneDownDefense(index, block);
+            }
+        }
+
+        // True when anything this pass looks at differs from the vanilla row.
+        private static bool classRowChanged(long block)
+        {
+            int[] offsets = { 16, 19, 20, 29, 30, 31, 32, 33, 34, 35, 36, 38,
+                              39, 40, 41, 42, 43, 44, 45, 75, 79, 80,
+                              85, 86, 87, 88, 89, 90, 91, 93 };
+            for (int i = 0; i < offsets.Length; i++)
+            {
+                long offset = block + offsets[i];
+                if (offset >= Randomizer.classData.Length || offset >= Randomizer.classDataV.Length)
+                    return false;
+                if (Randomizer.classData[offset] != Randomizer.classDataV[offset])
+                    return true;
+            }
+            return false;
+        }
+
+        // Trades Str and Mag (base stats, class boosts, both growth sets) when
+        // the class's highest of the two does not belong to the weapon type it
+        // now has. Swapping instead of re-rolling keeps every value the run
+        // produced - only which stat owns it changes.
+        private static void matchRole(int classIndex, long block, bool physical)
+        {
+            int strBase = Randomizer.classData[block + baseStatOffsets[1]];
+            int magBase = Randomizer.classData[block + baseStatOffsets[2]];
+            if (physical == (strBase >= magBase))
+                return;
+
+            swapStat(block, baseStatOffsets, 1, 2);
+            swapStat(block, statBoostOffsets, 1, 2);
+            swapStat(block, enemyGrowthOffsets, 1, 2);
+            swapStat(block, playerGrowthOffsets, 1, 2);
+
+            statRoleSwaps++;
+            if (roleSwapSamples.Count < 6)
+            {
+                string name = Randomizer.classNames != null && Randomizer.classNames[classIndex] != null
+                    ? Randomizer.classNames[classIndex] : "class " + classIndex.ToString();
+                roleSwapSamples.Add(name + " (" + (physical ? "physical" : "magic")
+                    + " weapon): Str " + strBase.ToString() + " / Mag " + magBase.ToString()
+                    + " -> Str " + magBase.ToString() + " / Mag " + strBase.ToString());
+            }
+        }
+
+        private static void swapStat(long block, int[] offsets, int first, int second)
+        {
+            int firstOffset = (int)(block + offsets[first]);
+            int secondOffset = (int)(block + offsets[second]);
+            if (firstOffset >= Randomizer.classData.Length || secondOffset >= Randomizer.classData.Length)
+                return;
+            byte hold = Randomizer.classData[firstOffset];
+            Randomizer.classData[firstOffset] = Randomizer.classData[secondOffset];
+            Randomizer.classData[secondOffset] = hold;
+        }
+
+        // Keeps a class's defensive values within reach of the ones it had in
+        // the vanilla file. The base stat is a floor for every unit in the class
+        // and the boost is added on top, so an unlucky pair of rolls is enough
+        // to put a beginner class in fortress armour - which is what made whole
+        // enemy armies feel bloated. Vanilla rows (untouched by the run) and
+        // boss / monster rows are skipped.
+        private static void toneDownDefense(int classIndex, long block)
+        {
+            bool changed = false;
+            for (int stat = 6; stat <= 7; stat++) // Def, Res
+            {
+                int vanillaBase = Randomizer.classDataV[block + baseStatOffsets[stat]];
+                int allowedBase = vanillaBase + Math.Max(2, vanillaBase * classDefenseLimit / 100);
+                int baseOffset = (int)(block + baseStatOffsets[stat]);
+                int currentBase = Randomizer.classData[baseOffset]; // 0..99, unsigned
+                if (currentBase > allowedBase)
+                {
+                    Randomizer.classData[baseOffset] = (byte)allowedBase;
+                    if (defenseClampSamples.Count < 6)
+                        defenseClampSamples.Add(className(classIndex) + " base "
+                            + (stat == 6 ? "Def" : "Res") + " " + currentBase.ToString()
+                            + " -> " + allowedBase.ToString() + " (vanilla " + vanillaBase.ToString() + ")");
+                    changed = true;
+                }
+
+                // Class boosts are signed: a randomized -3 is stored as 253, so
+                // the comparison and the clamp both have to be done on the
+                // signed value or a negative roll would be "clamped" upwards.
+                int vanillaBoost = toSigned(Randomizer.classDataV[block + statBoostOffsets[stat]]);
+                int allowedBoost = vanillaBoost
+                    + Math.Max(3, Math.Abs(vanillaBoost) * classDefenseLimit / 100);
+                int boostOffset = (int)(block + statBoostOffsets[stat]);
+                int currentBoost = toSigned(Randomizer.classData[boostOffset]);
+                if (currentBoost > allowedBoost)
+                {
+                    Randomizer.classData[boostOffset] = toByte(allowedBoost);
+                    if (defenseClampSamples.Count < 6)
+                        defenseClampSamples.Add(className(classIndex) + " boost "
+                            + (stat == 6 ? "Def" : "Res") + " " + currentBoost.ToString()
+                            + " -> " + allowedBoost.ToString() + " (vanilla " + vanillaBoost.ToString() + ")");
+                    changed = true;
+                }
+            }
+            if (changed)
+                statDefenseClamped++;
+        }
+
+        private static int toSigned(byte value)
+        {
+            return value < 128 ? (int)value : (int)value - 256;
+        }
+
+        private static byte toByte(int value)
+        {
+            if (value < -128)
+                value = -128;
+            if (value > 127)
+                value = 127;
+            return (byte)(value & 0xFF);
+        }
+
+        private static string className(int classIndex)
+        {
+            if (Randomizer.classNames != null && classIndex >= 0 && classIndex < Randomizer.classNames.Length
+                && Randomizer.classNames[classIndex] != null)
+                return Randomizer.classNames[classIndex];
+            return "class " + classIndex.ToString();
         }
 
         // ------------------------------------------------- blocklist safety net
@@ -710,7 +959,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // blocklist only stops the randomizer from *introducing* them.
         public static void enforceAbilityBlocklist()
         {
-            if (!blockAbilities || blockedAbilities.Count == 0)
+            // The fixed list is not optional: with the user list switched off
+            // there is still something to strip out.
+            if (!blockAbilities && alwaysBlockedAbilities.Length == 0)
                 return;
 
             if (Randomizer.classData != null)
@@ -748,6 +999,40 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     for (int slot = 11; slot < 19; slot++)
                         replaceIntroducedAbility(Randomizer.personData, Randomizer.personDataV, (int)(block + slot));
                 }
+            }
+
+            if (Randomizer.classData != null && Randomizer.classDataV != null)
+                restoreDancerDance();
+        }
+
+        // Dance belongs to the Dancer. The even-variety ability spread rotates
+        // whole slots between the classes of a tier, so the Dancer's own slot
+        // can be handed another class's ability - which is how the 1.12.7 run
+        // shipped a Dancer without Dance. The vanilla row says which slot it is,
+        // so the value is put back instead of being guessed.
+        private static void restoreDancerDance()
+        {
+            if (Randomizer.classData == null || Randomizer.classDataV == null)
+                return;
+            int dancer = ModSupport.DancerClassIndex;
+            if (dancer < 0 || dancer >= 100)
+                return;
+
+            long block = Randomizer.classAbStart + Randomizer.classAbLen * (long)dancer;
+            if (block + Randomizer.classAbLen > Randomizer.classData.Length)
+                return;
+            if (block + Randomizer.classAbLen > Randomizer.classDataV.Length)
+                return;
+
+            for (int slot = 0; slot < Randomizer.classAbLen; slot++)
+            {
+                if (Randomizer.classDataV[block + slot] != danceAbility)
+                    continue;
+                if (Randomizer.classData[block + slot] == danceAbility)
+                    return;
+                Randomizer.classData[block + slot] = (byte)danceAbility;
+                statDancerDanceRestored++;
+                return;
             }
         }
 

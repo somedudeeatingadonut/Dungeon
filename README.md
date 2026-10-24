@@ -15,9 +15,12 @@ these features added to the program:
   `patch3\nx\data`, `patch4`, `patch4\common\common`, `patch4\nx\data`).
 * **Extra options** - even spread of random classes across weapon types (with a
   safety dial, applied to the class weapon types themselves), an ability
-  blocklist for dragon/monster abilities, an enemy siege tome / spell range
-  limit with a bypass chance, and a level scaling growth shift from
-  Str/Mag/Def/Res into HP.
+  blocklist for dragon/monster abilities plus a fixed list of boss-tier ones
+  (Twin Crests, Ten Elites, Dance and friends) that is never handed out, an
+  enemy siege tome / spell range limit with a bypass chance, a level scaling
+  growth shift from Str/Mag/Def/Res into HP, a class identity pass (Str/Mag
+  follow the class's rolled weapon type, Def/Res stay within reach of vanilla)
+  and weapon effect descriptions written into the item text.
 * **Total conversion mod support** - data-file mods such as *No Monastery 1.3.3*
   get their table offsets lined up from their own file headers; the newer
   *No Monastery 2.1 "with Aldebaran"*, which ships no game data at all and works

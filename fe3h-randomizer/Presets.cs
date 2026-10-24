@@ -381,6 +381,23 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // spell written at the game's usual D is already known on the first
         // map for every character; C delays it to the rank actually earned.
         private const int firstSpellRankForMod = 4;
+
+        // No Monastery raises the level of every enemy, and levels convert the
+        // class growths straight into Def and Res - which is what made every
+        // enemy of the 1.12.7 run feel armoured. The record run already moved
+        // 10% of the enemy Str/Mag/Def/Res growth into HP; the mod presets move
+        // 30%, so the extra levels buy HP (which every unit can chip through)
+        // instead of a defence wall (which a weak unit cannot).
+        private const int modEnemyGrowthShift = 30;
+        private const int modClassDefenseLimit = 50;
+
+        private static void appendModBulkLines(StringBuilder text)
+        {
+            text.AppendLine("RandomizerExtras.growthShift=" + modEnemyGrowthShift.ToString());
+            text.AppendLine("RandomizerExtras.classIdentity=True");
+            text.AppendLine("RandomizerExtras.classDefenseLimit=" + modClassDefenseLimit.ToString());
+            text.AppendLine("RandomizerBig.describeWeaponEffects=True");
+        }
         private const string builtInModSafeName = "No Monastery (mod safe)";
         private const string builtInPluginSafeName = "No Monastery 2.1 (plugin, mod safe)";
 
@@ -417,6 +434,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             // The mod starts units in intermediate classes, so a rank D first
             // spell is earned at level 1 and everybody can cast from the start.
             text.AppendLine("spellFirstRank=" + firstSpellRankForMod.ToString());
+            appendModBulkLines(text);
             return text.ToString();
         }
 
@@ -451,6 +469,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("ModSupport.keepMasteryExp=False");
             text.AppendLine("ModSupport.noMonasteryMode=True");
             text.AppendLine("spellFirstRank=" + firstSpellRankForMod.ToString());
+            appendModBulkLines(text);
             return text.ToString();
         }
 
@@ -480,7 +499,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             modSafe.Name = builtInModSafeName;
             modSafe.Description = "No Monastery 1.3.3, the data-file release: the same run with everything"
                 + " the mod ships handed back to it (" + ModSupport.conflictCount(ModSupport.kindDataMod).ToString()
-                + " options off), first spell at C";
+                + " options off), first spell at C, 30% of the enemy growth shifted into HP";
             modSafe.Data = builtInModSafeData();
             modSafe.BuiltIn = true;
             cache.Add(modSafe);
@@ -489,7 +508,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             pluginSafe.Name = builtInPluginSafeName;
             pluginSafe.Description = "No Monastery 2.1, the Skyline plugin release: the same run with only"
                 + " the " + ModSupport.conflictCount(ModSupport.kindPluginMod).ToString()
-                + " options the plugin recalculates turned off, first spell at C";
+                + " options the plugin recalculates turned off, first spell at C, 30% of the enemy growth shifted into HP";
             pluginSafe.Data = builtInPluginSafeData();
             pluginSafe.BuiltIn = true;
             cache.Add(pluginSafe);

@@ -4265,7 +4265,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     int num = (int)MessageBox.Show("The Save File Dialog box was closed, and the randomized BGM.ktsl2stbin was not saved!", "Warning: BGM.ktsl2stbin not saved!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
             }
-            if (Randomizer.msgLoaded && settings.changeMsg)
+            // msgdata.bin is also written when only the weapon descriptions
+            // changed (RandomizerBig.describeWeaponEffects), because that text
+            // lives in this file.
+            if (Randomizer.msgLoaded && (settings.changeMsg || RandomizerBig.describeWeaponEffects))
             {
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
                 saveFileDialog.FileName = "msgdata.bin";

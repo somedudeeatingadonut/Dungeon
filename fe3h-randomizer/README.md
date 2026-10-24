@@ -96,9 +96,11 @@ only stops the randomizer from introducing them.
 
 Two things are deliberately exempt from the blocklist:
 
-* **Dance (158) always goes to the Dancer class.** Writing 158 there is the only
-  way to get Dance, and that is the point of the class, so blocking it does not
-  remove it. The variety spread will not copy it to another class either.
+* **Dance (158) and Special Dance (148) belong to the Dancer class.** Both are on
+  the fixed list below, so no class slot, learnset or mastery roll can hand them
+  to anyone else. The Dancer row is written back with Dance after its slots are
+  rolled - that is the point of the class, and the safety pass leaves it alone
+  because it was already there in the vanilla file.
 * **Boss and monster classes keep their own abilities** (see below).
 
 ### Enemy siege tomes and long range weapons
@@ -120,9 +122,11 @@ option existed).
 ### Level scaling
 
 Moves a percentage of the enemy Str / Mag / Def / Res growths into HP. Enemy
-stats grow per level from the class enemy growths, so this makes level scaling
-produce tankier enemies instead of harder hitting ones. 0% leaves it alone, 20%
-is a noticeable but fair change, 60% is the maximum.
+stats grow per level from the class enemy growths, so this trades per-level
+attack and *defence* for HP. Defence is the number that decides whether a weak
+unit can hurt an enemy at all, so a run where enemies feel unkillable usually
+wants this higher rather than lower: 0% leaves it alone, 10% is the recorded
+run, 30% is what the No Monastery presets use, 60% is the maximum.
 
 ### More randomization options
 
@@ -544,6 +548,18 @@ options: it writes each of them as `False` after the run's values, because the
 tool's default for a few (the mastery EXP requirements, for instance) is on and
 a preset is applied on top of the defaults.
 
+Both No Monastery presets also change the three balance values of 1.12.8, because
+the mod itself makes the problem worse - it starts units in intermediate classes
+and raises the level of every enemy, and levels turn the class growths straight
+into Def and Res:
+
+| Value | Recorded run | No Monastery presets | Why |
+| --- | --- | --- | --- |
+| Level scaling (growth shift) | 10% | **30%** | the mod's extra levels buy HP, which any unit can chip through, instead of defence |
+| Class identity | on (default) | on, written out | so the preset does not depend on a default that may change |
+| Defence limit | 50% (default) | 50%, written out | clamp the class base Def / Res, which is a floor for every enemy in that class |
+| Weapon effect text | on (default) | on, written out | a grafted effect has to be readable in the item screen |
+
 The debug report prints the applied preset name at the top together with how
 many values it set and how many lines it had to skip - a preset that silently
 half-applies is visible at a glance.
@@ -593,6 +609,91 @@ The debug report gets a **MORE OPTIONS** section for all of this: how many slots
 each pass changed, how many duplicates are left, the class growth range and
 growth totals after the run, the stat boost and base stat extremes, with a
 PASS / WARN / FAIL line per option.
+
+### Weapon effect text - say what the weapon does
+
+The effect remix moves *effects* between weapons, and the item screen is the
+only place a player can read what a weapon does. Until 1.12.8 the description was
+left alone, so a sword that seals defence looked exactly like a plain iron sword
+until it fired. **Extra options > Weapon effect text** (on by default) writes the
+new effect into the weapon's own description:
+
+```
+Inflicts Seal Defense.
+Deals magic damage.
+```
+
+The generated line covers everything the run actually wrote - the effect id, the
+effectiveness bits (Infantry / Heavy Armor / Cavalry / Flying / Dragon / Monster)
+and the property bits (magic damage, ignores Def/Res, leaves the target at 1 HP,
+attacks twice). The vanilla flavour text is kept underneath when it fits, so a
+weapon does not lose its identity, and the summary is always the first line. It
+covers both sources of a changed effect: the *status effect* option on the
+Weapons tab and the effect remix on the Extra options tab.
+
+Descriptions live in `msgdata.bin`, so the run writes that file even when none of
+the text options on the Music and Text tab is on. If `msgdata.bin` was not
+loaded, the debug report says the effect cannot be described instead of quietly
+writing nothing.
+
+### Class identity - the numbers have to match the class
+
+A class's weapon type and its stats are rolled by two different passes, so
+nothing tied them together: a class could end up using swords while its highest
+base stat, boost and growth were all Magic, which in game reads as "this class
+gives the wrong bonuses".
+
+**Extra options > Class identity** (on by default) runs last and fixes both
+halves of that:
+
+* **Str / Mag** are *traded* when they contradict the weapon type the class now
+  has - base stats, class boosts and both growth sets. Nothing is re-rolled, so
+  every value the run produced survives; only which stat owns it changes. Hybrid
+  classes (a physical and a magic weapon on purpose), monsters and boss rows are
+  left alone, and so is any row the run did not change: a handful of vanilla
+  classes have more Mag than Str on purpose (the extended lord rows and the
+  special magic class), and a vanilla row is not a contradiction to fix.
+* **Def / Res** may exceed the vanilla class by a percentage (50% by default,
+  0% turns it off). A class base stat is a floor for every unit in the class and
+  the class boost is added on top, so one pair of lucky rolls used to be enough
+  to turn a beginner class into a wall - and *every enemy in it* along with it.
+  The pull-back is reported class by class:
+
+  ```
+  classes pulled back  : 23
+      Brigand base Def 11 -> 9 (vanilla 6)
+      Brawler base Def 12 -> 9 (vanilla 6)
+      Mage base Def 10 -> 5 (vanilla 3)
+  ```
+
+Both numbers, the samples and a PASS line are in the debug report under
+`--- CLASS IDENTITY ---`.
+
+### Abilities that are never handed out
+
+Some abilities end a run on their own: **Twin Crests**, **Ten Elites**, **Mighty
+King of Legend**, **Path of the Conqueror**, **Ancient Dragonskin**, **Ancient
+Dragon Wrath**, **Surging Light**, **Divine Dragon Horn**, **Giant Wings**, **Air
+of Intimidation**, **Dragon / Monster Effect Null**, **Monstrous Appeal**,
+**Umbral Leach** and **Manifest Phantoms** - plus **Dance**, **Special Dance** and
+the blank *Missing Number* entry (154). They are now on a second, fixed list that
+is applied on top of the tick list above: they never appear in a randomized pool,
+a learnset, a class ability slot or a mastery slot, for players *and* enemies, and
+turning the blocklist off does not re-enable them.
+
+The safety pass that re-reads every slot at the end of a run runs even when the
+tick list is off, because the fixed list is not optional. The debug report names
+every entry in it, counts the placements found in each of the two lists, and fails
+the run if the randomization introduced one:
+
+```
+always blocked       : 18 ability(ies), whatever the blocklist says
+                       190 Dragon Effect Null, 191 Monster Effect Null, ... 148
+                       Special Dance, 154 Missing Number, 158 Dance
+```
+
+As with the tick list, a placement that already existed in the vanilla file is
+kept: the Dancer's own Dance, the monster classes' own abilities.
 
 ### Always Spell on Rank - D, C, B or A
 
@@ -725,7 +826,9 @@ The report is plain text and contains:
 | Loaded files | all 20 possible inputs: loaded or not, path, size, size mismatch warnings |
 | Did it run? | counters for every new code path (class picks, weapon type draws, blocked ability picks, range filters, bypass rolls, growth shifts), with warnings when an enabled option never fired |
 | Class variety | weapon type spread per class tier, before vs after, the types the balancer served, and a PASS/FAIL against the safety level |
-| Ability blocklist | scans class abilities, monster latent/barrier abilities and character learnset ability slots (combat arts are skipped - the same id means something else there); lists blocked abilities the randomization *introduced* (vanilla ones are reported separately, they are intentional) and how many the safety pass replaced |
+| Ability blocklist | names every entry of the fixed list, scans class abilities, monster latent/barrier abilities and character learnset ability slots (combat arts are skipped - the same id means something else there); lists blocked abilities the randomization *introduced* (vanilla ones are reported separately, they are intentional), how many the safety pass replaced and whether the Dancer's own Dance had to be written back |
+| Class identity | whether the pass is on, the Def / Res allowance, every Str / Mag trade with before/after values, every class whose Def / Res was pulled back to vanilla + the allowance, and a PASS line when nothing needed fixing |
+| Weapon effect text | whether the descriptions are on, whether `msgdata.bin` was loaded, how many weapon descriptions name the effect the run gave them, and a warning if effects were remixed but there is no message table to say so |
 | Siege limit | out of range weapons and spells on every map unit, marked as "same as vanilla" or "NEW" |
 | Growth shift | per stat growth totals before and after, plus the number of classes changed |
 | Summary | every PASS / WARN / FAIL line and a final count |

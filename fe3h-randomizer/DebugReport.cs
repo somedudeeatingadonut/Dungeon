@@ -96,6 +96,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             AppendOptions(text);
             AppendMoreOptions(text, passes, warnings, failures);
             AppendBigOptions(text, passes, warnings, failures);
+            AppendClassIdentity(text, passes, warnings);
+            AppendWeaponText(text, passes, warnings);
             AppendInputs(text, warnings);
             AppendModMode(text, passes, warnings);
             ModSupport.appendReport(text, passes, warnings, failures);
@@ -641,6 +643,85 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine(label + " : loaded  " + state);
         }
 
+        // -------------------------------------------------- class identity
+        private static void AppendClassIdentity(StringBuilder text, List<string> passes,
+            List<string> warnings)
+        {
+            text.AppendLine("--- CLASS IDENTITY ---------------------------------------------");
+            text.AppendLine("identity pass        : " + RandomizerExtras.classIdentity);
+            text.AppendLine("Def / Res allowance  : "
+                + (RandomizerExtras.classIdentity && RandomizerExtras.classDefenseLimit > 0
+                    ? "+" + RandomizerExtras.classDefenseLimit.ToString() + "% above vanilla"
+                    : "off"));
+            text.AppendLine("rows checked         : only rows the randomization changed"
+                + " (a vanilla row is not a contradiction to fix)");
+            text.AppendLine("Str / Mag trades     : " + RandomizerExtras.statRoleSwaps
+                + "   (class stats that contradicted their weapon type and were swapped)");
+            foreach (string sample in RandomizerExtras.roleSwapSamples)
+                text.AppendLine("    " + sample);
+            text.AppendLine("classes pulled back  : " + RandomizerExtras.statDefenseClamped
+                + "   (Def / Res above the allowance, mostly early classes)");
+            foreach (string sample in RandomizerExtras.defenseClampSamples)
+                text.AppendLine("    " + sample);
+
+            if (!RandomizerExtras.classIdentity)
+            {
+                text.AppendLine("(identity pass off - class stats are whatever the randomizer rolled)");
+            }
+            else if (RandomizerExtras.statRoleSwaps == 0 && RandomizerExtras.statDefenseClamped == 0)
+            {
+                passes.Add("class identity: every class already matched its weapon type and stayed inside"
+                    + " the Def / Res allowance");
+            }
+            else
+            {
+                passes.Add("class identity: " + RandomizerExtras.statRoleSwaps.ToString()
+                    + " Str/Mag trade(s), " + RandomizerExtras.statDefenseClamped.ToString()
+                    + " class(es) with Def / Res pulled back to within "
+                    + RandomizerExtras.classDefenseLimit.ToString() + "% of vanilla");
+            }
+            text.AppendLine();
+        }
+
+        // -------------------------------------------------- weapon effect text
+        private static void AppendWeaponText(StringBuilder text, List<string> passes,
+            List<string> warnings)
+        {
+            text.AppendLine("--- WEAPON EFFECT TEXT -----------------------------------------");
+            text.AppendLine("describe effects     : " + RandomizerBig.describeWeaponEffects);
+            text.AppendLine("msgdata.bin loaded   : " + Randomizer.msgLoaded);
+            text.AppendLine("descriptions written : " + RandomizerBig.statWeaponDescriptionsDone);
+
+            bool remix = RandomizerBig.anyEffectRemix();
+            if (!RandomizerBig.describeWeaponEffects)
+            {
+                text.AppendLine("(off - the item screen keeps the vanilla text, so a grafted effect"
+                    + " only shows when it fires)");
+            }
+            else if (!Randomizer.msgLoaded)
+            {
+                if (remix)
+                    warnings.Add("weapon effects were remixed, but msgdata.bin was not loaded, so the"
+                        + " weapons cannot say what they do - load it with the other files");
+                else
+                    text.AppendLine("(msgdata.bin not loaded - load it and the effects will be described)");
+            }
+            else if (!remix && RandomizerBig.statWeaponDescriptionsDone == 0)
+            {
+                text.AppendLine("(the effect remix is off and the weapon data is unchanged)");
+            }
+            else if (remix && RandomizerBig.statWeaponDescriptionsDone == 0)
+            {
+                text.AppendLine("(the remix ran but no weapon's effect changed, so there was nothing to write)");
+            }
+            else
+            {
+                passes.Add("weapon text: " + RandomizerBig.statWeaponDescriptionsDone.ToString()
+                    + " weapon description(s) name the effect the run gave them");
+            }
+            text.AppendLine();
+        }
+
         // ------------------------------------------------ total conversion mode
         private static void AppendModMode(StringBuilder text, List<string> passes,
             List<string> warnings)
@@ -973,11 +1054,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             List<string> warnings, List<string> failures)
         {
             text.AppendLine("--- ABILITY BLOCKLIST CHECK ------------------------------------");
+            text.AppendLine("user blocklist       : " + (RandomizerExtras.blockAbilities
+                ? RandomizerExtras.blockedAbilities.Count.ToString() + " ability(ies)"
+                : "off"));
+            text.AppendLine("always blocked       : " + RandomizerExtras.alwaysBlockedAbilities.Length
+                + " ability(ies), whatever the blocklist says");
+            text.AppendLine("                       " + AlwaysBlockedNames());
             if (!RandomizerExtras.blockAbilities || RandomizerExtras.blockedAbilities.Count == 0)
             {
-                text.AppendLine("blocklist is empty, nothing to check");
-                text.AppendLine();
-                return;
+                text.AppendLine("(only the always-blocked list is in force)");
             }
             if (Randomizer.classData == null || Randomizer.classDataV == null)
             {
@@ -989,6 +1074,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             int checkedSlots = 0;
             int vanillaHits = 0;
             int newHits = 0;
+            int alwaysVanilla = 0;
+            int alwaysNew = 0;
 
             // class ability slots, 5 per class
             for (int index = 0; index < 100; index++)
@@ -1000,7 +1087,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 {
                     int offset = (int)(block + slot);
                     ScanAbility(text, Randomizer.classData, Randomizer.classDataV, offset,
-                        ref checkedSlots, ref vanillaHits, ref newHits);
+                        ref checkedSlots, ref vanillaHits, ref newHits, ref alwaysVanilla, ref alwaysNew);
                 }
             }
 
@@ -1015,7 +1102,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 {
                     int offset = (int)(block + slots[i]);
                     ScanAbility(text, Randomizer.classData, Randomizer.classDataV, offset,
-                        ref checkedSlots, ref vanillaHits, ref newHits);
+                        ref checkedSlots, ref vanillaHits, ref newHits, ref alwaysVanilla, ref alwaysNew);
                 }
             }
 
@@ -1034,7 +1121,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     // checked here (the same id means something else there).
                     for (int slot = 11; slot < 19; slot++)
                         ScanAbility(text, Randomizer.personData, Randomizer.personDataV, (int)(block + slot),
-                            ref checkedSlots, ref vanillaHits, ref newHits);
+                            ref checkedSlots, ref vanillaHits, ref newHits, ref alwaysVanilla, ref alwaysNew);
                 }
             }
 
@@ -1042,8 +1129,20 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("blocked abilities found: " + (vanillaHits + newHits).ToString()
                 + "  (" + vanillaHits.ToString() + " already in the vanilla file, "
                 + newHits.ToString() + " new)");
+            text.AppendLine("always-blocked found : " + (alwaysVanilla + alwaysNew).ToString()
+                + "  (" + alwaysVanilla.ToString() + " already in the vanilla file, "
+                + alwaysNew.ToString() + " new)");
             text.AppendLine("blocked abilities replaced by the safety pass: "
                 + RandomizerExtras.statBlockedAbilitiesRemoved.ToString());
+            text.AppendLine("Dancer row (class " + ModSupport.DancerClassIndex.ToString() + ") Dance written back: "
+                + RandomizerExtras.statDancerDanceRestored.ToString()
+                + " (the ability spread rotates whole slots, so the Dancer can lose it)");
+            if (alwaysNew > 0)
+            {
+                text.AppendLine("FAIL  the randomization introduced an always-blocked ability, they are listed above");
+                failures.Add(alwaysNew.ToString()
+                    + " always-blocked ability pickup(s) were introduced by the randomization");
+            }
             if (newHits > 0)
             {
                 text.AppendLine("FAIL  the randomization introduced blocked abilities, they are listed above");
@@ -1059,17 +1158,53 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine();
         }
 
+        private static string AlwaysBlockedNames()
+        {
+            StringBuilder text = new StringBuilder();
+            for (int i = 0; i < RandomizerExtras.alwaysBlockedAbilities.Length; i++)
+            {
+                int ability = RandomizerExtras.alwaysBlockedAbilities[i];
+                string name = (Randomizer.abilityNames != null && ability < Randomizer.abilityNames.Length)
+                    ? Randomizer.abilityNames[ability] : "?";
+                if (i > 0)
+                    text.Append(", ");
+                text.Append(ability.ToString()).Append(' ').Append(name);
+            }
+            return text.ToString();
+        }
+
         private static void ScanAbility(StringBuilder text, byte[] data, byte[] vanilla, int offset,
-            ref int checkedSlots, ref int vanillaHits, ref int newHits)
+            ref int checkedSlots, ref int vanillaHits, ref int newHits,
+            ref int alwaysVanilla, ref int alwaysNew)
         {
             if (data == null || offset < 0 || offset >= data.Length)
                 return;
             checkedSlots++;
             int ability = data[offset];
-            if (!RandomizerExtras.blockedAbilities.Contains(ability))
+            bool always = RandomizerExtras.isAlwaysBlocked(ability);
+            bool fromUserList = RandomizerExtras.blockAbilities
+                && RandomizerExtras.blockedAbilities.Contains(ability);
+            if (!always && !fromUserList)
                 return;
 
             bool inVanilla = vanilla != null && offset < vanilla.Length && vanilla[offset] == ability;
+            if (always)
+            {
+                if (inVanilla)
+                {
+                    alwaysVanilla++;
+                    return;
+                }
+                alwaysNew++;
+                if (alwaysNew <= 25)
+                {
+                    string name = ability < Randomizer.abilityNames.Length ? Randomizer.abilityNames[ability] : "?";
+                    text.AppendLine("  always-blocked ability at offset " + offset.ToString()
+                        + " : " + ability.ToString() + " " + name);
+                }
+                return;
+            }
+
             if (inVanilla)
             {
                 vanillaHits++;

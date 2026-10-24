@@ -73,6 +73,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             // Extra options from RandomizerExtras.
             RandomizerExtras.evenClassVariety = value;
+            RandomizerExtras.classIdentity = value;
             RandomizerExtras.limitSiegeTomes = value;
             RandomizerExtras.blockAbilities = value;
             if (!value)
@@ -109,6 +110,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             RandomizerBig.gambitGraftChance = graftChance;
             RandomizerBig.gambitFromWeaponChance = graftChance;
             RandomizerBig.uniqueWeaponEffects = value;
+            // The description pass only adds text for effects that changed, so
+            // enabling everything turns it on and the off-everything check
+            // leaves the message table alone.
+            RandomizerBig.describeWeaponEffects = value;
 
             this.quickSyncExtraControls();
             try
@@ -157,6 +162,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     RandomizerMore.statTotalTolerance);
             if (this.extrasSiege_checkBox != null)
                 this.extrasSiege_checkBox.Checked = RandomizerExtras.limitSiegeTomes;
+            if (this.extrasClassIdentity_checkBox != null)
+                this.extrasClassIdentity_checkBox.Checked = RandomizerExtras.classIdentity;
+            if (this.extrasClassDefenseLimit_numericUpDown != null)
+            {
+                this.extrasClassDefenseLimit_numericUpDown.Value = clampToControl(
+                    this.extrasClassDefenseLimit_numericUpDown, RandomizerExtras.classDefenseLimit);
+                this.extrasClassDefenseLimit_numericUpDown.Enabled = RandomizerExtras.classIdentity;
+            }
+            if (this.extrasDescribeWeapons_checkBox != null)
+                this.extrasDescribeWeapons_checkBox.Checked = RandomizerBig.describeWeaponEffects;
 
             if (this.extrasBossAb_checkBox != null)
                 this.extrasBossAb_checkBox.Checked = RandomizerMore.protectBossAbilities;

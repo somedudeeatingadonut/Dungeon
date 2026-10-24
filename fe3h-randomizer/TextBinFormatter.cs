@@ -76,5 +76,20 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             languages[1].setStrings(strings, includeInvalids);
             languages[2].setStrings(strings2, includeInvalids);
         }
+
+        // The language getStrings() reads. setStrings() deliberately copies it
+        // into the second English section as well, which is what a base-text
+        // reset wants; a pass that edits a handful of strings (the weapon
+        // descriptions) must not rewrite the other languages with English text,
+        // so it writes this one only.
+        public const int EnglishLanguage = 1;
+
+        public bool setStringsForLanguage(int language, List<string> strings, bool includeInvalids)
+        {
+            if (language < 0 || language >= languages.Count || strings == null)
+                return false;
+            languages[language].setStrings(strings, includeInvalids);
+            return true;
+        }
     }
 }

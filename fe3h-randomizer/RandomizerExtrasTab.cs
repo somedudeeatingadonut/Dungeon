@@ -56,6 +56,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private TextBox extrasModOriginals_textBox;
         private Label extrasModOffsets_label;
         private CheckBox extrasModMastery_checkBox;
+        private CheckBox extrasClassIdentity_checkBox;
+        private NumericUpDown extrasClassDefenseLimit_numericUpDown;
+        private CheckBox extrasDescribeWeapons_checkBox;
         private CheckBox extrasModNoMonastery_checkBox;
         private ComboBox extrasPreset_comboBox;
         private Label extrasPresetInfo_label;
@@ -433,6 +436,43 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "Higher safety also evens out the growths, stats, class abilities and combat arts\r\n"
                     + "inside each tier, so the classes you get are not all built from the same mould."));
 
+                addFullRow(layout, sectionLabel("Class identity"));
+
+                this.extrasClassIdentity_checkBox = new CheckBox();
+                this.extrasClassIdentity_checkBox.AutoSize = true;
+                this.extrasClassIdentity_checkBox.Checked = RandomizerExtras.classIdentity;
+                this.extrasClassIdentity_checkBox.Text =
+                    "Make each class's Str and Mag follow the weapon type it actually has now";
+                this.extrasClassIdentity_checkBox.CheckedChanged +=
+                    new EventHandler(this.extrasClassIdentity_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasClassIdentity_checkBox);
+
+                this.extrasClassDefenseLimit_numericUpDown = new NumericUpDown();
+                this.extrasClassDefenseLimit_numericUpDown.Minimum = 0;
+                this.extrasClassDefenseLimit_numericUpDown.Maximum = 200;
+                this.extrasClassDefenseLimit_numericUpDown.Increment = 10;
+                this.extrasClassDefenseLimit_numericUpDown.Value = RandomizerExtras.classDefenseLimit;
+                this.extrasClassDefenseLimit_numericUpDown.Width = 70;
+                this.extrasClassDefenseLimit_numericUpDown.Enabled = RandomizerExtras.classIdentity;
+                this.extrasClassDefenseLimit_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasClassDefenseLimit_numericUpDown.ValueChanged +=
+                    new EventHandler(this.extrasClassDefenseLimit_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Class Def / Res may exceed vanilla by (%):"),
+                    this.extrasClassDefenseLimit_numericUpDown);
+
+                addFullRow(layout, helpLabel(
+                    "The weapon type and the stats of a class are rolled by two different passes, so a\r\n"
+                    + "class can end up using swords while its highest stat is Magic - the game then\r\n"
+                    + "shows a Dark Mage with a mage's bonuses but a sword in its hand. With this on,\r\n"
+                    + "Str and Mag (base stats, class boosts, both growth sets) are traded when they\r\n"
+                    + "contradict the weapon type, so the numbers are kept but the right stat owns them.\r\n"
+                    + "Hybrid classes, monsters and boss rows are left alone.\r\n"
+                    + "The percentage is the other half: a class's base Def / Res and its Def / Res boosts\r\n"
+                    + "may go this far above the vanilla class before they are pulled back. A class base is\r\n"
+                    + "a floor for every unit in it and the boost is added on top, so one lucky roll used to\r\n"
+                    + "be enough to make a beginner class - and every enemy in it - far tankier than it\r\n"
+                    + "should be. 0% turns the pull-back off."));
+
                 // ---------------------------------------------------- abilities
                 addFullRow(layout, sectionLabel("Abilities that must never be randomized"));
 
@@ -517,6 +557,26 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "and 2 range setup. Player side weapons and shops are not touched.\r\n"
                     + "The chance lets that percentage of enemies ignore the limit - they still have to\r\n"
                     + "roll the siege weapon afterwards, so it is a chance on a chance."));
+
+                // --------------------------------------------- weapon effect text
+                addFullRow(layout, sectionLabel("Weapon effect text"));
+
+                this.extrasDescribeWeapons_checkBox = new CheckBox();
+                this.extrasDescribeWeapons_checkBox.AutoSize = true;
+                this.extrasDescribeWeapons_checkBox.Checked = RandomizerBig.describeWeaponEffects;
+                this.extrasDescribeWeapons_checkBox.Text =
+                    "Write the randomized effect into the weapon's description text";
+                this.extrasDescribeWeapons_checkBox.CheckedChanged +=
+                    new EventHandler(this.extrasDescribeWeapons_checkBox_CheckedChanged);
+                addFullRow(layout, this.extrasDescribeWeapons_checkBox);
+
+                addFullRow(layout, helpLabel(
+                    "A grafted effect is invisible in game until it fires: the item screen still shows\r\n"
+                    + "the old description, so a weapon that seals defence looks like a plain iron sword.\r\n"
+                    + "With this on, every weapon whose effect, effectiveness or properties changed gets a\r\n"
+                    + "first line naming it - \"Inflicts Seal Defense.\" - with the vanilla flavour text kept\r\n"
+                    + "underneath. It needs msgdata.bin loaded, and the run writes msgdata.bin even when the\r\n"
+                    + "text options on the Music and Text tab are off."));
 
                 // ------------------------------------------------- level scaling
                 addFullRow(layout, sectionLabel("Level scaling"));
@@ -913,6 +973,29 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasBuilding || this.extrasSiegeChance_numericUpDown == null)
                 return;
             RandomizerExtras.siegeChance = (int)this.extrasSiegeChance_numericUpDown.Value;
+        }
+
+        private void extrasClassIdentity_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasClassIdentity_checkBox == null)
+                return;
+            RandomizerExtras.classIdentity = this.extrasClassIdentity_checkBox.Checked;
+            if (this.extrasClassDefenseLimit_numericUpDown != null)
+                this.extrasClassDefenseLimit_numericUpDown.Enabled = this.extrasClassIdentity_checkBox.Checked;
+        }
+
+        private void extrasClassDefenseLimit_numericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasClassDefenseLimit_numericUpDown == null)
+                return;
+            RandomizerExtras.classDefenseLimit = (int)this.extrasClassDefenseLimit_numericUpDown.Value;
+        }
+
+        private void extrasDescribeWeapons_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasDescribeWeapons_checkBox == null)
+                return;
+            RandomizerBig.describeWeaponEffects = this.extrasDescribeWeapons_checkBox.Checked;
         }
 
         private void extrasGrowthShift_numericUpDown_ValueChanged(object sender, EventArgs e)

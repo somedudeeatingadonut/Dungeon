@@ -3515,12 +3515,22 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             TextFormatter msgf = new TextBinFormatter();
             List<string> msgStrings = new List<string>();
 
-            if (msgLoaded && settings.changeMsg)
+            // The weapon descriptions below need the message table even when
+            // none of the text options is on, so the load is driven by the
+            // description option as well as by changeMsg.
+            bool describeWeapons = msgLoaded && RandomizerBig.describeWeaponEffects;
+            if (msgLoaded && (settings.changeMsg || describeWeapons))
             {
                 Randomizer.msgData = new byte[Randomizer.msgDataV.Length];
                 Randomizer.msgDataV.CopyTo((Array)Randomizer.msgData, 0);
-                msgf = new TextBinFormatter(msgData);
-                msgStrings = msgf.getStrings(true);
+                // Parsing the table is only worth it for the text options; the
+                // description pass parses it again at the end, after the effect
+                // remix, so it does not use this copy of the strings.
+                if (settings.changeMsg)
+                {
+                    msgf = new TextBinFormatter(msgData);
+                    msgStrings = msgf.getStrings(true);
+                }
             }
 
             TextFormatter scrf = new TextBinFormatter();
@@ -11489,6 +11499,35 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             noteStage("final passes");
             RandomizerExtras.applyAfterRandomization();
+
+            // The effect remix is one of those final passes, so the weapon text
+            // has to be written after it: an effect that is grafted on after the
+            // text was generated would never be described. Re-reading msgData
+            // keeps whatever the text options already did to it.
+            if (describeWeapons && msgData != null)
+            {
+                try
+                {
+                    TextBinFormatter weaponText = new TextBinFormatter(msgData);
+                    List<string> weaponStrings = weaponText.getStrings(true);
+                    int described = RandomizerBig.writeWeaponDescriptions(weaponStrings);
+                    if (described > 0)
+                    {
+                        // Only the English section: setStrings() would copy the
+                        // English text over the second English section as well.
+                        if (!weaponText.setStringsForLanguage(
+                                TextBinFormatter.EnglishLanguage, weaponStrings, true))
+                            throw new Exception("the message table has no English section");
+                        msgData = weaponText.getBytes();
+                    }
+                    RandomizerBig.statWeaponDescriptionsDone = described;
+                }
+                catch (Exception exception)
+                {
+                    Randomizer.warnings += "\nThe weapon effect descriptions could not be written ("
+                        + exception.Message + ").";
+                }
+            }
             noteStage("finished");
 
             changelog += "\n\n\n---RANDOMIZATION SETTINGS---";
