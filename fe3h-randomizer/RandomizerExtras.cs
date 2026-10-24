@@ -68,6 +68,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statSpellsFiltered;
         public static int statGrowthShiftedClasses;
         public static int statSpreadPasses;
+        public static int statFirstSpellRank;
         public static int statBlockedAbilitiesRemoved;
         public static List<int>[] statTypesServedByTier = new List<int>[8];
         public static List<int> statTypesServedGlobal = new List<int>();
@@ -98,6 +99,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statSpellsFiltered = 0;
             statGrowthShiftedClasses = 0;
             statSpreadPasses = 0;
+            statFirstSpellRank = 0;
             RandomizerMore.resetCounters();
             RandomizerBig.resetCounters();
             ModSupport.resetCounters();
@@ -297,6 +299,26 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (range <= 0 || range >= 100)
                 return true;
             return range <= maxEnemyWeaponRange;
+        }
+
+        // Rank the first spell of every character spell list is written at.
+        // D (rank 2) is what the game itself does. A total conversion that
+        // starts units in intermediate classes - No Monastery does - already
+        // has D at level 1, so every character begins with a spell; picking C
+        // or later pushes the first spell back to when the rank is earned.
+        // The spell tables are indexed per half rank (rank / 2), so only the
+        // even ranks D, C, B and A mean anything here.
+        public static int firstSpellRank(int setting)
+        {
+            int rank = setting;
+            if (rank < 2)
+                rank = 2;
+            if (rank > 8)
+                rank = 8;
+            if (rank % 2 != 0)
+                rank++;
+            statFirstSpellRank = rank;
+            return rank;
         }
 
         // Drop-in replacement for getSpell(...) on the enemy side only, so player

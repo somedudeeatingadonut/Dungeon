@@ -1066,6 +1066,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private NumericUpDown numericUpDown626;
         private CheckBox checkBox185;
         private CheckBox checkBox184;
+        private ComboBox comboBoxSpellRank;
         private CheckBox checkBox183;
         private GroupBox groupBox57;
         private CheckBox checkBox187;
@@ -3396,6 +3397,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             checkBox183.Checked = settings.randSpellLists;
             checkBox184.Enabled = checkBox183.Enabled && checkBox183.Checked;
             checkBox184.Checked = settings.spellAtD;
+            comboBoxSpellRank.Enabled = checkBox184.Enabled && checkBox184.Checked;
+            comboBoxSpellRank.SelectedIndex = Math.Max(0, Math.Min(3, (settings.spellFirstRank - 2) / 2));
             checkBox185.Enabled = checkBox183.Enabled && checkBox183.Checked;
             checkBox185.Checked = settings.baseSpellLists;
             numericUpDown626.Enabled = checkBox185.Enabled && checkBox185.Checked;
@@ -5866,6 +5869,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             this.numericUpDown626 = new System.Windows.Forms.NumericUpDown();
             this.checkBox185 = new System.Windows.Forms.CheckBox();
             this.checkBox184 = new System.Windows.Forms.CheckBox();
+            this.comboBoxSpellRank = new System.Windows.Forms.ComboBox();
             this.checkBox183 = new System.Windows.Forms.CheckBox();
             this.groupBox54 = new System.Windows.Forms.GroupBox();
             this.numericUpDown623 = new System.Windows.Forms.NumericUpDown();
@@ -23146,6 +23150,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             this.groupBox55.Controls.Add(this.groupBox56);
             this.groupBox55.Controls.Add(this.checkBox185);
             this.groupBox55.Controls.Add(this.checkBox184);
+            this.groupBox55.Controls.Add(this.comboBoxSpellRank);
             this.groupBox55.Controls.Add(this.checkBox183);
             this.groupBox55.Location = new System.Drawing.Point(141, 274);
             this.groupBox55.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
@@ -23421,10 +23426,27 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             this.checkBox184.Name = "checkBox184";
             this.checkBox184.Size = new System.Drawing.Size(179, 21);
             this.checkBox184.TabIndex = 2;
-            this.checkBox184.Text = "Always Spell on Rank D";
-            this.toolTip1.SetToolTip(this.checkBox184, "This is how it normally is, and boy is it convenient.");
+            this.checkBox184.Text = "Always Spell on Rank";
+            this.toolTip1.SetToolTip(this.checkBox184, "Every character learns their first spell at a\r\nfixed rank, like the game itself does at D.\r\n"
+        "Set it later if a mod starts units with higher\r\nskill ranks - No Monastery starts in\r\nintermediate classes, so D means a spell at\r\nlevel 1 for everybody.");
             this.checkBox184.UseVisualStyleBackColor = true;
             this.checkBox184.CheckedChanged += new System.EventHandler(this.checkBox184_CheckedChanged);
+            // 
+            // comboBoxSpellRank
+            // 
+            this.comboBoxSpellRank.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxSpellRank.FormattingEnabled = true;
+            this.comboBoxSpellRank.Items.AddRange(new object[] {
+            "D",
+            "C",
+            "B",
+            "A"});
+            this.comboBoxSpellRank.Location = new System.Drawing.Point(200, 48);
+            this.comboBoxSpellRank.Margin = new System.Windows.Forms.Padding(4, 2, 3, 2);
+            this.comboBoxSpellRank.Name = "comboBoxSpellRank";
+            this.comboBoxSpellRank.Size = new System.Drawing.Size(53, 24);
+            this.comboBoxSpellRank.TabIndex = 5;
+            this.comboBoxSpellRank.SelectedIndexChanged += new System.EventHandler(this.comboBoxSpellRank_SelectedIndexChanged);
             // 
             // checkBox183
             // 
@@ -28803,6 +28825,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private void checkBox184_CheckedChanged(object sender, EventArgs e)
         {
             settings.spellAtD = ((CheckBox)sender).Checked;
+            updateAllDisplay();
+        }
+
+        private void comboBoxSpellRank_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBoxSpellRank.SelectedIndex < 0)
+                return;
+            settings.spellFirstRank = 2 + 2 * comboBoxSpellRank.SelectedIndex;
             updateAllDisplay();
         }
 

@@ -656,6 +656,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("spells replaced for range     : " + RandomizerExtras.statSpellsFiltered);
             text.AppendLine("classes growth shifted        : " + RandomizerExtras.statGrowthShiftedClasses);
             text.AppendLine("tier spread passes            : " + RandomizerExtras.statSpreadPasses);
+            text.AppendLine("first character spell rank    : "
+                + (RandomizerExtras.statFirstSpellRank > 0
+                    ? Randomizer.rankOf(RandomizerExtras.statFirstSpellRank) + " (rank "
+                        + RandomizerExtras.statFirstSpellRank.ToString() + ")"
+                    : "not written - character spell lists were not randomized"));
 
             if (RandomizerExtras.evenClassVariety)
             {
@@ -673,6 +678,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 warnings.Add("ability blocklist is enabled but no ability was picked - is ability randomization on?");
             if (RandomizerExtras.growthShift > 0 && RandomizerExtras.statGrowthShiftedClasses == 0)
                 warnings.Add("growth shift is set but no class was changed - is class data loaded?");
+            // A total conversion starts units in intermediate classes, so the
+            // rank D spell the game normally hands out is already earned at
+            // level 1 and every character can cast from the first map.
+            if (ModSupport.modMode && RandomizerExtras.statFirstSpellRank == 2)
+                warnings.Add("the first spell is written at rank D and the mod starts units in"
+                    + " intermediate classes, so every character has that spell from level 1."
+                    + " Set 'Always Spell on Rank' to C or later under Spell Lists to delay it");
             text.AppendLine();
         }
 

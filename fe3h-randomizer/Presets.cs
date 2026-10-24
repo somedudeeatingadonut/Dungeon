@@ -376,6 +376,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             + "RandomizerBig.uniqueWeaponEffects=False\nRandomizerBig.weaponDonorsDifferInType=False\n";
 
         private const string builtInRunName = "My run - the 1.8.2 debug report";
+
+        // Rank 4 is C. No Monastery starts units in intermediate classes, so a
+        // spell written at the game's usual D is already known on the first
+        // map for every character; C delays it to the rank actually earned.
+        private const int firstSpellRankForMod = 4;
         private const string builtInModSafeName = "No Monastery (mod safe)";
         private const string builtInPluginSafeName = "No Monastery 2.1 (plugin, mod safe)";
 
@@ -408,6 +413,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 text.AppendLine(ModSupport.conflictKeyAt(ModSupport.kindDataMod, i) + "=False");
             text.AppendLine("ModSupport.modMode=True");
             text.AppendLine("ModSupport.keepMasteryExp=True");
+            // The mod starts units in intermediate classes, so a rank D first
+            // spell is earned at level 1 and everybody can cast from the start.
+            text.AppendLine("spellFirstRank=" + firstSpellRankForMod.ToString());
             return text.ToString();
         }
 
@@ -440,6 +448,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 text.AppendLine(ModSupport.conflictKeyAt(ModSupport.kindPluginMod, i) + "=False");
             text.AppendLine("ModSupport.modMode=True");
             text.AppendLine("ModSupport.keepMasteryExp=False");
+            text.AppendLine("spellFirstRank=" + firstSpellRankForMod.ToString());
             return text.ToString();
         }
 
@@ -469,7 +478,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             modSafe.Name = builtInModSafeName;
             modSafe.Description = "No Monastery 1.3.3, the data-file release: the same run with everything"
                 + " the mod ships handed back to it (" + ModSupport.conflictCount(ModSupport.kindDataMod).ToString()
-                + " options off)";
+                + " options off), first spell at C";
             modSafe.Data = builtInModSafeData();
             modSafe.BuiltIn = true;
             cache.Add(modSafe);
@@ -478,7 +487,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             pluginSafe.Name = builtInPluginSafeName;
             pluginSafe.Description = "No Monastery 2.1, the Skyline plugin release: the same run with only"
                 + " the " + ModSupport.conflictCount(ModSupport.kindPluginMod).ToString()
-                + " options the plugin recalculates turned off";
+                + " options the plugin recalculates turned off, first spell at C";
             pluginSafe.Data = builtInPluginSafeData();
             pluginSafe.BuiltIn = true;
             cache.Add(pluginSafe);

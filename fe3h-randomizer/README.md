@@ -565,6 +565,37 @@ each pass changed, how many duplicates are left, the class growth range and
 growth totals after the run, the stat boost and base stat extremes, with a
 PASS / WARN / FAIL line per option.
 
+### Always Spell on Rank - D, C, B or A
+
+Every character's spell list starts with one spell written at a fixed rank, so a
+character has something to cast as soon as they reach it. That rank used to be
+hard wired to **D**, which is what the game itself does. The **Spell Lists**
+group on the Characters tab now has a small drop down next to the
+*Always Spell on Rank* box:
+
+| Choice | Rank value | When the first spell arrives |
+| --- | --- | --- |
+| D (default) | 2 | as soon as Reason / Faith hits D |
+| C | 4 | at C |
+| B | 6 | at B |
+| A | 8 | at A |
+
+The spell tables only know half ranks (the tool looks a spell up with
+`rank / 2`), so D+ would behave exactly like D and is not offered.
+
+This matters with a total conversion. No Monastery starts every unit in an
+intermediate class, which means the rank D that vanilla only reaches after a few
+weeks is already there on the first map - so *every* character can cast from
+turn one, which is not what the option promises. Pick **C** (or later) to push
+the first spell back to a rank that still has to be earned. Both built-in
+No Monastery presets now apply at C for that reason; the plain
+*My run - the 1.8.2 debug report* preset keeps D, exactly like the run it comes
+from.
+
+The debug report prints the rank under the run counters
+(`first character spell rank : C (rank 4)`), and when mod mode is on while the
+rank is still D it adds a warning saying why every unit starts with a spell.
+
 ## Use it
 
 **Batch: folders** tab:

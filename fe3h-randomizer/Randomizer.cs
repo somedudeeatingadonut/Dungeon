@@ -8330,7 +8330,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         {
                             int newSpell = 255;
                             if (i == 0 && settings.spellAtD)
-                                reasonSpellRanks[i] = 2;
+                                reasonSpellRanks[i] = RandomizerExtras.firstSpellRank(settings.spellFirstRank);
                             else
                                 reasonSpellRanks[i] = rng.Next(2, 10);
                             if (!hasBlackSpells)
@@ -8357,7 +8357,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         {
                             int newSpell = 255;
                             if (i == 0 && settings.spellAtD)
-                                faithSpellRanks[i] = 2;
+                                faithSpellRanks[i] = RandomizerExtras.firstSpellRank(settings.spellFirstRank);
                             else
                                 faithSpellRanks[i] = rng.Next(2, 10);
                             newSpell = getSpell(6, faithSpellRanks[i], true, false);

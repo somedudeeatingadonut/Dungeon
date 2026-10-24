@@ -901,6 +901,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public int buddingTalentLessonCountMax;
         public bool randSpellLists;
         public bool spellAtD;
+        public int spellFirstRank;
         public bool baseSpellLists;
         public int regularSpellListReasonCountMin;
         public int regularSpellListReasonCountMax;
@@ -1972,6 +1973,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             this.buddingTalentLessonCountMax = 18;
             this.randSpellLists = false;
             this.spellAtD = false;
+            this.spellFirstRank = 2; // D: the game's own habit
             this.baseSpellLists = false;
             this.regularSpellListReasonCountMin = 2;
             this.regularSpellListReasonCountMax = 4;
