@@ -406,6 +406,26 @@ different build of the file (13,159 bytes differ from the copy in `data`). The
 folder scan ignores it: a copy inside a `data` folder always wins over one that is
 not.
 
+**Mixing two installs is caught, not guessed at.** A scan looks through
+subfolders, so it can pick up a file from a *different* install that happens to sit
+under the folder you pointed at - a leftover `No Monastery\data` from the 1.3.3
+release next to the romfs, for example, which would then supply
+`fixed_growthdata.bin`, `fixed_lobby_common.bin` and `msgdata.bin` while the game's
+own `patch4\nx\data` supplied the rest. Every loaded file is remembered with the
+folder it came from, and anything whose path does not start with part of a romfs
+tree (`patch1`..`patch4`, `nx`, `romfs`, `data`, `common`, `sound`, `contents`,
+`atmosphere`, ...) is marked:
+
+* in the scan log and its summary: `[outside the romfs layout]`, plus a warning
+  listing the files and their folders;
+* in the debug report, under the loaded files and again under mod compatibility;
+* in a question before the run, which defaults to **No**.
+
+The fix is to scan the game's own romfs folder only (or the mod's `romfs`, for a
+data-file mod) and move the other folder out of the way. Files loaded one by one
+with the `Load ...` dialogs are never flagged - there is no scan folder to compare
+against.
+
 **What the offsets cannot answer:** they describe the `fixed_*.bin` files the
 randomizer writes. `DATA1.bin` is patched in place by section offset and No
 Monastery does not ship it, so nothing there moves. The randomizer writes class

@@ -4048,6 +4048,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         return;
                 }
 
+                // Files that did not come out of the romfs tree that was scanned
+                // belong to a different install; writing them into the game mixes
+                // two releases together. Ask before that happens.
+                if (!ModSupport.confirmForeignSources())
+                    return;
+
                 // Added by ModSupport.cs: a mod that moved a table would make every
                 // write land in the wrong place, so this is asked before the run.
                 if (!ModSupport.confirmOffsets())

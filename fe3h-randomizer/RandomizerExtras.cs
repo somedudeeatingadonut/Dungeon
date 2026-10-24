@@ -1,4 +1,4 @@
-// -----------------------------------------------------------------------------
+﻿// -----------------------------------------------------------------------------
 //  RandomizerExtras.cs
 //
 //  Four extra randomization options, kept in their own file so the decompiled
@@ -101,6 +101,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             RandomizerMore.resetCounters();
             RandomizerBig.resetCounters();
             ModSupport.resetCounters();
+            ModSupport.resetSources();
             for (int i = 0; i < statTypesServedByTier.Length; i++)
                 statTypesServedByTier[i] = new List<int>();
             statTypesServedGlobal = new List<int>();

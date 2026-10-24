@@ -419,6 +419,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             // A Skyline plugin mod keeps no data files, so there is nothing for the
             // size checks to notice. Look for its plugin folder once instead.
             ModSupport.detectSkylineNear(folder);
+
+            // Every file is remembered with the folder it came from, so a scan that
+            // mixes two installs can say so.
+            ModSupport.resetSources();
             SearchOption searchOption = this.batchIncludeSubfolders_checkBox.Checked
                 ? SearchOption.AllDirectories
                 : SearchOption.TopDirectoryOnly;
@@ -495,8 +499,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 {
                 }
 
+                ModSupport.noteSource(spec.FileName, chosen);
+                bool inLayout = ModSupport.isInsideLayout(folder, chosen);
                 if (sizeLooksRight)
-                    this.batchWriteLog("  loaded    " + spec.FileName + "  ->  " + chosen);
+                    this.batchWriteLog("  loaded    " + spec.FileName + "  ->  " + chosen
+                        + (inLayout ? "" : "  [outside the romfs layout]"));
                 else if (modCopy)
                     this.batchWriteLog("  loaded    " + spec.FileName + "  ->  " + chosen
                         + "  [the mod's copy, offsets handled]");
@@ -519,6 +526,33 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             string message = "Loaded " + loadedNames.Count.ToString() + " of "
                 + batchInputSpecs.Length.ToString() + " files from:\n" + folder;
+
+            // Files that came from nowhere near the romfs tree are almost always a
+            // leftover mod folder sitting in the same parent, and mixing that into
+            // the output is exactly the thing to avoid.
+            List<string> foreign = ModSupport.foreignSourceLines();
+            if (foreign.Count > 0)
+            {
+                this.batchWriteLog("");
+                this.batchWriteLog("  WARNING   " + foreign.Count.ToString()
+                    + " file(s) came from outside the romfs layout:");
+                for (int i = 0; i < foreign.Count; i++)
+                    this.batchWriteLog(foreign[i]);
+                this.batchWriteLog("            these look like a different install - the output would");
+                this.batchWriteLog("            mix it into the game. Scan the game's romfs folder only,");
+                this.batchWriteLog("            or move the other folder out of the way, then scan again.");
+
+                message += "\n\nWARNING - " + foreign.Count.ToString()
+                    + " of them did not come from the romfs tree you scanned:\n";
+                for (int i = 0; i < foreign.Count && i < 8; i++)
+                    message += "  " + foreign[i].Trim() + "\n";
+                if (foreign.Count > 8)
+                    message += "  ... and " + (foreign.Count - 8).ToString() + " more\n";
+                message += "\nThose belong to a different install (a leftover mod folder, most likely).";
+                message += "\nThe randomized output would mix that install into the game.";
+                message += "\nPoint the scan at the game's own romfs folder (or the mod's romfs),";
+                message += "\nor move that folder somewhere else, and scan again.";
+            }
             if (missingNames.Count > 0)
                 message += "\n\nNot found (load these by hand if you need them):\n  "
                     + string.Join("\n  ", missingNames.ToArray());
@@ -526,7 +560,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 message += "\n\nCould not be read:\n  " + string.Join("\n  ", problemNames.ToArray());
 
             MessageBox.Show(message, "Scan folder", MessageBoxButtons.OK,
-                problemNames.Count > 0 ? MessageBoxIcon.Exclamation : MessageBoxIcon.Information);
+                (problemNames.Count > 0 || foreign.Count > 0)
+                    ? MessageBoxIcon.Exclamation : MessageBoxIcon.Information);
         }
 
         private string batchChooseCandidate(BatchInputSpec spec, List<string> candidates)

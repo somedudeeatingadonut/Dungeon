@@ -100,6 +100,115 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             modKindDetail = "";
         }
 
+        // --------------------------------------------------- where files came from
+        // A scan can legitimately pick up a file from anywhere under the folder it
+        // was pointed at. It is not legitimate to mix two installs: a leftover
+        // 1.3.3 `No Monastery\data` folder sitting beside the romfs, say, which
+        // then supplies fixed_growthdata.bin while the game's own patch4\nx\data
+        // supplies the rest. The output would be half one release, half the other.
+        // Every loaded file is therefore remembered with the top folder it came
+        // from, and anything that is not part of a romfs tree is flagged.
+        private sealed class SourceNote
+        {
+            public string FileName;
+            public string Folder;
+            public bool Foreign;
+        }
+
+        private static List<SourceNote> sources = new List<SourceNote>();
+
+        public static void resetSources()
+        {
+            sources = new List<SourceNote>();
+        }
+
+        // Relative path of a file, from the folder that was scanned.
+        public static string relativeTo(string folder, string path)
+        {
+            if (folder == null || path == null)
+                return path;
+            string trimmed = folder.TrimEnd('\\', '/');
+            if (path.StartsWith(trimmed, StringComparison.OrdinalIgnoreCase))
+                return path.Substring(trimmed.Length).TrimStart('\\', '/');
+            return path;
+        }
+
+        // True when the first folder under the scan folder is part of a romfs
+        // tree (or there is no subfolder at all, i.e. the file sat directly in it).
+        public static bool isInsideLayout(string folder, string path)
+        {
+            // No scan folder (the files were loaded one by one with the dialogs):
+            // there is no layout to compare against, so nothing is flagged.
+            if (folder == null || folder.Trim().Length == 0)
+                return true;
+            string relative = relativeTo(folder, path);
+            string[] parts = relative.Split(new char[] { '\\', '/' });
+            if (parts.Length <= 1)
+                return true;
+            string root = parts[0].ToLowerInvariant();
+            if (root.Length == 0)
+                return true;
+            if (root == "data" || root == "romfs" || root == "nx" || root == "common"
+                || root == "sound" || root == "exefs" || root == "skyline"
+                || root == "content" || root == "contents" || root == "atmosphere"
+                || root == "mods" || root == "load" || root == "patch"
+                || root == "cache" || root == "packed")
+                return true;
+            if (root.StartsWith("patch", StringComparison.Ordinal))
+                return true;
+            // A title id folder, when the whole SD card (or the contents folder)
+            // is what was scanned.
+            if (root.StartsWith("0100", StringComparison.Ordinal) || root.StartsWith("0101", StringComparison.Ordinal))
+                return true;
+            return false;
+        }
+
+        // The folder a file came from, as the report shows it: the first folder
+        // under the scan folder, or "(the scanned folder)" for a file in it.
+        public static string sourceLabel(string folder, string path)
+        {
+            string relative = relativeTo(folder, path);
+            string[] parts = relative.Split(new char[] { '\\', '/' });
+            if (parts.Length <= 1)
+                return "(the scanned folder)";
+            return parts[0];
+        }
+
+        public static void noteSource(string fileName, string path)
+        {
+            string folder = lastScanFolder;
+            SourceNote note = new SourceNote();
+            note.FileName = fileName;
+            note.Folder = sourceLabel(folder, path) + (isInsideLayout(folder, path)
+                ? "   (" + relativeTo(folder, path) + ")" : "   <- outside the romfs layout");
+            note.Foreign = !isInsideLayout(folder, path);
+            sources.Add(note);
+        }
+
+        public static List<string> foreignSourceLines()
+        {
+            List<string> lines = new List<string>();
+            for (int i = 0; i < sources.Count; i++)
+                if (sources[i].Foreign)
+                    lines.Add("  " + sources[i].FileName + "  <- " + sources[i].Folder);
+            return lines;
+        }
+
+        public static int foreignSourceCount()
+        {
+            return foreignSourceLines().Count;
+        }
+
+        // The distinct folders the loaded files came from, in load order.
+        public static List<string> sourceFolders()
+        {
+            List<string> folders = new List<string>();
+            for (int i = 0; i < sources.Count; i++)
+                if (!folders.Contains(sources[i].Folder))
+                    folders.Add(sources[i].Folder);
+            return folders;
+        }
+
         // -------------------------------------------------- finding the mod
         // Looks through a folder for the markers either release leaves behind
         // and remembers what it found. Returns true when it recognised one.
@@ -1775,6 +1884,42 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private static bool offsetsAcknowledged;
         private static bool originalsAcknowledged;
 
+        // Asked once per session, right before a run, when some of the loaded files
+        // came from outside the romfs tree that was scanned.
+        private static bool foreignAcknowledged;
+
+        public static bool confirmForeignSources()
+        {
+            if (foreignAcknowledged)
+                return true;
+            List<string> foreign = foreignSourceLines();
+            if (foreign.Count == 0)
+                return true;
+
+            StringBuilder text = new StringBuilder();
+            text.AppendLine("Some of the loaded files did not come from the romfs tree that was scanned:");
+            text.AppendLine();
+            for (int i = 0; i < foreign.Count && i < 10; i++)
+                text.AppendLine(foreign[i]);
+            if (foreign.Count > 10)
+                text.AppendLine("  ... and " + (foreign.Count - 10).ToString() + " more");
+            text.AppendLine();
+            text.AppendLine("Those look like a different install - a leftover mod folder in the same parent, for");
+            text.AppendLine("example - so the output would mix it into the game.");
+            text.AppendLine();
+            text.AppendLine("Scan the game's own romfs folder (or, for a data-file mod, that mod's romfs) and");
+            text.AppendLine("nothing else, or move the other folder somewhere else, then load the files again.");
+            text.AppendLine();
+            text.AppendLine("Randomize these files anyway?");
+
+            DialogResult answer = MessageBox.Show(text.ToString(), "Files from two different installs",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
+            if (answer != DialogResult.Yes)
+                return false;
+            foreignAcknowledged = true;
+            return true;
+        }
+
         public static bool confirmOffsets()
         {
             if (!modMode)
@@ -1888,6 +2033,23 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 text.AppendLine("      the Dancer row are taken from the loaded data instead of the originals.");
                 text.AppendLine();
                 return;
+            }
+
+            List<string> foreign = foreignSourceLines();
+            if (foreign.Count > 0)
+            {
+                text.AppendLine("files loaded from outside the romfs layout: " + foreign.Count.ToString());
+                for (int i = 0; i < foreign.Count && i < 20; i++)
+                    text.AppendLine(foreign[i]);
+                text.AppendLine("    these did not come out of the game's romfs tree, so they belong to a");
+                text.AppendLine("    different install (a leftover mod folder, most likely). The output would");
+                text.AppendLine("    mix that install into the game - scan the romfs folder only, or move that");
+                text.AppendLine("    folder out of the way, and load the files again");
+                text.AppendLine();
+                warnings.Add(foreign.Count.ToString()
+                    + " loaded file(s) did not come from the romfs tree that was scanned - the output"
+                    + " would mix in a different install. Load them again from the game's own romfs"
+                    + " folder (or the mod's romfs) and nothing else");
             }
 
             List<string> analysis = analyse();

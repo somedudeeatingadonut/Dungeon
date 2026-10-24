@@ -616,6 +616,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     {
                         long size = new FileInfo(path).Length;
                         state = path + "  [file " + size.ToString() + " bytes]";
+                        if (!ModSupport.isInsideLayout(ModSupport.lastScanFolder, path))
+                            state += "  [outside the romfs layout]";
                         if (note != null)
                             state += "  [" + note + "]";
                         if (loadedData != null && loadedData.Length > 0 && size != loadedData.Length)
