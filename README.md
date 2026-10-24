@@ -22,6 +22,9 @@ these features added to the program:
   get their table offsets lined up from their own file headers; the newer
   *No Monastery 2.1 "with Aldebaran"*, which ships no game data at all and works
   as a Skyline plugin, is recognised from its folder and needs none.
+* **Standard Windows folder picking** - every Browse button opens the shell's own
+  folder dialog (address bar, quick access, paste a path), not the old tree
+  control, and starts at the folder you were last working in.
 * **Debug report** - `FE3H Randomizer Debug.txt` with the loaded files, active
   options, per-feature run counters and PASS/WARN/FAIL checks of the output data.
 * Layout and painting tweaks so switching tabs is no longer laggy.

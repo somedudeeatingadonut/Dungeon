@@ -258,7 +258,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 modFolderLabel.AutoSize = true;
                 modFolderLabel.Anchor = AnchorStyles.Left;
                 modFolderLabel.Margin = new Padding(0, 6, 8, 6);
-                modFolderLabel.Text = "Mod folder (the unzipped mod, or contents/<title id> on the SD card):";
+                modFolderLabel.Text = "Mod folder (Browse or paste a path) - the unzipped mod, or"
+                    + " contents/<title id> on the SD card:";
 
                 this.extrasModFolder_textBox = new TextBox();
                 this.extrasModFolder_textBox.Anchor = AnchorStyles.Left | AnchorStyles.Right;
@@ -1107,9 +1108,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
         private void extrasModFolderBrowse_button_Click(object sender, EventArgs e)
         {
+            // Same dialog as the file buttons on the other tabs, and it starts at
+            // the mod folder already set, or at the folder the last scan read, so
+            // it never opens in the exe's build folder.
             string folder = this.batchPickFolder(
                 "Select the mod's own folder (the unzipped mod, or contents\\<title id>)",
-                ModSupport.modFolder);
+                ModSupport.modFolder, ModSupport.lastScanFolder);
             if (folder == null)
                 return;
             if (this.extrasModFolder_textBox != null)
@@ -1223,7 +1227,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private void extrasModOriginalsBrowse_button_Click(object sender, EventArgs e)
         {
             string folder = this.batchPickFolder(
-                "Select the folder with the original (unmodified) fixed_*.bin files", null);
+                "Select the folder with the original (unmodified) fixed_*.bin files",
+                ModSupport.originalFolder, ModSupport.modFolder);
             if (folder == null)
                 return;
             if (this.extrasModOriginals_textBox != null)

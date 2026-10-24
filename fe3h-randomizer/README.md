@@ -243,6 +243,15 @@ folder is at or above the folder being scanned, so pointing the normal scan at
 `contents/<title id>` also works. If the 2.1 zip was never unzipped, **Check the
 mod** says so instead of guessing.
 
+**Browse... opens the standard Windows folder dialog** - the same one the
+`Load ...` buttons on the other tabs use, with the breadcrumb bar, an address bar
+you can paste a path into, and the quick-access sidebar - not the old .NET tree
+control that has no address bar and drops you deep in a build or temp folder. It
+starts at the mod folder already set, otherwise at the folder the last scan read,
+and otherwise where you last picked a folder. The path box beside the button
+takes a pasted path too, so a mod a dozen folders down is one paste away. The
+same dialog is used for the game-files and output folders on the Batch tab.
+
 #### The 2.1 plugin: what still fights it
 
 Because 2.1 changes the game by code instead of by data, the list of options it

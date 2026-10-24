@@ -310,23 +310,69 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
         private string batchPickFolder(string description, string initialFolder)
         {
-            FolderBrowserDialog dialog = new FolderBrowserDialog();
-            dialog.Description = description;
-            dialog.ShowNewFolderButton = true;
-            string startFolder = initialFolder;
-            if ((startFolder == null || startFolder.Length == 0) && this.batchInputFolder_textBox != null)
-                startFolder = this.batchInputFolder_textBox.Text.Trim();
-            try
+            return this.batchPickFolder(description, initialFolder, null);
+        }
+
+        // secondChoice is where to start when the first one is empty or not a
+        // folder - the mod browse uses it for the folder the last scan read. The
+        // dialog itself is FolderPicker: the shell's own folder dialog, the same
+        // one the file dialogs on the other tabs show, with an address bar you
+        // can paste a path into.
+        private string batchPickFolder(string description, string initialFolder, string secondChoice)
+        {
+            string startFolder = batchFirstUsableFolder(new string[]
             {
-                if (startFolder != null && startFolder.Length > 0 && Directory.Exists(startFolder))
-                    dialog.SelectedPath = startFolder;
-            }
-            catch
+                initialFolder,
+                secondChoice,
+                this.batchInputFolder_textBox == null ? null : this.batchInputFolder_textBox.Text,
+                this.batchOutputFolder_textBox == null ? null : this.batchOutputFolder_textBox.Text
+            });
+            return FolderPicker.pick(this, description, startFolder);
+        }
+
+        // The first of these that is a real folder, or "" when none of them is.
+        // Anything under the temp folder or in bin\Release / bin\Debug is
+        // skipped: that is where the exe lives, not where the user keeps a mod.
+        private static string batchFirstUsableFolder(string[] candidates)
+        {
+            for (int i = 0; i < candidates.Length; i++)
             {
+                string candidate = candidates[i];
+                if (candidate == null)
+                    continue;
+                candidate = candidate.Trim();
+                if (candidate.Length == 0)
+                    continue;
+                try
+                {
+                    if (File.Exists(candidate))
+                        candidate = Path.GetDirectoryName(candidate);
+                    else if (!Directory.Exists(candidate))
+                        continue;
+                }
+                catch
+                {
+                    continue;
+                }
+                if (candidate == null || candidate.Length == 0)
+                    continue;
+                if (batchLooksLikeBuildFolder(candidate))
+                    continue;
+                return candidate;
             }
-            if (dialog.ShowDialog(this) == DialogResult.OK)
-                return dialog.SelectedPath;
-            return null;
+            return "";
+        }
+
+        private static bool batchLooksLikeBuildFolder(string folder)
+        {
+            string lower = folder.ToLowerInvariant();
+            if (lower.IndexOf("appdata\\local\\temp", StringComparison.Ordinal) >= 0)
+                return true;
+            if (lower.EndsWith("bin\\release", StringComparison.Ordinal))
+                return true;
+            if (lower.EndsWith("bin\\debug", StringComparison.Ordinal))
+                return true;
+            return false;
         }
 
         private void batchSave_button_Click(object sender, EventArgs e)
