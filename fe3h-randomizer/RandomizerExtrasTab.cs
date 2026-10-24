@@ -51,6 +51,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private CheckBox extrasBigWeaponUnique_checkBox;
         private CheckBox extrasBigWeaponDifferentType_checkBox;
         private CheckBox extrasModMode_checkBox;
+        private TextBox extrasModFolder_textBox;
+        private Label extrasModKind_label;
         private TextBox extrasModOriginals_textBox;
         private Label extrasModOffsets_label;
         private CheckBox extrasModMastery_checkBox;
@@ -230,16 +232,19 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 // --------------------------------------- total conversion mods
                 addFullRow(layout, sectionLabel("Total conversion mod (No Monastery and friends)"));
                 addFullRow(layout, helpLabel(
-                    "Switch this on when the game runs a total conversion mod. It changes four things,\r\n"
-                    + "all of them checked against No Monastery's own data files:\r\n"
-                    + "  - the table offsets are moved to where the mod's file really keeps its tables,\r\n"
-                    + "    read out of the file header (a mod that adds rows moves everything after them);\r\n"
-                    + "    No Monastery 1.3.3 is recognised by its own file headers and needs no folder\r\n"
-                    + "  - the mod's class mastery EXP values are put back after randomizing (the mod\r\n"
-                    + "    builds its mastery rework on its own 0 / 20 / 50 / 100 / 150 / 200 scale)\r\n"
-                    + "  - the Dancer row is looked up in the loaded data instead of being assumed to be\r\n"
-                    + "    class 43 with Dance in its first ability slot\r\n"
-                    + "  - the debug report lists every option that is still on and fights the mod"));
+                    "Switch this on when the game runs a total conversion mod. Two kinds exist and the\r\n"
+                    + "tool handles them differently:\r\n"
+                    + "  data files (No Monastery 1.3.3 and older) - the mod ships its own fixed_*.bin,\r\n"
+                    + "    so rows were added and every table after them moved. The offsets are read out\r\n"
+                    + "    of the mod's own file header (1.3.3 is recognised with no folder at all), the\r\n"
+                    + "    mod's mastery EXP values are put back after randomizing, and the Dancer row is\r\n"
+                    + "    looked up in the loaded data instead of being assumed to be class 43\r\n"
+                    + "  a Skyline plugin (No Monastery 2.1 'with Aldebaran') - the mod ships no game\r\n"
+                    + "    data at all, only romfs\\skyline\\plugins\\libno_monastery.nro and an exefs\r\n"
+                    + "    patch. Nothing can have moved, so the game's own files stay the input and the\r\n"
+                    + "    compiled-in offsets are already right; only the options the plugin\r\n"
+                    + "    recalculates (level scaling, class abilities) are listed as conflicts\r\n"
+                    + "  either way the debug report lists every option that is still on and fights it"));
 
                 this.extrasModMode_checkBox = new CheckBox();
                 this.extrasModMode_checkBox.AutoSize = true;
@@ -247,6 +252,49 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasModMode_checkBox.Text = "This game has a total conversion mod installed (mod mode)";
                 this.extrasModMode_checkBox.CheckedChanged += new EventHandler(this.extrasModMode_checkBox_CheckedChanged);
                 addFullRow(layout, this.extrasModMode_checkBox);
+
+                // ---- which mod: one folder, and the tool says what it is
+                Label modFolderLabel = new Label();
+                modFolderLabel.AutoSize = true;
+                modFolderLabel.Anchor = AnchorStyles.Left;
+                modFolderLabel.Margin = new Padding(0, 6, 8, 6);
+                modFolderLabel.Text = "Mod folder (the unzipped mod, or contents/<title id> on the SD card):";
+
+                this.extrasModFolder_textBox = new TextBox();
+                this.extrasModFolder_textBox.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+                this.extrasModFolder_textBox.Margin = new Padding(0, 6, 8, 6);
+                this.extrasModFolder_textBox.Width = 520;
+                this.extrasModFolder_textBox.Text = ModSupport.modFolder;
+                this.extrasModFolder_textBox.TextChanged += new EventHandler(this.extrasModFolder_textBox_TextChanged);
+
+                FlowLayoutPanel modFolderRow = new FlowLayoutPanel();
+                modFolderRow.AutoSize = true;
+                modFolderRow.WrapContents = true;
+                modFolderRow.Margin = new Padding(0, 2, 0, 2);
+                modFolderRow.Controls.Add(this.extrasModFolder_textBox);
+
+                Button modFolderBrowseButton = new Button();
+                modFolderBrowseButton.AutoSize = true;
+                modFolderBrowseButton.Text = "Browse...";
+                modFolderBrowseButton.Click += new EventHandler(this.extrasModFolderBrowse_button_Click);
+                modFolderRow.Controls.Add(modFolderBrowseButton);
+
+                Button modCheckButton = new Button();
+                modCheckButton.AutoSize = true;
+                modCheckButton.Text = "Check the mod";
+                modCheckButton.Click += new EventHandler(this.extrasModCheck_button_Click);
+                modFolderRow.Controls.Add(modCheckButton);
+
+                addFullRow(layout, modFolderLabel);
+                addFullRow(layout, modFolderRow);
+
+                this.extrasModKind_label = new Label();
+                this.extrasModKind_label.AutoSize = true;
+                this.extrasModKind_label.MaximumSize = new Size(900, 0);
+                this.extrasModKind_label.ForeColor = Color.DimGray;
+                this.extrasModKind_label.Margin = new Padding(0, 2, 0, 2);
+                this.extrasModKind_label.Text = modKindText();
+                addFullRow(layout, this.extrasModKind_label);
 
                 // ---- originals folder: needed to work out the mod's table offsets
                 Label originalsLabel = new Label();
@@ -326,8 +374,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 addFullRow(layout, helpLabel(
                     "The offsets are read from the mod's own file header and compared with the\r\n"
                     + "originals in the folder above; for No Monastery 1.3.3 the same numbers are\r\n"
-                    + "built in, so that folder is optional. A mod with no built-in profile and no\r\n"
+                    + "built in, so that folder is optional. A data mod with no built-in profile and no\r\n"
                     + "originals is not trusted: the run asks before it writes anything.\r\n"
+                    + "A plugin mod needs none of that - check its folder once and the report records it.\r\n"
                     + "Analysis compares the loaded files with the original sizes, so it says whether you\r\n"
                     + "loaded the mod's copies or the game dump's. Load the mod's romfs, and write the\r\n"
                     + "result back into that same romfs folder - a file written anywhere else is\r\n"
@@ -1035,6 +1084,135 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             ModSupport.keepMasteryExp = this.extrasModMastery_checkBox.Checked;
         }
 
+        private static string modKindText()
+        {
+            if (ModSupport.modKind == ModSupport.kindNone)
+                return "Mod checked: none yet - point the box above at the mod's own folder and press "
+                    + "\"Check the mod\" (or just apply a preset, which says which mod it is for)";
+            return "Mod checked: " + ModSupport.modKind
+                + (ModSupport.modKindDetail == null || ModSupport.modKindDetail.Length == 0
+                    ? "" : "   (" + ModSupport.modKindDetail + ")")
+                + (ModSupport.shipsNoDataFiles()
+                    ? "\r\n    no game data files, so the game's own fixed_*.bin are the right input and"
+                        + " nothing has to move"
+                    : "\r\n    ships its own data files, so the table offsets are lined up from its header");
+        }
+
+        private void extrasModFolder_textBox_TextChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasModFolder_textBox == null)
+                return;
+            ModSupport.modFolder = this.extrasModFolder_textBox.Text.Trim();
+        }
+
+        private void extrasModFolderBrowse_button_Click(object sender, EventArgs e)
+        {
+            string folder = this.batchPickFolder(
+                "Select the mod's own folder (the unzipped mod, or contents\\<title id>)",
+                ModSupport.modFolder);
+            if (folder == null)
+                return;
+            if (this.extrasModFolder_textBox != null)
+                this.extrasModFolder_textBox.Text = folder;
+            ModSupport.modFolder = folder;
+            this.extrasModCheck(folder, true);
+        }
+
+        private void extrasModCheck_button_Click(object sender, EventArgs e)
+        {
+            string folder = this.extrasModFolder_textBox == null
+                ? ModSupport.modFolder : this.extrasModFolder_textBox.Text.Trim();
+            if (folder.Length == 0)
+            {
+                MessageBox.Show("Point the mod folder box at the unzipped mod, or at the folder the mod\r\n"
+                    + "lives in on the SD card (contents\\<title id>), then press Check the mod.",
+                    "Check the mod", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            this.extrasModCheck(folder, true);
+        }
+
+        // Works out which release the folder holds and says what that means for
+        // the run. No assumptions: it only reports what it found on disk.
+        private void extrasModCheck(string folder, bool showResult)
+        {
+            if (!System.IO.Directory.Exists(folder))
+            {
+                if (showResult)
+                    MessageBox.Show("That folder does not exist:\r\n\r\n  " + folder,
+                        "Check the mod", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
+            bool found = ModSupport.checkModFolder(folder);
+            if (found && this.extrasModMode_checkBox != null)
+                this.extrasModMode_checkBox.Checked = true;
+            ModSupport.readOffsets();
+            ModSupport.applyOffsets();
+            if (this.extrasModOffsets_label != null)
+                this.extrasModOffsets_label.Text = "Offsets: " + ModSupport.offsetsStatus;
+            if (this.extrasModKind_label != null)
+                this.extrasModKind_label.Text = modKindText();
+
+            if (!showResult)
+                return;
+
+            StringBuilder text = new StringBuilder();
+            if (!found)
+            {
+                text.AppendLine("Nothing in that folder looks like a No Monastery release:");
+                text.AppendLine();
+                text.AppendLine("  " + folder);
+                text.AppendLine();
+                text.AppendLine("A data-file release has fixed_*.bin files of its own in it (data\\ or");
+                text.AppendLine("patch4\\nx\\data). A Skyline release has romfs\\skyline\\plugins\\");
+                text.AppendLine("libno_monastery.nro and an exefs folder.");
+                if (ModSupport.modKindDetail != null && ModSupport.modKindDetail.Length > 0
+                    && ModSupport.modKindDetail.StartsWith("found ", StringComparison.Ordinal))
+                {
+                    text.AppendLine();
+                    text.AppendLine(ModSupport.modKindDetail);
+                }
+                MessageBox.Show(text.ToString(), "Check the mod", MessageBoxButtons.OK,
+                    MessageBoxIcon.Exclamation);
+                return;
+            }
+
+            if (ModSupport.shipsNoDataFiles())
+            {
+                text.AppendLine("Found: " + ModSupport.modKind);
+                text.AppendLine("       " + ModSupport.modKindDetail);
+                text.AppendLine();
+                text.AppendLine("This release is a plugin, not a set of data files: it ships no fixed_*.bin");
+                text.AppendLine("at all, so it cannot have moved a table. The game's own files stay the");
+                text.AppendLine("input, the compiled-in offsets are already correct, and this build will not");
+                text.AppendLine("ask about originals or missing offsets any more.");
+                text.AppendLine();
+                text.AppendLine("Conflicts are just the " + ModSupport.conflictCount().ToString()
+                    + " options the plugin recalculates (level scaling and class");
+                text.AppendLine("abilities). \"" + ModSupport.safePresetName() + "\" turns those off and leaves");
+                text.AppendLine("everything else at full strength.");
+                text.AppendLine();
+                text.AppendLine("Where to write the output: the same romfs tree the game reads its data from");
+                text.AppendLine("(patch4\\nx\\data, patch3\\nx\\data, patch4\\common\\common ...). Writing it");
+                text.AppendLine("into the mod's own romfs folder works too - it is layered over the game's -");
+                text.AppendLine("but keep the skyline folder out of the way, it is not yours to rewrite.");
+            }
+            else
+            {
+                text.AppendLine("Found: " + ModSupport.modKind);
+                text.AppendLine("       " + ModSupport.modKindDetail);
+                text.AppendLine();
+                text.AppendLine("This release replaces the game's data files with its own, so rows were added");
+                text.AppendLine("and the tables after them moved. Load its copies (not the game dump's) and the");
+                text.AppendLine("offsets are read from its own header. \"" + ModSupport.safePresetName()
+                    + "\" handles the");
+                text.AppendLine("options it owns.");
+            }
+            MessageBox.Show(text.ToString(), "Check the mod", MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+        }
+
         private void extrasModOriginals_textBox_TextChanged(object sender, EventArgs e)
         {
             if (this.extrasBuilding || this.extrasModOriginals_textBox == null)
@@ -1104,19 +1282,38 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private void extrasModConflicts_button_Click(object sender, EventArgs e)
         {
             System.Collections.Generic.List<string> conflicts = ModSupport.enabledConflicts(this.settings);
-            if (conflicts.Count == 0)
+            System.Collections.Generic.List<string> notes =
+                ModSupport.notesFor(ModSupport.modKind, this.settings);
+            if (conflicts.Count == 0 && notes.Count == 0)
             {
                 MessageBox.Show("No enabled option fights a total conversion mod.",
                     "Mod conflicts", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
             StringBuilder text = new StringBuilder();
-            text.AppendLine("These options are on and the mod owns the data they change:");
-            text.AppendLine();
-            for (int i = 0; i < conflicts.Count; i++)
-                text.AppendLine("  " + conflicts[i]);
-            text.AppendLine();
-            text.AppendLine("\"Use the mod-safe preset\" turns exactly these off and leaves the rest.");
+            if (ModSupport.modKind != ModSupport.kindNone)
+            {
+                text.AppendLine("Mod checked: " + ModSupport.modKind);
+                text.AppendLine("    so the list below is the " + ModSupport.conflictCount().ToString()
+                    + " option(s) this release owns");
+                text.AppendLine();
+            }
+            if (conflicts.Count > 0)
+            {
+                text.AppendLine("These options are on and the mod owns the data they change:");
+                text.AppendLine();
+                for (int i = 0; i < conflicts.Count; i++)
+                    text.AppendLine("  " + conflicts[i]);
+                text.AppendLine();
+                text.AppendLine("\"Use the mod-safe preset\" turns exactly these off and leaves the rest.");
+            }
+            if (notes.Count > 0)
+            {
+                text.AppendLine();
+                text.AppendLine("These still work, but the mod recalculates the result:");
+                for (int i = 0; i < notes.Count; i++)
+                    text.AppendLine("  " + notes[i]);
+            }
             MessageBox.Show(text.ToString(), "Mod conflicts", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
@@ -1124,6 +1321,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             RandomizerPresets.Preset preset = null;
             System.Collections.Generic.List<RandomizerPresets.Preset> presets = RandomizerPresets.all();
+            string wanted = ModSupport.safePresetName();
+            for (int i = 0; i < presets.Count; i++)
+                if (presets[i].BuiltIn && preset == null
+                    && string.Equals(presets[i].Name, wanted, StringComparison.Ordinal))
+                    preset = presets[i];
             for (int i = 0; i < presets.Count; i++)
                 if (presets[i].BuiltIn && preset == null
                     && presets[i].Name.StartsWith("No Monastery", StringComparison.Ordinal))
@@ -1155,9 +1357,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             MessageBox.Show("Applied \"" + preset.Name + "\".\r\n\r\n"
                 + applied.ToString() + " setting(s) set"
                 + (skipped > 0 ? ", " + skipped.ToString() + " line(s) skipped" : "")
-                + ".\r\n\r\nEverything the mod owns - its dialogue, its shops, the monastery options,\r\n"
-                + "its mastery EXP values and its level curve - is left to the mod. The rest of the\r\n"
-                + "randomization (classes, characters, weapons, effects) still runs at full strength.",
+                + ".\r\n\r\nEverything the mod owns is left to the mod: for a data-file release that is its\r\n"
+                + "dialogue, shops, monastery options, mastery EXP and level curve; for the 2.1\r\n"
+                + "plugin it is its level scaling and the class abilities it hands out by skill rank.\r\n"
+                + "The rest of the randomization (classes, characters, weapons, effects) still runs\r\n"
+                + "at full strength.",
                 "Mod safe preset", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 

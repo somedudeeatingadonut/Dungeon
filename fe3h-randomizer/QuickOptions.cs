@@ -260,6 +260,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasModOriginals_textBox != null
                 && this.extrasModOriginals_textBox.Text != ModSupport.originalFolder)
                 this.extrasModOriginals_textBox.Text = ModSupport.originalFolder;
+            if (this.extrasModFolder_textBox != null
+                && this.extrasModFolder_textBox.Text != ModSupport.modFolder)
+                this.extrasModFolder_textBox.Text = ModSupport.modFolder;
+            if (this.extrasModKind_label != null)
+                this.extrasModKind_label.Text = modKindText();
             if (this.extrasModOffsets_label != null)
                 this.extrasModOffsets_label.Text = "Offsets: " + ModSupport.offsetsStatus;
             if (this.extrasPreset_comboBox != null && this.extrasPreset_comboBox.Items.Count == 0)

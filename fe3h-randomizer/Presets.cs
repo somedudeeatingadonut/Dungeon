@@ -377,6 +377,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
         private const string builtInRunName = "My run - the 1.8.2 debug report";
         private const string builtInModSafeName = "No Monastery (mod safe)";
+        private const string builtInPluginSafeName = "No Monastery 2.1 (plugin, mod safe)";
 
         // The same run with every option that fights a total conversion written
         // off explicitly. Leaving a conflicting option out is not enough: the
@@ -398,15 +399,47 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     continue;
                 }
                 string key = line.Substring(0, equals);
-                if (key.IndexOf('.') <= 0 && ModSupport.isConflictKey(key))
+                if (key.IndexOf('.') <= 0 && ModSupport.isConflictKey(key, ModSupport.kindDataMod))
                     continue;
                 text.AppendLine(line);
             }
 
-            for (int i = 0; i < ModSupport.conflictCount(); i++)
-                text.AppendLine(ModSupport.conflictKeyAt(i) + "=False");
+            for (int i = 0; i < ModSupport.conflictCount(ModSupport.kindDataMod); i++)
+                text.AppendLine(ModSupport.conflictKeyAt(ModSupport.kindDataMod, i) + "=False");
             text.AppendLine("ModSupport.modMode=True");
             text.AppendLine("ModSupport.keepMasteryExp=True");
+            return text.ToString();
+        }
+
+        // No Monastery 2.1 is a Skyline plugin, not a pile of data files: it owns
+        // only the handful of systems it hooks, so only those are written off.
+        // keepMasteryExp is off here - unlike 1.3.3 there are no mod values to
+        // preserve, so randomized mastery requirements are left randomized.
+        private static string builtInPluginSafeData()
+        {
+            StringBuilder text = new StringBuilder();
+            string[] lines = builtInRunData.Replace("\r\n", "\n").Split('\n');
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i].Trim();
+                if (line.Length == 0)
+                    continue;
+                int equals = line.IndexOf('=');
+                if (equals <= 0)
+                {
+                    text.AppendLine(line);
+                    continue;
+                }
+                string key = line.Substring(0, equals);
+                if (key.IndexOf('.') <= 0 && ModSupport.isConflictKey(key, ModSupport.kindPluginMod))
+                    continue;
+                text.AppendLine(line);
+            }
+
+            for (int i = 0; i < ModSupport.conflictCount(ModSupport.kindPluginMod); i++)
+                text.AppendLine(ModSupport.conflictKeyAt(ModSupport.kindPluginMod, i) + "=False");
+            text.AppendLine("ModSupport.modMode=True");
+            text.AppendLine("ModSupport.keepMasteryExp=False");
             return text.ToString();
         }
 
@@ -434,11 +467,21 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             Preset modSafe = new Preset();
             modSafe.Name = builtInModSafeName;
-            modSafe.Description = "The same run with everything the mod owns handed back to the mod ("
-                + ModSupport.conflictCount().ToString() + " options off)";
+            modSafe.Description = "No Monastery 1.3.3, the data-file release: the same run with everything"
+                + " the mod ships handed back to it (" + ModSupport.conflictCount(ModSupport.kindDataMod).ToString()
+                + " options off)";
             modSafe.Data = builtInModSafeData();
             modSafe.BuiltIn = true;
             cache.Add(modSafe);
+
+            Preset pluginSafe = new Preset();
+            pluginSafe.Name = builtInPluginSafeName;
+            pluginSafe.Description = "No Monastery 2.1, the Skyline plugin release: the same run with only"
+                + " the " + ModSupport.conflictCount(ModSupport.kindPluginMod).ToString()
+                + " options the plugin recalculates turned off";
+            pluginSafe.Data = builtInPluginSafeData();
+            pluginSafe.BuiltIn = true;
+            cache.Add(pluginSafe);
 
             string folder = presetFolder();
             try

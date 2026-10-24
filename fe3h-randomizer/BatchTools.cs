@@ -369,6 +369,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             // Remembered for the debug report, which uses it to point at other
             // copies of a data file (a mod unzipped one level too high, say).
             ModSupport.lastScanFolder = folder;
+
+            // A Skyline plugin mod keeps no data files, so there is nothing for the
+            // size checks to notice. Look for its plugin folder once instead.
+            ModSupport.detectSkylineNear(folder);
             SearchOption searchOption = this.batchIncludeSubfolders_checkBox.Checked
                 ? SearchOption.AllDirectories
                 : SearchOption.TopDirectoryOnly;

@@ -214,7 +214,69 @@ Two buttons at the top of the Extra options tab:
 
 The Extra options tab has a **Total conversion mod** section. Mod mode is off by
 default; switch it on when the game runs a mod such as *Three Houses: No
-Monastery*. What it does was checked against that mod's own `fixed_*.bin` files:
+Monastery*.
+
+#### Two releases, two completely different shapes
+
+No Monastery changed how it is built, and the tool needs to know which one is
+installed before it does anything:
+
+| Release | What it ships | What that means for the randomizer |
+| --- | --- | --- |
+| **1.3.3 and older** | thirteen `fixed_*.bin` of its own under `data/`, plus `bmap/`, `castle/`, `event/`, `text/` | The game's data files are *replaced*, rows were added, so every table after them moved. The offsets have to be lined up (built-in profile, below). |
+| **2.1 "with Aldebaran"** | **no game data at all**: `romfs/skyline/plugins/libno_monastery.nro`, `exefs/main.npdm`, `exefs/subsdk9`, and a changelog | Nothing of the game's data is replaced, so nothing can have moved. The game's own `fixed_*.bin` are the correct input and the compiled-in offsets are already right - the tool needs no maps, no originals folder and asks no questions. Its own changelog says the same: *"No changes to gamedata (no classes, character data, etc.. changed)"*. |
+
+**Point it at the mod once.** Type the mod's folder into **Mod folder** and press
+**Check the mod** (or use *Browse...*), and the tool looks for the markers of
+either release - `romfs\skyline\plugins\*.nro` and `exefs/subsdk9` for 2.1,
+`fixed_classdata.bin` of a known mod size for 1.3.3 - and records what it found in
+the debug report:
+
+```
+Mod checked                    : No Monastery 2.1 (Skyline plugin)   - a Skyline plugin: no game data files, nothing to line up
+Mod folder                     : F:\mods\NoMonastery with Aldebaran
+Mod detail                     : romfs\skyline\plugins\libno_monastery.nro, exefs\subsdk9
+```
+
+A folder scan does the same thing on its own when the mod's `skyline\plugins`
+folder is at or above the folder being scanned, so pointing the normal scan at
+`contents/<title id>` also works. If the 2.1 zip was never unzipped, **Check the
+mod** says so instead of guessing.
+
+#### The 2.1 plugin: what still fights it
+
+Because 2.1 changes the game by code instead of by data, the list of options it
+owns is short - only the systems it hooks, taken from the plugin itself
+(`unit_level_up_hook`, `calculate_exp`, `class_cert_display`, `unit_can_equip_hook`,
+`setup_recruitment_hook`, ...) and its changelog:
+
+| Option | Why |
+| --- | --- |
+| `changeLv` | The plugin scales enemy levels to the player's own (3 / 5 / 8 levels apart on Normal / Hard / Maddening) and can reclass them; randomizing levels as well fights it. |
+| `randClassMasteryAb` | The plugin hands class and mastery abilities out by skill rank, so randomised mastery abilities are not what it grants. |
+| `randClassMasteryCa` | Same for mastery combat arts. |
+
+Everything the 1.3.3 list warns about - its dialogue, shops, monastery activities,
+mastery EXP scale - is **not** a conflict for 2.1, because the plugin never
+touches those files: randomize them freely. A few options still work but behave
+differently, and the report names them instead of quietly changing the result:
+
+* `randExpYield` - the plugin recalculates exp (catch-up exp, aux battles divided
+  by turn count).
+* `randCert` - the plugin auto-certs anything at 90% or better, so units may
+  certify into the randomized classes when they are recruited.
+* `randClassAb` / `randClassClassAb` - the plugin grants the class's own ability
+  list by skill rank, so it will grant whatever the randomization put there.
+
+Its `no_monastery.toml` settings (`growth_mode`, `free_deployment`,
+`class_weapon_lock`, `auto_support_completer`, `dialog_skip`, cutscene skip) live
+in `sd:/Aldebaran/` and are read at runtime; they change nothing about the data
+the randomizer writes.
+
+#### The 1.3.3 data files
+
+What mod mode was originally checked against, from that release's own
+`fixed_*.bin`:
 
 | Behaviour | Why |
 | --- | --- |
@@ -291,28 +353,34 @@ range, monster rows, the mastery values in use, the Dancer row, and any populate
 class rows outside the range the randomizer writes (88..99, except 91) - the mod
 has one at row 89, and those rows are deliberately left alone.
 
-**Use the mod-safe preset** applies the 1.8.1 stress configuration with the 35
-options the mod owns removed, and switches mod mode on.
+**Use the mod-safe preset** applies the 1.8.2 run with everything the release
+that was found owns turned off, and switches mod mode on. It picks the matching
+one by itself: 1.3.3 gets the 38-option data-file preset, 2.1 gets the 3-option
+plugin preset, and with no mod checked it applies the 1.3.3 one.
 
 **Where the files have to go:** load the files the game actually reads and write
 the output back over that same set. Two setups work:
 
 | Setup | What to load | Where the output goes |
 | --- | --- | --- |
-| Mod in a load-path overlay (normal) | the mod's copies (`load\<game id>\...\romfs\patch4\nx\data`), not the game dump | the same overlay folder |
-| Mod copied over the game's own files | the modded game folder - the files there are the mod's | the same folder (they are already the mod's) |
+| No Monastery 2.1 (Skyline plugin) | the **game's own** `fixed_*.bin` - the plugin ships none | anywhere the game reads: the game romfs folder, or the mod's own `contents/<title id>/romfs` (it is layered over the game's) |
+| 1.3.3 in a load-path overlay (normal) | the mod's copies (`load\<game id>\...\romfs\patch4\nx\data`), not the game dump | the same overlay folder |
+| 1.3.3 copied over the game's own files | the modded game folder - the files there are the mod's | the same folder (they are already the mod's) |
 
 A romfs overlay wins over the dump, so a randomized file written anywhere else is
 ignored by the game. `DATA1.bin` is patched in place and is not part of the
-overlay.
+overlay. The output writer only ever creates folders, never deletes them, so
+writing into the mod's own `romfs` cannot disturb its `skyline` folder.
 
-**The one mistake to avoid:** randomizing the *unmodified* dump while the game
-runs a mod. The output is rebuilt from the originals, so copying it over the
-game puts the original tables back and wipes the mod out of every file it
-overwrites. The tool now notices that case: if mod mode is on and every loaded
-file is the exact original size, it says so in the debug report and asks before
-the run. The debug report's file list names every file as either "the game
-dump's copy" or "the mod's copy" so it is obvious which one you loaded.
+**The one mistake to avoid (1.3.3 only):** randomizing the *unmodified* dump
+while the game runs a data-file mod. The output is rebuilt from the originals, so
+copying it over the game puts the original tables back and wipes the mod out of
+every file it overwrites. The tool notices that case: if mod mode is on with a
+data mod and every loaded file is the exact original size, it says so in the
+debug report and asks before the run. The file list names every file as either
+"the game dump's copy" or "the mod's copy" so it is obvious which one you loaded.
+With the 2.1 plugin none of that applies - the game's own files *are* the right
+input, so it has nothing to warn about.
 
 **When the report still says the loaded files are the game dump's**, the mod's
 copies are somewhere else on disk. The report now prints the folder the last scan
@@ -362,12 +430,13 @@ what the file says - a preset never means "the file plus whatever was already
 ticked". That also means a half-written preset is a valid way to start from a
 known state and change one thing.
 
-Two presets are built in:
+Three presets are built in:
 
 | Preset | What it is |
 | --- | --- |
 | **My run - the 1.8.2 debug report** | The exact configuration of the run recorded in `FE3H Randomizer Debug.txt`: all 1,050 values of its settings dump, plus the extra options read out of the same report's NEW / MORE / BIG sections. Applying it repeats that run. |
-| **No Monastery (mod safe)** | The same run with the 38 options the mod owns written off explicitly, mod mode on and the mod's mastery EXP kept. |
+| **No Monastery (mod safe)** | No Monastery **1.3.3** (the data-file release): the same run with the 38 options the mod ships written off explicitly, mod mode on and the mod's mastery EXP kept. |
+| **No Monastery 2.1 (plugin, mod safe)** | No Monastery **2.1 "with Aldebaran"** (the Skyline plugin): the same run with only the 3 options the plugin recalculates written off - level scaling and the mastery abilities / combat arts it hands out by skill rank - mod mode on, and mastery EXP left randomised because the plugin has no values of its own to keep. |
 
 Both are generated from that report rather than typed in by hand, so the values
 match it one for one. The mod-safe one does not merely *omit* the conflicting

@@ -27,6 +27,16 @@
 //     moved by those shifts before anything is written; without the original
 //     files the map cannot be built and the analysis says so.
 //
+//  No Monastery has since changed shape: 2.1 "with Aldebaran" is a Skyline
+//  plugin (romfs/skyline/plugins/libno_monastery.nro plus an exefs patch) that
+//  ships no game data at all - its own changelog says "No changes to gamedata".
+//  Nothing can have moved for it, so for that release the tool only has to know
+//  that it is installed: the game's own files stay the input, the compiled-in
+//  offsets are correct, and the handful of systems the plugin hooks (level
+//  scaling, class abilities by skill rank) are the ones listed as conflicts.
+//  Which release is installed is worked out from the folder (checkModFolder /
+//  detectSkylineNear), never assumed.
+//
 //  Mod mode is off by default and changes nothing unless it is switched on.
 // -----------------------------------------------------------------------------
 
@@ -50,6 +60,258 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // The folder the last "scan folder and load all files" used, so the
         // report can point at other copies of a file found in there.
         public static string lastScanFolder = "";
+
+        // ------------------------------------------------------- which mod
+        // No Monastery ships two very different things:
+        //   1.3.3 - thirteen data files that replace the game's own (so every
+        //           table offset can have moved), and
+        //   2.1   - a Skyline plugin (romfs\skyline\plugins\libno_monastery.nro)
+        //           plus an exefs patch, and *no* data files at all: it works by
+        //           hooking the game. Its changelog says so too ("No changes to
+        //           gamedata (no classes, character data, etc.. changed)").
+        // Which one is installed changes what the randomizer has to do: a data
+        // mod needs the offset maps, a plugin mod does not - the game's own
+        // files are the correct input and the compiled-in offsets are right.
+        public const string kindNone = "";
+        public const string kindDataMod = "No Monastery 1.3.3 (data files)";
+        public const string kindPluginMod = "No Monastery 2.1 (Skyline plugin)";
+        public const string kindSkylineOther = "Skyline plugin mod";
+
+        public static string modKind = kindNone;
+        public static string modFolder = "";
+        public static string modKindDetail = "";
+
+        public static bool isPluginKind()
+        {
+            return modKind == kindPluginMod || modKind == kindSkylineOther;
+        }
+
+        // True for a mod that changes the game by code instead of by data: it
+        // ships no fixed_*.bin, so the game dump's copies are what it wants and
+        // none of the offset machinery applies.
+        public static bool shipsNoDataFiles()
+        {
+            return isPluginKind();
+        }
+
+        public static void clearModKind()
+        {
+            modKind = kindNone;
+            modKindDetail = "";
+        }
+
+        // -------------------------------------------------- finding the mod
+        // Looks through a folder for the markers either release leaves behind
+        // and remembers what it found. Returns true when it recognised one.
+        public static bool checkModFolder(string folder)
+        {
+            if (folder == null || folder.Trim().Length == 0)
+                return false;
+            folder = folder.Trim();
+            if (!System.IO.Directory.Exists(folder))
+                return false;
+
+            modFolder = folder;
+            modKind = kindNone;
+            modKindDetail = "";
+
+            List<string> files = walkModMarkers(folder, 6, 2000);
+            string plugin = null;
+            string skyline = null;
+            string exefs = null;
+            string toml = null;
+            string dataCopy = null;
+            for (int i = 0; i < files.Count; i++)
+            {
+                string path = files[i];
+                string name = System.IO.Path.GetFileName(path);
+                string lower = path.ToLowerInvariant();
+                if (name.EndsWith(".nro", StringComparison.OrdinalIgnoreCase) && lower.Contains("skyline"))
+                {
+                    if (skyline == null)
+                        skyline = path;
+                    if (name.IndexOf("no_monastery", StringComparison.OrdinalIgnoreCase) >= 0)
+                        plugin = path;
+                }
+                if (string.Equals(name, "subsdk9", StringComparison.OrdinalIgnoreCase) && exefs == null)
+                    exefs = path;
+                if (name.EndsWith(".toml", StringComparison.OrdinalIgnoreCase) && toml == null)
+                    toml = path;
+                if (string.Equals(name, "fixed_classdata.bin", StringComparison.OrdinalIgnoreCase)
+                    && dataCopy == null)
+                {
+                    try
+                    {
+                        long size = new System.IO.FileInfo(path).Length;
+                        if (isKnownModSize(name, size))
+                            dataCopy = path;
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+
+            if (plugin != null || skyline != null)
+            {
+                modKind = plugin != null ? kindPluginMod : kindSkylineOther;
+                StringBuilder detail = new StringBuilder();
+                detail.Append(shortPath(folder, plugin != null ? plugin : skyline));
+                if (exefs != null)
+                    detail.Append(", exefs\\subsdk9");
+                if (toml != null)
+                    detail.Append(", ").Append(System.IO.Path.GetFileName(toml));
+                if (dataCopy != null)
+                    detail.Append("; data-file release also present: ").Append(shortPath(folder, dataCopy));
+                modKindDetail = detail.ToString();
+                return true;
+            }
+
+            if (dataCopy != null)
+            {
+                modKind = kindDataMod;
+                modKindDetail = shortPath(folder, dataCopy) + " (and the other data files next to it)";
+                return true;
+            }
+
+            modKindDetail = "no Skyline plugin and no No Monastery data files in there";
+            List<string> zips = new List<string>();
+            try
+            {
+                zips.AddRange(System.IO.Directory.GetFiles(folder, "*.zip"));
+            }
+            catch
+            {
+            }
+            for (int i = 0; i < zips.Count; i++)
+            {
+                string name = System.IO.Path.GetFileName(zips[i]);
+                if (name.IndexOf("monastery", StringComparison.OrdinalIgnoreCase) < 0)
+                    continue;
+                modKindDetail = "found " + name + " - that is still a zip, unzip it first and point at "
+                    + "the unzipped folder";
+                break;
+            }
+            return false;
+        }
+
+        // A quick look for a Skyline plugin folder at or above the folder that was
+        // just scanned (...\\romfs\\skyline\\plugins, or ...\\skyline\\plugins when
+        // the scan already pointed at the romfs). Only ever upgrades a detection -
+        // it never claims a data mod, because that needs the files themselves.
+        public static bool detectSkylineNear(string folder)
+        {
+            if (folder == null || folder.Trim().Length == 0)
+                return false;
+            string up = folder.Trim().TrimEnd('\\', '/');
+            for (int level = 0; level < 4 && up != null && up.Length > 2; level++)
+            {
+                string[] candidates = new string[]
+                {
+                    System.IO.Path.Combine(up, "romfs", "skyline", "plugins"),
+                    System.IO.Path.Combine(up, "skyline", "plugins")
+                };
+                for (int c = 0; c < candidates.Length; c++)
+                {
+                    string[] nro = null;
+                    try
+                    {
+                        if (!System.IO.Directory.Exists(candidates[c]))
+                            continue;
+                        nro = System.IO.Directory.GetFiles(candidates[c], "*.nro");
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                    if (nro == null || nro.Length == 0)
+                        continue;
+                    string picked = nro[0];
+                    for (int i = 0; i < nro.Length; i++)
+                        if (System.IO.Path.GetFileName(nro[i])
+                            .IndexOf("no_monastery", StringComparison.OrdinalIgnoreCase) >= 0)
+                            picked = nro[i];
+                    modKind = System.IO.Path.GetFileName(picked)
+                        .IndexOf("no_monastery", StringComparison.OrdinalIgnoreCase) >= 0
+                        ? kindPluginMod : kindSkylineOther;
+                    modFolder = up;
+                    modKindDetail = shortPath(up, picked);
+                    return true;
+                }
+                int cut = up.LastIndexOfAny(new char[] { '\\', '/' });
+                if (cut <= 2)
+                    break;
+                up = up.Substring(0, cut);
+            }
+            return false;
+        }
+
+        private static string shortPath(string root, string path)
+        {
+            if (path == null)
+                return "";
+            if (root != null && path.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+                return path.Substring(root.Length).TrimStart('\\', '/');
+            return path;
+        }
+
+        // Only the names that mean something for this check are collected, so
+        // walking a mod folder never loads a listing of a whole game dump. The
+        // depth and folder-count caps keep it quick on a big SD card too.
+        private static List<string> walkModMarkers(string root, int maxDepth, int maxDirs)
+        {
+            List<string> found = new List<string>();
+            List<string> dirs = new List<string>();
+            dirs.Add(root);
+            int visited = 0;
+            for (int depth = 0; depth < maxDepth; depth++)
+            {
+                List<string> next = new List<string>();
+                for (int i = 0; i < dirs.Count; i++)
+                {
+                    if (visited++ > maxDirs)
+                        return found;
+                    string[] files = null;
+                    try
+                    {
+                        files = System.IO.Directory.GetFiles(dirs[i]);
+                    }
+                    catch
+                    {
+                    }
+                    if (files != null)
+                        for (int f = 0; f < files.Length; f++)
+                            if (isModMarker(System.IO.Path.GetFileName(files[f])))
+                                found.Add(files[f]);
+                    try
+                    {
+                        next.AddRange(System.IO.Directory.GetDirectories(dirs[i]));
+                    }
+                    catch
+                    {
+                    }
+                }
+                dirs = next;
+                if (dirs.Count == 0)
+                    break;
+            }
+            return found;
+        }
+
+        private static bool isModMarker(string name)
+        {
+            if (name == null)
+                return false;
+            if (name.EndsWith(".nro", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (name.EndsWith(".toml", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (string.Equals(name, "subsdk9", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (string.Equals(name, "fixed_classdata.bin", StringComparison.OrdinalIgnoreCase))
+                return true;
+            return false;
+        }
 
         // Result of the last readOffsets() call, for the tab and the report.
         public static string offsetsStatus = "not read yet";
@@ -111,30 +373,132 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             { "randCafeteriaEvent",         "cafeteria events - no dining hall" }
         };
 
+        // No Monastery 2.1 ships no data at all - it is a Skyline plugin that
+        // hooks the game (libno_monastery.nro: unit_level_up_hook, calculate_exp,
+        // class_cert_display, unit_can_equip_hook, setup_recruitment_hook ...).
+        // So only the options whose result the plugin then recalculates fight it.
+        // Everything the 1.3.3 table lists for shops, meals, choir, text and the
+        // rest is fair game here: the plugin never touches those files.
+        private static readonly string[,] pluginConflictTable = new string[,]
+        {
+            { "changeLv",               "enemy level scaling - the plugin already scales enemy levels to the player's (unit_level_up_hook)" },
+            { "randClassMasteryAb",     "class and mastery abilities - the plugin re-grants them by skill rank" },
+            { "randClassMasteryCa",     "mastery combat arts - the plugin re-grants them by skill rank" }
+        };
+
+        // Options that still work with the plugin but behave differently, so the
+        // report mentions them instead of quietly changing the result.
+        private static readonly string[,] pluginNoteTable = new string[,]
+        {
+            { "randExpYield",           "exp per kill is recalculated by the plugin (catch-up exp, aux battles divided by turn count)" },
+            { "randCert",               "certification requirements - the plugin auto-certs anything at 90% or better, so units may certify into the randomized classes on recruitment" },
+            { "randClassAb",            "class abilities - the plugin hands the class's own ability list out by skill rank, so it will grant the randomized ones" },
+            { "randClassClassAb",       "class abilities - the plugin hands the class's own ability list out by skill rank, so it will grant the randomized ones" }
+        };
+
+        private static string[,] conflictTableOf(string kind)
+        {
+            if (kind == kindPluginMod || kind == kindSkylineOther)
+                return pluginConflictTable;
+            return conflictTable;
+        }
+
+        private static string[,] activeConflicts()
+        {
+            return conflictTableOf(modKind);
+        }
+
         public static bool isConflictKey(string key)
         {
-            for (int i = 0; i < conflictTable.GetLength(0); i++)
-                if (string.Equals(conflictTable[i, 0], key, StringComparison.Ordinal))
+            return isConflictKey(key, modKind);
+        }
+
+        public static bool isConflictKey(string key, string kind)
+        {
+            string[,] table = conflictTableOf(kind);
+            for (int i = 0; i < table.GetLength(0); i++)
+                if (string.Equals(table[i, 0], key, StringComparison.Ordinal))
                     return true;
             return false;
         }
 
         public static int conflictCount()
         {
-            return conflictTable.GetLength(0);
+            return activeConflicts().GetLength(0);
+        }
+
+        public static int conflictCount(string kind)
+        {
+            return conflictTableOf(kind).GetLength(0);
         }
 
         public static string conflictKeyAt(int index)
         {
-            return conflictTable[index, 0];
+            return activeConflicts()[index, 0];
+        }
+
+        public static string conflictKeyAt(string kind, int index)
+        {
+            return conflictTableOf(kind)[index, 0];
         }
 
         public static List<string> conflictKeys()
         {
+            return conflictKeys(modKind);
+        }
+
+        public static List<string> conflictKeys(string kind)
+        {
+            string[,] table = conflictTableOf(kind);
             List<string> keys = new List<string>();
-            for (int i = 0; i < conflictTable.GetLength(0); i++)
-                keys.Add(conflictTable[i, 0]);
+            for (int i = 0; i < table.GetLength(0); i++)
+                keys.Add(table[i, 0]);
             return keys;
+        }
+
+        // Options that work with this mod but behave differently, and that are
+        // switched on right now. Empty for a data mod such as 1.3.3, whose table
+        // already lists everything it owns.
+        public static List<string> notesFor(string kind, Settings settings)
+        {
+            List<string> found = new List<string>();
+            if (!(kind == kindPluginMod || kind == kindSkylineOther))
+                return found;
+            for (int i = 0; i < pluginNoteTable.GetLength(0); i++)
+            {
+                if (!isEnabledBool(settings, pluginNoteTable[i, 0]))
+                    continue;
+                if (containsNote(found, pluginNoteTable[i, 1]))
+                    continue;
+                found.Add(pluginNoteTable[i, 1]);
+            }
+            return found;
+        }
+
+        private static bool containsNote(List<string> notes, string note)
+        {
+            for (int i = 0; i < notes.Count; i++)
+                if (string.Equals(notes[i], note, StringComparison.Ordinal))
+                    return true;
+            return false;
+        }
+
+        private static bool isEnabledBool(Settings settings, string name)
+        {
+            if (settings == null)
+                return false;
+            System.Reflection.FieldInfo field = typeof(Settings).GetField(name,
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            if (field == null || field.FieldType != typeof(bool))
+                return false;
+            try
+            {
+                return (bool)field.GetValue(settings);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public static List<string> enabledConflicts(Settings settings)
@@ -142,16 +506,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             List<string> found = new List<string>();
             if (settings == null)
                 return found;
-            for (int i = 0; i < conflictTable.GetLength(0); i++)
+            string[,] table = activeConflicts();
+            for (int i = 0; i < table.GetLength(0); i++)
             {
-                System.Reflection.FieldInfo field = typeof(Settings).GetField(conflictTable[i, 0],
+                System.Reflection.FieldInfo field = typeof(Settings).GetField(table[i, 0],
                     System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
                 if (field == null || field.FieldType != typeof(bool))
                     continue;
                 try
                 {
                     if ((bool)field.GetValue(settings))
-                        found.Add(conflictTable[i, 0] + " : " + conflictTable[i, 1]);
+                        found.Add(table[i, 0] + " : " + table[i, 1]);
                 }
                 catch
                 {
@@ -572,6 +937,20 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static bool readOffsets()
         {
             List<TableGroup> list = tableGroups();
+
+            // A plugin mod ships no data files, so there is nothing to compare:
+            // the game's own file is the input and its layout is the compiled-in
+            // one. Saying "no maps" here would be a false alarm.
+            if (shipsNoDataFiles())
+            {
+                for (int i = 0; i < list.Count; i++)
+                    list[i].Map = null;
+                offsetsStatus = "not needed - " + modKind
+                    + " changes the game by code, not by data files, so the game's own"
+                    + " fixed_*.bin are the right input and the compiled-in offsets are correct";
+                return false;
+            }
+
             int valid = 0;
             int attempted = 0;
             int missing = 0;
@@ -1069,7 +1448,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         modCopies++;
                     long delta = actual - original;
                     if (delta == 0)
-                        lines.Add(files[i].Name + " : same size as the original (" + original.ToString() + " bytes) - the game dump's copy");
+                        lines.Add(files[i].Name + " : same size as the original (" + original.ToString()
+                            + " bytes) - "
+                            + (shipsNoDataFiles()
+                                ? "the game's own copy, which is what this mod wants"
+                                : "the game dump's copy"));
                     else
                     {
                         replaced++;
@@ -1092,10 +1475,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 lines.Add("files that differ from the original data: " + replaced.ToString()
                     + " of " + loaded.ToString()
                     + (modCopies > 0 ? "   (" + modCopies.ToString() + " are the mod's copies)" : ""));
-                if (replaced == 0)
+                if (replaced == 0 && shipsNoDataFiles())
+                {
+                    lines.Add("    correct for " + modKind + ": it ships no game data, so there is");
+                    lines.Add("    nothing to replace - the files above are the right ones to randomize");
+                }
+                else if (replaced == 0)
+                {
                     lines.Add("    nothing here came from a mod - if a total conversion is installed, the");
-                if (replaced == 0)
                     lines.Add("    files above were most likely taken from the game dump instead");
+                }
 
                 List<string> table = analyseClassTable();
                 if (table.Count > 0)
@@ -1240,6 +1629,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             return text.ToString();
         }
 
+        // The built-in preset that matches the mod that was found.
+        public static string safePresetName()
+        {
+            if (isPluginKind())
+                return "No Monastery 2.1 (plugin, mod safe)";
+            return "No Monastery (mod safe)";
+        }
+
         private static void appendOffsetReport(StringBuilder text, List<string> passes, List<string> warnings,
             List<string> failures)
         {
@@ -1298,7 +1695,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             if (!hasOffsets() && anyLoaded && modMode)
             {
-                if (loadedOnlyOriginals())
+                if (loadedOnlyOriginals() && shipsNoDataFiles())
+                {
+                    text.AppendLine("no map needed: " + modKind + " ships no game data, so the");
+                    text.AppendLine("game's own files are the right input and the compiled-in offsets");
+                    text.AppendLine("are already correct - nothing here needs moving");
+                    passes.Add("mod kind: " + modKind + " - no data files to line up, the game's own"
+                        + " data is randomized as usual");
+                }
+                else if (loadedOnlyOriginals())
                 {
                     text.AppendLine("no map needed: every loaded file is the original size, so the");
                     text.AppendLine("compiled-in offsets are correct for these files");
@@ -1374,6 +1779,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             if (!modMode)
                 return true;
+
+            // With a plugin mod the game's own files are what should be loaded, so
+            // neither the "these are the originals" nor the "offsets unknown"
+            // question applies.
+            if (shipsNoDataFiles())
+                return true;
+
             if (!originalsAcknowledged && loadedOnlyOriginals())
             {
                 originalsAcknowledged = true;
@@ -1454,6 +1866,18 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             text.AppendLine("--- MOD COMPATIBILITY -----------------------------------------");
             text.AppendLine("Mod mode                       : " + modMode);
+            text.AppendLine("Mod checked                    : "
+                + (modKind == kindNone
+                    ? "(none - use \"Check the mod\" on the Extra options tab)"
+                    : modKind)
+                + (modKind == kindNone ? ""
+                    : isPluginKind()
+                        ? "   - a Skyline plugin: no game data files, nothing to line up"
+                        : "   - ships its own game data files, offsets are lined up below"));
+            if (modFolder != null && modFolder.Trim().Length > 0)
+                text.AppendLine("Mod folder                     : " + modFolder.Trim());
+            if (modKindDetail != null && modKindDetail.Length > 0)
+                text.AppendLine("Mod detail                     : " + modKindDetail);
             text.AppendLine("Keep class mastery EXP         : " + keepMasteryExp
                 + "   (restored " + statMasteryExpRestored.ToString() + " requirement(s))");
 
@@ -1480,11 +1904,21 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 passes.Add("mod mode: no enabled option fights the mod");
             else
             {
-                text.AppendLine("enabled options that fight the mod: " + conflicts.Count.ToString());
+                text.AppendLine("enabled options that fight the mod: " + conflicts.Count.ToString()
+                    + "   (of the " + conflictCount().ToString() + " this mod kind owns)");
                 for (int i = 0; i < conflicts.Count; i++)
                     text.AppendLine("    " + conflicts[i]);
                 warnings.Add(conflicts.Count.ToString()
-                    + " enabled option(s) conflict with the mod - apply the \"No Monastery (mod safe)\" preset");
+                    + " enabled option(s) conflict with the mod - apply the \""
+                    + safePresetName() + "\" preset");
+            }
+
+            List<string> notes = notesFor(modKind, Randomizer.settingsForDebug);
+            if (notes.Count > 0)
+            {
+                text.AppendLine("enabled options that still work but behave differently with this mod:");
+                for (int i = 0; i < notes.Count; i++)
+                    text.AppendLine("    " + notes[i]);
             }
             text.AppendLine();
         }
