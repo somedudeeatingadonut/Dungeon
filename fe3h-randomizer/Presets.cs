@@ -395,7 +395,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             + "RandomizerExtras.classIdentity=True\nRandomizerExtras.classDefenseClampEarly=50\n"
             + "RandomizerExtras.classDefenseClampMid=50\nRandomizerExtras.classDefenseClampAdv=50\n"
             + "RandomizerExtras.classDefenseClampMaster=50\n"
-            + "RandomizerExtras.flatHpTrim=0\nRandomizerExtras.flatDefTrim=0\nRandomizerExtras.flatResTrim=0\n"
+            + "RandomizerExtras.flatHpTrimEarly=0\nRandomizerExtras.flatHpTrimMid=0\n"
+            + "RandomizerExtras.flatHpTrimAdv=0\nRandomizerExtras.flatHpTrimMaster=0\n"
+            + "RandomizerExtras.flatDefTrimEarly=0\nRandomizerExtras.flatDefTrimMid=0\n"
+            + "RandomizerExtras.flatDefTrimAdv=0\nRandomizerExtras.flatDefTrimMaster=0\n"
+            + "RandomizerExtras.flatResTrimEarly=0\nRandomizerExtras.flatResTrimMid=0\n"
+            + "RandomizerExtras.flatResTrimAdv=0\nRandomizerExtras.flatResTrimMaster=0\n"
             + "RandomizerBig.describeWeaponEffects=True\nspellFirstRank=4\n";
 
         private const string builtInRunName = "My run - No Monastery 2.1, 2026-10-24";
@@ -444,6 +449,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // the Maddening gap (9 - ~4); it is also a sane gain on Hard.
         private const int modPlayerStartBonus = 5;
 
+        private static string modBandSuffix(int band)
+        {
+            switch (band)
+            {
+                case 0: return "Early";
+                case 1: return "Mid";
+                case 2: return "Adv";
+                default: return "Master";
+            }
+        }
+
         private static void appendModBulkLines(StringBuilder text)
         {
             text.AppendLine("RandomizerExtras.growthShift=" + modEnemyGrowthShift.ToString());
@@ -453,9 +469,18 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("RandomizerExtras.classDefenseClampAdv=" + modClassDefenseAdv.ToString());
             text.AppendLine("RandomizerExtras.classDefenseClampMaster=" + modClassDefenseMaster.ToString());
             text.AppendLine("RandomizerBig.describeWeaponEffects=True");
-            text.AppendLine("RandomizerExtras.flatHpTrim=" + modFlatHpTrim.ToString());
-            text.AppendLine("RandomizerExtras.flatDefTrim=" + modFlatDefTrim.ToString());
-            text.AppendLine("RandomizerExtras.flatResTrim=" + modFlatResTrim.ToString());
+            // The same numbers in every band: this is the trim the presets have
+            // always produced, so nothing moves until a band is turned up. The
+            // level 1-9 row is the one worth raising.
+            for (int band = 0; band < 4; band++)
+            {
+                text.AppendLine("RandomizerExtras.flatHpTrim" + modBandSuffix(band)
+                    + "=" + modFlatHpTrim.ToString());
+                text.AppendLine("RandomizerExtras.flatDefTrim" + modBandSuffix(band)
+                    + "=" + modFlatDefTrim.ToString());
+                text.AppendLine("RandomizerExtras.flatResTrim" + modBandSuffix(band)
+                    + "=" + modFlatResTrim.ToString());
+            }
             text.AppendLine("RandomizerExtras.bossHpTrim=" + modBossHpTrim.ToString());
             text.AppendLine("RandomizerExtras.bossDefTrim=" + modBossDefTrim.ToString());
             text.AppendLine("RandomizerExtras.bossResTrim=" + modBossResTrim.ToString());
@@ -886,6 +911,21 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     RandomizerExtras.classDefenseClampMid = old;
                     RandomizerExtras.classDefenseClampAdv = old;
                     RandomizerExtras.classDefenseClampMaster = old;
+                    return true;
+                }
+
+                // Same story for the flat trim, which was one number too. An old
+                // preset means "that much in every band", not "ignore it".
+                if (typeName == "RandomizerExtras"
+                    && (fieldName == "flatHpTrim" || fieldName == "flatDefTrim"
+                        || fieldName == "flatResTrim"))
+                {
+                    int old;
+                    if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out old))
+                        return false;
+                    int stat = fieldName == "flatHpTrim" ? 0 : fieldName == "flatDefTrim" ? 1 : 2;
+                    for (int band = 0; band < 4; band++)
+                        RandomizerExtras.setFlatTrim(band, stat, old);
                     return true;
                 }
                 for (int t = 0; t < extraTypes.Length; t++)

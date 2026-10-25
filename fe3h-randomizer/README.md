@@ -561,7 +561,7 @@ into Def and Res:
 | Class identity | on (default) | on, written out | so the preset does not depend on a default that may change |
 | Defence clamp | 50% on every band (default) | 20 / 35 / 50 / 50 | clamp the class base Def / Res, which is a floor for every enemy in that class - per level band |
 | Weapon effect text | on (default) | on, written out | a grafted effect has to be readable in the item screen |
-| Flat class base trim | off | **-6 HP, -2 Def, -2 Res** | the level 1 value is the part that makes the first maps feel walled; given back to your own units |
+| Flat class base trim | off | **-6 HP, -2 Def, -2 Res in every level band** | the level 1 value is the part that makes the first maps feel walled; given back to your own units. Turn the level 1-9 row up to sharpen the early game |
 | Boss trim | off | **-6 HP, -2 Def, -2 Res** | on top, on the story units' own rows - the chapter 1 boss included |
 
 The debug report prints the applied preset name at the top together with how
@@ -701,24 +701,57 @@ Both numbers, the samples and a PASS line are in the debug report under
 
 ### Flat enemy bulk trim
 
-**Extra options > Flat enemy bulk trim** subtracts a fixed amount of HP / Def /
-Res from **every class base**. 0 on a row means that stat is not trimmed, so the
-default (0 / 0 / 0) is off.
+**Extra options > Flat enemy bulk trim** subtracts HP / Def / Res from **every
+class base** - and it does it **per class level band**, in a 4x3 grid:
 
-Why a flat subtraction instead of a percentage: a class base is what a level 1
-unit of that class has, and it is a floor for every unit in the class. That is
-the number that makes the first few maps feel walled, and at level 40 the same
-two or three points are noise. -2 Def, -2 Res and -6 HP is the setting both
-No Monastery presets use.
+| | HP | Def | Res |
+| --- | --- | --- | --- |
+| level 1-9 | 6 | 2 | 2 |
+| level 10-19 | 6 | 2 | 2 |
+| level 20-29 | 6 | 2 | 2 |
+| level 30+ | 6 | 2 | 2 |
+
+Those are the values both No Monastery presets write - the same numbers the trim
+has always used, so **nothing changes until you turn a row up**. 0 in a box means
+that stat is not trimmed for that band, and all-zero is off (the default).
+
+Why per level: a class base is what a level 1 unit of that class has and a floor
+for every unit in the class. That is the number that makes the first maps feel
+walled, and at level 40 the same points are noise, so one flat number forces a
+choice between "enough for chapter 2" and "does not gut chapter 20". The level
+1-9 row is the one worth turning up - `-10 / -4 / -4` there against `-6 / -2 / -2`
+later is a much sharper early game than any single number.
+
+Which band a class is in comes from the game's own tier byte at class row `+69`,
+the same byte the tier pools and the Def / Res clamp use. On vanilla rows:
+
+```
+flat trim applied    : 62   (off every class base, last; every normal class, bosses included)
+    lv 1-9    : -10 HP, -4 Def, -4 Res, 5 class(es)
+    lv 10-19  : -6 HP, -2 Def, -2 Res, 14 class(es)
+    lv 20-29  : -6 HP, -2 Def, -2 Res, 19 class(es)
+    lv 30+    : -6 HP, -2 Def, -2 Res, 24 class(es)
+    Myrmidon (lv 1-9 -10/-4/-4) base HP 20 -> 10, Def 7 -> 3, Res 3 -> 0
+    Lord (lv 10-19 -6/-2/-2) base HP 25 -> 19, Def 9 -> 7, Res 6 -> 4
+```
+
+HP never goes below 1 on a row, and Def / Res are only trimmed when the row has
+something to trim, so a class that is already 0 in a stat is left alone.
 
 **It only weakens the enemy side.** The game keeps one class table, so a trimmed
 class is trimmed for your own units of that class as well - which would make the
-game harder, not easier. The same values are therefore added back to the
-**personal base stats of every character you can deploy** (the students, the
-knights and staff, Jeralt, the Ashen Wolves, Jeritza and Anna). Your units end up
-with exactly the stats they had; the enemies standing in the same classes keep
-the trim. The one price: an *enemy* copy of a playable character (an enemy
-Edelgard in another route, for instance) keeps its stats too.
+game harder, not easier. The trim is therefore added back to the **personal base
+stats of every character you can deploy** (the students, the knights and staff,
+Jeralt, the Ashen Wolves, Jeritza and Anna). Your units end up with the stats they
+had; the enemies standing in the same classes keep the trim. The one price: an
+*enemy* copy of a playable character (an enemy Edelgard in another route, for
+instance) keeps its stats too.
+
+With bands, "the trim" is several numbers, so the compensation uses the **largest
+band** for each stat. That is the only choice that keeps the promise: your units
+reclass all run, and a unit must never be below vanilla in *any* class, so it gets
+back the biggest subtraction the setting can apply. Turn the level 1-9 row up and
+the whole player side is covered for it.
 
 Bosses are included: the first boss of a run sits in an ordinary class like any
 other, so it gets the trim with the rest of them. The monster / beast table is a
@@ -728,7 +761,8 @@ beast bosses keep their own numbers - that table is not touched at all.
 It runs as the very last stat pass, after the range limits, so nothing can clamp
 it back up, and boosts and growths are not touched. If `fixed_persondata.bin` was
 not loaded the trim is **skipped** with a warning instead of quietly weakening
-your own army.
+your own army. A preset written for the old single trim (`RandomizerExtras.
+flatHpTrim=6`) still loads: it is read as "that much in every band".
 
 ### Boss trim (extra, on top)
 
@@ -841,12 +875,15 @@ If a run still feels over-tuned on a specific fight, the boss numbers are the
 fine dial; the class numbers are the coarse one.
 
 ```
-flat trim applied    : 84   (HP -6, Def -2, Res -2 off every class base, last, monsters and boss rows included)
-    Myrmidon base HP 20 -> 14, Def 5 -> 3, Res 2 -> 0
-    Soldier base HP 20 -> 14, Def 5 -> 3, Res 2 -> 0
-player units given it back : 42   (the trim is added to their personal bases, so only the enemy side gets weaker)
-    Byleth personal base +6 HP, +2 Def, +2 Res  (so the class trim costs this unit nothing)
-    Edelgard personal base +6 HP, +2 Def, +2 Res  (so the class trim costs this unit nothing)
+flat trim applied    : 62   (off every class base, last; every normal class, bosses included)
+    lv 1-9    : -6 HP, -2 Def, -2 Res, 5 class(es)
+    lv 10-19  : -6 HP, -2 Def, -2 Res, 14 class(es)
+    lv 20-29  : -6 HP, -2 Def, -2 Res, 19 class(es)
+    lv 30+    : -6 HP, -2 Def, -2 Res, 24 class(es)
+    Myrmidon (lv 1-9 -6/-2/-2) base HP 20 -> 14, Def 7 -> 5, Res 3 -> 1
+player units given it back : 42   (largest band trim added to their personal bases, so only the enemy side gets weaker and no unit falls below vanilla in any class)
+    Byleth personal base +6 HP, +2 Def, +2 Res  (the largest band trim, so the class trim costs this unit nothing in any class)
+    Edelgard personal base +6 HP, +2 Def, +2 Res  (the largest band trim, so the class trim costs this unit nothing in any class)
 ```
 
 ### Abilities that are never handed out

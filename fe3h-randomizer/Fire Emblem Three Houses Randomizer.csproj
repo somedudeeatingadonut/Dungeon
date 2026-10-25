@@ -15,7 +15,7 @@
     <OutputType>WinExe</OutputType>
     <AssemblyName>Fire Emblem Three Houses Randomizer V2</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <ApplicationVersion>1.13.0.0</ApplicationVersion>
+    <ApplicationVersion>1.14.0.0</ApplicationVersion>
     <FileAlignment>512</FileAlignment>
     <RootNamespace>Fire_Emblem_Three_Houses_Randomizer_V2</RootNamespace>
   </PropertyGroup>

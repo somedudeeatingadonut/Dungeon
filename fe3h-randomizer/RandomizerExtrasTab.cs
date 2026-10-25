@@ -62,9 +62,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private NumericUpDown extrasClassDefenseAdv_numericUpDown;
         private NumericUpDown extrasClassDefenseMaster_numericUpDown;
         private CheckBox extrasDescribeWeapons_checkBox;
-        private NumericUpDown extrasFlatHp_numericUpDown;
-        private NumericUpDown extrasFlatDef_numericUpDown;
-        private NumericUpDown extrasFlatRes_numericUpDown;
+        // Flat trim: one box per level band and stat, indexed [band] - HP, Def, Res.
+        private NumericUpDown[] extrasFlatTrimHp = new NumericUpDown[4];
+        private NumericUpDown[] extrasFlatTrimDef = new NumericUpDown[4];
+        private NumericUpDown[] extrasFlatTrimRes = new NumericUpDown[4];
         private NumericUpDown extrasBossHp_numericUpDown;
         private NumericUpDown extrasBossDef_numericUpDown;
         private NumericUpDown extrasBossRes_numericUpDown;
@@ -504,48 +505,38 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 // ------------------------------------------------ flat bulk trim
                 addFullRow(layout, sectionLabel("Flat enemy bulk trim"));
 
-                this.extrasFlatHp_numericUpDown = new NumericUpDown();
-                this.extrasFlatHp_numericUpDown.Minimum = 0;
-                this.extrasFlatHp_numericUpDown.Maximum = 40;
-                this.extrasFlatHp_numericUpDown.Increment = 1;
-                this.extrasFlatHp_numericUpDown.Value = RandomizerExtras.flatHpTrim;
-                this.extrasFlatHp_numericUpDown.Width = 70;
-                this.extrasFlatHp_numericUpDown.Margin = new Padding(0, 3, 0, 3);
-                this.extrasFlatHp_numericUpDown.ValueChanged +=
-                    new EventHandler(this.extrasFlatTrim_numericUpDown_ValueChanged);
-                addSplitRow(layout, indentedLabel("HP taken off every class base:"),
-                    this.extrasFlatHp_numericUpDown);
+                // One row per level band, three columns: HP, Def, Res. The band a
+                // class is in decides how much comes off it, so the first maps
+                // can be hit harder than the last ones without gutting either.
+                addSplitRow(layout, indentedLabel("Class base HP / Def / Res, by class level:"),
+                    makeFlatTrimHeader());
+                for (int band = 0; band < 4; band++)
+                {
+                    this.extrasFlatTrimHp[band] = makeFlatTrimBox(band, 0, 60);
+                    this.extrasFlatTrimDef[band] = makeFlatTrimBox(band, 1, 40);
+                    this.extrasFlatTrimRes[band] = makeFlatTrimBox(band, 2, 40);
 
-                this.extrasFlatDef_numericUpDown = new NumericUpDown();
-                this.extrasFlatDef_numericUpDown.Minimum = 0;
-                this.extrasFlatDef_numericUpDown.Maximum = 20;
-                this.extrasFlatDef_numericUpDown.Increment = 1;
-                this.extrasFlatDef_numericUpDown.Value = RandomizerExtras.flatDefTrim;
-                this.extrasFlatDef_numericUpDown.Width = 70;
-                this.extrasFlatDef_numericUpDown.Margin = new Padding(0, 3, 0, 3);
-                this.extrasFlatDef_numericUpDown.ValueChanged +=
-                    new EventHandler(this.extrasFlatTrim_numericUpDown_ValueChanged);
-                addSplitRow(layout, indentedLabel("Def taken off every class base:"),
-                    this.extrasFlatDef_numericUpDown);
-
-                this.extrasFlatRes_numericUpDown = new NumericUpDown();
-                this.extrasFlatRes_numericUpDown.Minimum = 0;
-                this.extrasFlatRes_numericUpDown.Maximum = 20;
-                this.extrasFlatRes_numericUpDown.Increment = 1;
-                this.extrasFlatRes_numericUpDown.Value = RandomizerExtras.flatResTrim;
-                this.extrasFlatRes_numericUpDown.Width = 70;
-                this.extrasFlatRes_numericUpDown.Margin = new Padding(0, 3, 0, 3);
-                this.extrasFlatRes_numericUpDown.ValueChanged +=
-                    new EventHandler(this.extrasFlatTrim_numericUpDown_ValueChanged);
-                addSplitRow(layout, indentedLabel("Res taken off every class base:"),
-                    this.extrasFlatRes_numericUpDown);
+                    FlowLayoutPanel row = new FlowLayoutPanel();
+                    row.AutoSize = true;
+                    row.WrapContents = false;
+                    row.Margin = new Padding(0);
+                    row.Controls.Add(this.extrasFlatTrimHp[band]);
+                    row.Controls.Add(this.extrasFlatTrimDef[band]);
+                    row.Controls.Add(this.extrasFlatTrimRes[band]);
+                    addSplitRow(layout, indentedLabel("    " + RandomizerExtras.defenseBandName(band) + ":"),
+                        row);
+                }
 
                 addFullRow(layout, helpLabel(
                     "Subtracted from the class base HP / Def / Res as the very last stat pass, so nothing\r\n"
-                    + "clamps it back. A class base is what a level 1 unit of that class has and it is a\r\n"
-                    + "floor for every unit in the class, so this is the part that makes the first maps\r\n"
-                    + "feel walled - at level 40 the same two or three points barely register. -2 Def, -2\r\n"
-                    + "Res and -6 HP is a good starting point for a No Monastery run.\r\n"
+                    + "clamps it back - and per class level, because a class base is what a level 1 unit of\r\n"
+                    + "that class has and a floor for every unit in it. That is the part that makes the first\r\n"
+                    + "maps feel walled, while at level 40 the same points barely register. So the level 1-9\r\n"
+                    + "row is the one to turn up: -10 / -4 / -4 there with the later rows left at -6 / -2 / -2\r\n"
+                    + "is a much sharper early game than one flat number can give.\r\n"
+                    + "Your units are given back the LARGEST band trim on their personal bases, not the one\r\n"
+                    + "for the class they start in, because they reclass all run - so none of them can ever\r\n"
+                    + "end up below vanilla, whatever row you turn up.\r\n"
                     + "Bosses are included: the first boss of a run is an ordinary class like any other.\r\n"
                     + "(The monster / beast table is a different layout with no class base stats, so\r\n"
                     + "beast bosses keep their own numbers - it is not touched.)\r\n"
@@ -555,7 +546,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "Enemy copies of a playable character (an enemy Edelgard, say) keep their stats too,\r\n"
                     + "which is the price of doing it this way. It needs the character file loaded -\r\n"
                     + "without it the trim is skipped rather than silently weakening your own units.\r\n"
-                    + "Boosts and growths are not touched. 0 on a row means that stat is not trimmed."));
+                    + "Boosts and growths are not touched. 0 in a box means that stat is not trimmed for\r\n"
+                    + "that band; the columns are HP, Def, Res in that order."));
 
                 // ------------------------------------------------------ boss trim
                 addFullRow(layout, sectionLabel("Boss trim (extra, on top of the class trim)"));
@@ -1209,16 +1201,52 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             RandomizerBig.describeWeaponEffects = this.extrasDescribeWeapons_checkBox.Checked;
         }
 
+        // Every box in the grid shares this handler; the Tag is band * 10 + stat.
         private void extrasFlatTrim_numericUpDown_ValueChanged(object sender, EventArgs e)
         {
             if (this.extrasBuilding)
                 return;
-            if (this.extrasFlatHp_numericUpDown != null)
-                RandomizerExtras.flatHpTrim = (int)this.extrasFlatHp_numericUpDown.Value;
-            if (this.extrasFlatDef_numericUpDown != null)
-                RandomizerExtras.flatDefTrim = (int)this.extrasFlatDef_numericUpDown.Value;
-            if (this.extrasFlatRes_numericUpDown != null)
-                RandomizerExtras.flatResTrim = (int)this.extrasFlatRes_numericUpDown.Value;
+            NumericUpDown box = sender as NumericUpDown;
+            if (box == null || box.Tag == null)
+                return;
+            int tag = (int)box.Tag;
+            RandomizerExtras.setFlatTrim(tag / 10, tag % 10, (int)box.Value);
+        }
+
+        private NumericUpDown makeFlatTrimBox(int band, int stat, int maximum)
+        {
+            NumericUpDown box = new NumericUpDown();
+            box.Minimum = 0;
+            box.Maximum = maximum;
+            box.Increment = 1;
+            box.Value = RandomizerExtras.flatTrimForBand(band, stat);
+            box.Width = 60;
+            box.Margin = new Padding(0, 3, 8, 3);
+            box.Tag = band * 10 + stat;
+            box.ValueChanged += new EventHandler(this.extrasFlatTrim_numericUpDown_ValueChanged);
+            return box;
+        }
+
+        // The three column captions, aligned over the three boxes.
+        private static FlowLayoutPanel makeFlatTrimHeader()
+        {
+            FlowLayoutPanel panel = new FlowLayoutPanel();
+            panel.AutoSize = true;
+            panel.WrapContents = false;
+            panel.Margin = new Padding(0);
+            string[] captions = { "HP", "Def", "Res" };
+            for (int i = 0; i < captions.Length; i++)
+            {
+                Label label = new Label();
+                label.Text = captions[i];
+                label.AutoSize = false;
+                label.Width = 68;
+                label.Height = 18;
+                label.TextAlign = ContentAlignment.MiddleLeft;
+                label.Margin = new Padding(0, 3, 0, 3);
+                panel.Controls.Add(label);
+            }
+            return panel;
         }
 
         private void extrasBossTrim_numericUpDown_ValueChanged(object sender, EventArgs e)

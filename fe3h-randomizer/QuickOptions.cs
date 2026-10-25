@@ -81,9 +81,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 RandomizerExtras.growthShift = 0;
                 // The trim is a subtraction the user asks for; turning every
                 // option off must not keep weakening the class bases.
-                RandomizerExtras.flatHpTrim = 0;
-                RandomizerExtras.flatDefTrim = 0;
-                RandomizerExtras.flatResTrim = 0;
+                RandomizerExtras.setFlatTrimAllBands(0, 0, 0);
                 RandomizerExtras.bossHpTrim = 0;
                 RandomizerExtras.bossDefTrim = 0;
                 RandomizerExtras.bossResTrim = 0;
@@ -203,15 +201,18 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             if (this.extrasDescribeWeapons_checkBox != null)
                 this.extrasDescribeWeapons_checkBox.Checked = RandomizerBig.describeWeaponEffects;
-            if (this.extrasFlatHp_numericUpDown != null)
-                this.extrasFlatHp_numericUpDown.Value = clampToControl(
-                    this.extrasFlatHp_numericUpDown, RandomizerExtras.flatHpTrim);
-            if (this.extrasFlatDef_numericUpDown != null)
-                this.extrasFlatDef_numericUpDown.Value = clampToControl(
-                    this.extrasFlatDef_numericUpDown, RandomizerExtras.flatDefTrim);
-            if (this.extrasFlatRes_numericUpDown != null)
-                this.extrasFlatRes_numericUpDown.Value = clampToControl(
-                    this.extrasFlatRes_numericUpDown, RandomizerExtras.flatResTrim);
+            for (int band = 0; band < 4; band++)
+            {
+                if (this.extrasFlatTrimHp[band] != null)
+                    this.extrasFlatTrimHp[band].Value = clampToControl(
+                        this.extrasFlatTrimHp[band], RandomizerExtras.flatTrimForBand(band, 0));
+                if (this.extrasFlatTrimDef[band] != null)
+                    this.extrasFlatTrimDef[band].Value = clampToControl(
+                        this.extrasFlatTrimDef[band], RandomizerExtras.flatTrimForBand(band, 1));
+                if (this.extrasFlatTrimRes[band] != null)
+                    this.extrasFlatTrimRes[band].Value = clampToControl(
+                        this.extrasFlatTrimRes[band], RandomizerExtras.flatTrimForBand(band, 2));
+            }
             if (this.extrasBossHp_numericUpDown != null)
                 this.extrasBossHp_numericUpDown.Value = clampToControl(
                     this.extrasBossHp_numericUpDown, RandomizerExtras.bossHpTrim);

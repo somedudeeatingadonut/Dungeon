@@ -214,11 +214,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + (RandomizerExtras.classIdentity
                     ? "  (Def / Res clamp " + clampSummary() + " by class level)" : ""));
             text.AppendLine("Weapon effect text      : " + RandomizerBig.describeWeaponEffects);
-            text.AppendLine("Flat class base trim    : HP -" + RandomizerExtras.flatHpTrim
-                + ", Def -" + RandomizerExtras.flatDefTrim
-                + ", Res -" + RandomizerExtras.flatResTrim
-                + (RandomizerExtras.flatHpTrim == 0 && RandomizerExtras.flatDefTrim == 0
-                    && RandomizerExtras.flatResTrim == 0 ? "  (off)" : ""));
+            text.AppendLine("Flat class base trim    : HP -" + trimBands(0)
+                + ", Def -" + trimBands(1) + ", Res -" + trimBands(2)
+                + (RandomizerExtras.flatTrimOn() ? "  (lv 1-9 / 10-19 / 20-29 / 30+)" : "  (off)"));
             text.AppendLine("Boss trim (extra)       : HP -" + RandomizerExtras.bossHpTrim
                 + ", Def -" + RandomizerExtras.bossDefTrim
                 + ", Res -" + RandomizerExtras.bossResTrim
@@ -661,6 +659,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine(label + " : loaded  " + state);
         }
 
+        // The four flat trim numbers for one stat, in band order: 10/6/6/6.
+        // stat 0 = HP, 1 = Def, 2 = Res.
+        private static string trimBands(int stat)
+        {
+            return RandomizerExtras.flatTrimForBand(0, stat).ToString() + "/"
+                + RandomizerExtras.flatTrimForBand(1, stat).ToString() + "/"
+                + RandomizerExtras.flatTrimForBand(2, stat).ToString() + "/"
+                + RandomizerExtras.flatTrimForBand(3, stat).ToString();
+        }
+
         // The four allowances in one line: the summary and the pass use it.
         private static string clampSummary()
         {
@@ -706,14 +714,18 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 text.AppendLine("    " + sample);
 
             text.AppendLine("flat trim applied    : " + RandomizerExtras.statFlatTrimmed
-                + "   (HP -" + RandomizerExtras.flatHpTrim + ", Def -"
-                + RandomizerExtras.flatDefTrim + ", Res -" + RandomizerExtras.flatResTrim
-                + " off every class base, last; every normal class, bosses included)");
+                + "   (off every class base, last; every normal class, bosses included)");
+            for (int band = 0; band < 4; band++)
+                text.AppendLine("    " + RandomizerExtras.defenseBandName(band).PadRight(9)
+                    + ": -" + RandomizerExtras.flatTrimForBand(band, 0) + " HP, -"
+                    + RandomizerExtras.flatTrimForBand(band, 1) + " Def, -"
+                    + RandomizerExtras.flatTrimForBand(band, 2) + " Res, "
+                    + RandomizerExtras.statFlatTrimmedByBand[band] + " class(es)");
             foreach (string sample in RandomizerExtras.flatTrimSamples)
                 text.AppendLine("    " + sample);
             text.AppendLine("player units given it back : " + RandomizerExtras.statFlatCompensated
-                + "   (the trim is added to their personal bases, so only the enemy side"
-                + " gets weaker)");
+                + "   (largest band trim added to their personal bases, so only the enemy"
+                + " side gets weaker and no unit falls below vanilla in any class)");
             foreach (string sample in RandomizerExtras.flatCompensationSamples)
                 text.AppendLine("    " + sample);
             text.AppendLine("boss rows trimmed    : " + RandomizerExtras.statBossTrimmed
@@ -732,8 +744,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             // Its own check, independent of the identity pass: the trim is set on
             // the tab, so the report has to say whether it actually did anything.
-            bool trimWanted = RandomizerExtras.flatHpTrim > 0 || RandomizerExtras.flatDefTrim > 0
-                || RandomizerExtras.flatResTrim > 0;
+            bool trimWanted = RandomizerExtras.flatTrimOn();
             bool bossWanted = RandomizerExtras.bossHpTrim > 0 || RandomizerExtras.bossDefTrim > 0
                 || RandomizerExtras.bossResTrim > 0;
             if (bossWanted)
@@ -766,9 +777,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             }
             else if (RandomizerExtras.statFlatTrimmed == 0)
             {
-                warnings.Add("the flat class base trim is set to -" + RandomizerExtras.flatHpTrim
-                    + " / -" + RandomizerExtras.flatDefTrim + " / -" + RandomizerExtras.flatResTrim
-                    + " but no class base changed");
+                warnings.Add("the flat class base trim is set (HP -" + trimBands(0) + ", Def -"
+                    + trimBands(1) + ", Res -" + trimBands(2) + " by level band) but no class"
+                    + " base changed");
             }
             else
             {

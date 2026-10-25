@@ -74,9 +74,85 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // same values are added back to the personal bases of every character
         // the player can field (see applyFlatTrim). Enemies, and bosses with
         // them, keep the trim.
-        public static int flatHpTrim = 0;
-        public static int flatDefTrim = 0;
-        public static int flatResTrim = 0;
+        // It is per level band for the same reason the clamp above is: the
+        // subtraction is what an early class feels most, and the same points
+        // are noise on a master class. One number for every tier forces a
+        // choice between "hurts the first maps enough" and "does not gut the
+        // late ones"; four numbers do not.
+        public static int flatHpTrimEarly = 0;   // level 1-9
+        public static int flatHpTrimMid = 0;     // level 10-19
+        public static int flatHpTrimAdv = 0;     // level 20-29
+        public static int flatHpTrimMaster = 0;  // level 30+ and unique
+        public static int flatDefTrimEarly = 0;
+        public static int flatDefTrimMid = 0;
+        public static int flatDefTrimAdv = 0;
+        public static int flatDefTrimMaster = 0;
+        public static int flatResTrimEarly = 0;
+        public static int flatResTrimMid = 0;
+        public static int flatResTrimAdv = 0;
+        public static int flatResTrimMaster = 0;
+
+        // stat 0 = HP, 1 = Def, 2 = Res.
+        public static int flatTrimForBand(int band, int stat)
+        {
+            int value;
+            if (stat == 0)
+                value = band == 0 ? flatHpTrimEarly : band == 1 ? flatHpTrimMid
+                    : band == 2 ? flatHpTrimAdv : flatHpTrimMaster;
+            else if (stat == 1)
+                value = band == 0 ? flatDefTrimEarly : band == 1 ? flatDefTrimMid
+                    : band == 2 ? flatDefTrimAdv : flatDefTrimMaster;
+            else
+                value = band == 0 ? flatResTrimEarly : band == 1 ? flatResTrimMid
+                    : band == 2 ? flatResTrimAdv : flatResTrimMaster;
+            return Math.Max(0, Math.Min(stat == 0 ? 60 : 40, value));
+        }
+
+        // The biggest trim any band asks for, per stat. The player's units are
+        // compensated by this, not by the band of whatever class they happen to
+        // be standing in: they reclass all run and the promise is that the trim
+        // never leaves one of them below vanilla.
+        public static int flatTrimLargest(int stat)
+        {
+            int result = 0;
+            for (int band = 0; band < 4; band++)
+                result = Math.Max(result, flatTrimForBand(band, stat));
+            return result;
+        }
+
+        public static bool flatTrimOn()
+        {
+            return flatTrimLargest(0) > 0 || flatTrimLargest(1) > 0 || flatTrimLargest(2) > 0;
+        }
+
+        // Used by the preset loader for the pre-1.13 single trim numbers.
+        public static void setFlatTrimAllBands(int hp, int def, int res)
+        {
+            flatHpTrimEarly = hp; flatHpTrimMid = hp; flatHpTrimAdv = hp; flatHpTrimMaster = hp;
+            flatDefTrimEarly = def; flatDefTrimMid = def; flatDefTrimAdv = def; flatDefTrimMaster = def;
+            flatResTrimEarly = res; flatResTrimMid = res; flatResTrimAdv = res; flatResTrimMaster = res;
+        }
+
+        public static void setFlatTrim(int band, int stat, int value)
+        {
+            if (band < 0 || band > 3)
+                return;
+            if (stat == 0)
+            {
+                if (band == 0) flatHpTrimEarly = value; else if (band == 1) flatHpTrimMid = value;
+                else if (band == 2) flatHpTrimAdv = value; else flatHpTrimMaster = value;
+            }
+            else if (stat == 1)
+            {
+                if (band == 0) flatDefTrimEarly = value; else if (band == 1) flatDefTrimMid = value;
+                else if (band == 2) flatDefTrimAdv = value; else flatDefTrimMaster = value;
+            }
+            else if (stat == 2)
+            {
+                if (band == 0) flatResTrimEarly = value; else if (band == 1) flatResTrimMid = value;
+                else if (band == 2) flatResTrimAdv = value; else flatResTrimMaster = value;
+            }
+        }
 
         // An extra subtraction for the story units, on top of the class trim
         // above. The class table cannot tell a boss from the soldiers standing
@@ -170,6 +246,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statDefenseClamped;
         // Clamped classes per level band: lv 1-9, 10-19, 20-29, 30+.
         public static int[] statDefenseClampedByBand = new int[4];
+        // Classes trimmed, per level band: lv 1-9, 10-19, 20-29, 30+.
+        public static int[] statFlatTrimmedByBand = new int[4];
         public static int statFlatTrimmed;
         public static int statFlatCompensated;
         public static int statBossTrimmed;
@@ -216,6 +294,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statDefenseClamped = 0;
             for (int i = 0; i < statDefenseClampedByBand.Length; i++)
                 statDefenseClampedByBand[i] = 0;
+            for (int i = 0; i < statFlatTrimmedByBand.Length; i++)
+                statFlatTrimmedByBand[i] = 0;
             statFlatTrimmed = 0;
             statFlatCompensated = 0;
             statBossTrimmed = 0;
@@ -880,23 +960,19 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // layout with no class base stats in it, so it is not touched at all.
         public static void applyFlatTrim()
         {
-            int hpTrim = Math.Max(0, Math.Min(60, flatHpTrim));
-            int defTrim = Math.Max(0, Math.Min(40, flatDefTrim));
-            int resTrim = Math.Max(0, Math.Min(40, flatResTrim));
-
             // The character file is needed either way: for the class trim it is
             // what keeps the player's own units at full strength, and for the
             // boss trim it is the only table the trim can work on.
             if (Randomizer.personData == null || Randomizer.personDataV == null)
                 return;
 
-            if (hpTrim > 0 || defTrim > 0 || resTrim > 0)
-                trimClassBases(hpTrim, defTrim, resTrim);
+            if (flatTrimOn())
+                trimClassBases();
 
             trimBossCharacters();
         }
 
-        private static void trimClassBases(int hpTrim, int defTrim, int resTrim)
+        private static void trimClassBases()
         {
             if (Randomizer.classData == null)
                 return;
@@ -911,6 +987,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 long defOffset = block + baseStatOffsets[6];
                 long resOffset = block + baseStatOffsets[7];
                 if (resOffset >= Randomizer.classData.Length)
+                    continue;
+
+                // Which band this class is in decides how much comes off.
+                int band = defenseBand(Randomizer.classData[block + 69L]);
+                int hpTrim = flatTrimForBand(band, 0);
+                int defTrim = flatTrimForBand(band, 1);
+                int resTrim = flatTrimForBand(band, 2);
+                if (hpTrim <= 0 && defTrim <= 0 && resTrim <= 0)
                     continue;
 
                 bool changed = false;
@@ -939,8 +1023,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     continue;
 
                 statFlatTrimmed++;
+                if (band >= 0 && band < statFlatTrimmedByBand.Length)
+                    statFlatTrimmedByBand[band]++;
                 if (flatTrimSamples.Count < 6)
-                    flatTrimSamples.Add(className(index) + " base HP " + hp.ToString()
+                    flatTrimSamples.Add(className(index) + " (" + defenseBandName(band)
+                        + " -" + hpTrim + "/-" + defTrim + "/-" + resTrim + ") base HP " + hp.ToString()
                         + (rowHpTrim > 0 ? " -> " + (hp - rowHpTrim).ToString() : "")
                         + ", Def " + def.ToString()
                         + (defTrim > 0 ? " -> " + Math.Max(0, def - defTrim).ToString() : "")
@@ -948,7 +1035,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         + (resTrim > 0 ? " -> " + Math.Max(0, res - resTrim).ToString() : ""));
             }
 
-            compensatePlayerCharacters(hpTrim, defTrim, resTrim);
+            // The player side is given back the largest trim any band asks for,
+            // so no unit of the player's is ever below vanilla whatever class
+            // they reclass into.
+            compensatePlayerCharacters(flatTrimLargest(0), flatTrimLargest(1), flatTrimLargest(2));
         }
 
         // Gives the trim back to every character the player can field, in that
@@ -984,7 +1074,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     && Randomizer.characterNames[playableCharacters[i]] != null)
                     flatCompensationSamples.Add(Randomizer.characterNames[playableCharacters[i]]
                         + " personal base +" + hpTrim + " HP, +" + defTrim + " Def, +" + resTrim
-                        + " Res  (so the class trim costs this unit nothing)");
+                        + " Res  (the largest band trim, so the class trim costs this unit nothing"
+                        + " in any class)");
             }
         }
 
