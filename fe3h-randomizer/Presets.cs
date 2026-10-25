@@ -392,15 +392,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             + "RandomizerBig.swapScope=0\nRandomizerMore.statBoostClampMin=-3\n"
             + "RandomizerMore.statBoostClampMax=10\nRandomizerMore.statBaseClampMin=3\n"
             + "RandomizerMore.statBaseClampMax=90\nRandomizerMore.statTotalTolerance=25\n"
-            + "RandomizerExtras.classIdentity=True\nRandomizerExtras.classDefenseClampEarly=50\n"
-            + "RandomizerExtras.classDefenseClampMid=50\nRandomizerExtras.classDefenseClampAdv=50\n"
+            + "RandomizerExtras.classIdentity=True\nRandomizerExtras.classDefenseClampEarly=20\n"
+            + "RandomizerExtras.classDefenseClampMid=35\nRandomizerExtras.classDefenseClampAdv=50\n"
             + "RandomizerExtras.classDefenseClampMaster=50\n"
-            + "RandomizerExtras.flatHpTrimEarly=0\nRandomizerExtras.flatHpTrimMid=0\n"
-            + "RandomizerExtras.flatHpTrimAdv=0\nRandomizerExtras.flatHpTrimMaster=0\n"
-            + "RandomizerExtras.flatDefTrimEarly=0\nRandomizerExtras.flatDefTrimMid=0\n"
-            + "RandomizerExtras.flatDefTrimAdv=0\nRandomizerExtras.flatDefTrimMaster=0\n"
-            + "RandomizerExtras.flatResTrimEarly=0\nRandomizerExtras.flatResTrimMid=0\n"
-            + "RandomizerExtras.flatResTrimAdv=0\nRandomizerExtras.flatResTrimMaster=0\n"
+            + "RandomizerExtras.flatHpTrimEarly=10\nRandomizerExtras.flatHpTrimMid=6\n"
+            + "RandomizerExtras.flatHpTrimAdv=6\nRandomizerExtras.flatHpTrimMaster=6\n"
+            + "RandomizerExtras.flatDefTrimEarly=4\nRandomizerExtras.flatDefTrimMid=2\n"
+            + "RandomizerExtras.flatDefTrimAdv=2\nRandomizerExtras.flatDefTrimMaster=2\n"
+            + "RandomizerExtras.flatResTrimEarly=4\nRandomizerExtras.flatResTrimMid=2\n"
+            + "RandomizerExtras.flatResTrimAdv=2\nRandomizerExtras.flatResTrimMaster=2\n"
+            + "RandomizerExtras.bossHpTrim=6\nRandomizerExtras.bossDefTrim=2\n"
+            + "RandomizerExtras.bossResTrim=2\nRandomizerExtras.playerStartBonus=5\n"
             + "RandomizerBig.describeWeaponEffects=True\nspellFirstRank=4\n";
 
         private const string builtInRunName = "My run - No Monastery 2.1, 2026-10-24";
@@ -430,9 +432,18 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // bases. The base is the level 1 value and a floor for every unit in the
         // class, so this is what un-walls the first maps; at level 40 the same
         // two or three points are noise. Boost and growth are not touched.
+        //
+        // Per band. The late bands keep the numbers the presets have always
+        // used; the level 1-9 row is turned up, because that is where a base is
+        // most of the stat and where the first maps are decided. The player
+        // compensation takes the largest band, so the extra early subtraction
+        // costs the player's units nothing - it is a pure enemy-side cut.
         private const int modFlatHpTrim = 6;
         private const int modFlatDefTrim = 2;
         private const int modFlatResTrim = 2;
+        private const int modFlatHpTrimEarly = 10;
+        private const int modFlatDefTrimEarly = 4;
+        private const int modFlatResTrimEarly = 4;
 
         // ... and the same again for the story units, whose personal bases are
         // their own: a boss that needs a level 12 Jeralt to kill is not a fight,
@@ -469,17 +480,19 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("RandomizerExtras.classDefenseClampAdv=" + modClassDefenseAdv.ToString());
             text.AppendLine("RandomizerExtras.classDefenseClampMaster=" + modClassDefenseMaster.ToString());
             text.AppendLine("RandomizerBig.describeWeaponEffects=True");
-            // The same numbers in every band: this is the trim the presets have
-            // always produced, so nothing moves until a band is turned up. The
-            // level 1-9 row is the one worth raising.
+            // Level 1-9 is cut harder than the rest; the other three bands keep
+            // the numbers the presets have always used.
             for (int band = 0; band < 4; band++)
             {
+                int hp = band == 0 ? modFlatHpTrimEarly : modFlatHpTrim;
+                int def = band == 0 ? modFlatDefTrimEarly : modFlatDefTrim;
+                int res = band == 0 ? modFlatResTrimEarly : modFlatResTrim;
                 text.AppendLine("RandomizerExtras.flatHpTrim" + modBandSuffix(band)
-                    + "=" + modFlatHpTrim.ToString());
+                    + "=" + hp.ToString());
                 text.AppendLine("RandomizerExtras.flatDefTrim" + modBandSuffix(band)
-                    + "=" + modFlatDefTrim.ToString());
+                    + "=" + def.ToString());
                 text.AppendLine("RandomizerExtras.flatResTrim" + modBandSuffix(band)
-                    + "=" + modFlatResTrim.ToString());
+                    + "=" + res.ToString());
             }
             text.AppendLine("RandomizerExtras.bossHpTrim=" + modBossHpTrim.ToString());
             text.AppendLine("RandomizerExtras.bossDefTrim=" + modBossDefTrim.ToString());
@@ -578,7 +591,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             Preset builtIn = new Preset();
             builtIn.Name = builtInRunName;
             builtIn.Description = countLines(builtInRunData).ToString()
-                + " values: his own preset file of 2026-10-24 plus the range limits it was missing";
+                + " values: his own preset file of 2026-10-24, the range limits it was missing,"
+                + " and the tuned grid (clamp 20/35/50/50, class trim -10/-4/-4 on level 1-9 and"
+                + " -6/-2/-2 after, boss trim -6/-2/-2, player start bonus 5)";
             builtIn.Data = builtInRunData;
             builtIn.BuiltIn = true;
             cache.Add(builtIn);
@@ -588,7 +603,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             modSafe.Description = "No Monastery 1.3.3, the data-file release: the same run with everything"
                 + " the mod ships handed back to it (" + ModSupport.conflictCount(ModSupport.kindDataMod).ToString()
                 + " options off), first spell at C, 30% of the enemy growth shifted into HP,"
-                + " -6 HP / -2 Def / -2 Res on every class base and on every boss";
+                + " a per-level Def / Res clamp of 20/35/50/50, -10 HP / -4 Def / -4 Res on the"
+                + " level 1-9 class bases and -6 / -2 / -2 after, -6 / -2 / -2 on every boss, and"
+                + " five levels of stats on your own units";
             modSafe.Data = builtInModSafeData();
             modSafe.BuiltIn = true;
             cache.Add(modSafe);
@@ -598,8 +615,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             pluginSafe.Description = "No Monastery 2.1, the Skyline plugin release: the same run with only"
                 + " the " + ModSupport.conflictCount(ModSupport.kindPluginMod).ToString()
                 + " options the plugin recalculates turned off, first spell at C,"
-                + " 30% of the enemy growth shifted into HP, -6 HP / -2 Def / -2 Res on every class base"
-                + " and on every boss";
+                + " 30% of the enemy growth shifted into HP, a per-level Def / Res clamp of"
+                + " 20/35/50/50, -10 HP / -4 Def / -4 Res on the level 1-9 class bases and"
+                + " -6 / -2 / -2 after, -6 / -2 / -2 on every boss, and five levels of stats on"
+                + " your own units";
             pluginSafe.Data = builtInPluginSafeData();
             pluginSafe.BuiltIn = true;
             cache.Add(pluginSafe);

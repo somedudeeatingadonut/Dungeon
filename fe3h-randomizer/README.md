@@ -263,8 +263,14 @@ systems. Exploration and the weekly teaching loop are gone, so an option that
 only writes the tables behind them produces a changelog entry for a screen the
 game will never open, and buries the options that do matter.
 
-**No Monastery mode** sits under the mod-mode box on the Extra options tab, and
-does four things when it is ticked:
+**No Monastery mode** sits under the mod-mode box on the Extra options tab. It is
+**always clickable**, whether or not mod mode is on: ticking it switches mod mode
+on itself (and the box goes clean again if you then un-tick mod mode). Before
+1.14.1 it was greyed out until mod mode was already on, which left it unclickable
+on every fresh window - the one control that turns the mode on was locked behind
+the mode.
+
+It does four things when it is ticked:
 
 | What | Why |
 | --- | --- |
@@ -561,7 +567,7 @@ into Def and Res:
 | Class identity | on (default) | on, written out | so the preset does not depend on a default that may change |
 | Defence clamp | 50% on every band (default) | 20 / 35 / 50 / 50 | clamp the class base Def / Res, which is a floor for every enemy in that class - per level band |
 | Weapon effect text | on (default) | on, written out | a grafted effect has to be readable in the item screen |
-| Flat class base trim | off | **-6 HP, -2 Def, -2 Res in every level band** | the level 1 value is the part that makes the first maps feel walled; given back to your own units. Turn the level 1-9 row up to sharpen the early game |
+| Flat class base trim | off | **-10 HP, -4 Def, -4 Res on level 1-9; -6 / -2 / -2 after** | the level 1 value is the part that makes the first maps feel walled; given back to your own units. Turning the early row up also raises the compensation every unit carries |
 | Boss trim | off | **-6 HP, -2 Def, -2 Res** | on top, on the story units' own rows - the chapter 1 boss included |
 
 The debug report prints the applied preset name at the top together with how
@@ -706,21 +712,30 @@ class base** - and it does it **per class level band**, in a 4x3 grid:
 
 | | HP | Def | Res |
 | --- | --- | --- | --- |
-| level 1-9 | 6 | 2 | 2 |
+| level 1-9 | **10** | **4** | **4** |
 | level 10-19 | 6 | 2 | 2 |
 | level 20-29 | 6 | 2 | 2 |
 | level 30+ | 6 | 2 | 2 |
 
-Those are the values both No Monastery presets write - the same numbers the trim
-has always used, so **nothing changes until you turn a row up**. 0 in a box means
-that stat is not trimmed for that band, and all-zero is off (the default).
+Those are the values all three No Monastery presets write. The three later bands
+keep the numbers the trim has always used; only the level 1-9 row is turned up.
+0 in a box means that stat is not trimmed for that band, and all-zero is off (the
+default), so a run that never touches this section is unaffected.
 
 Why per level: a class base is what a level 1 unit of that class has and a floor
 for every unit in the class. That is the number that makes the first maps feel
 walled, and at level 40 the same points are noise, so one flat number forces a
-choice between "enough for chapter 2" and "does not gut chapter 20". The level
-1-9 row is the one worth turning up - `-10 / -4 / -4` there against `-6 / -2 / -2`
-later is a much sharper early game than any single number.
+choice between "enough for chapter 2" and "does not gut chapter 20". Myrmidon at
+`-10 / -4 / -4` opens on 10 HP / 3 Def / 0 Res while Lord keeps 19 / 7 / 4 - a
+much sharper first map than any single number can give, with nothing taken from
+the late game.
+
+The price of turning the early row up is on the player's side, and it is worth
+knowing before you do it: the compensation (below) uses the **largest band**, so
+`-10 HP` early means every playable character carries **+10 HP** on their personal
+base - which is a straight buff once they reach a late class that is only trimmed
+by 6. Raising the early row sharpens the opening and quietly fattens the late
+game by the difference.
 
 Which band a class is in comes from the game's own tier byte at class row `+69`,
 the same byte the tier pools and the Def / Res clamp use. On vanilla rows:

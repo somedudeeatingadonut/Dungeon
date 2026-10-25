@@ -353,6 +353,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasModMastery_checkBox.AutoSize = true;
                 this.extrasModMastery_checkBox.Checked = ModSupport.keepMasteryExp;
                 this.extrasModMastery_checkBox.Text = "Keep the mod's class mastery EXP requirements";
+                // Same rule as the No Monastery box below it: reachable whether
+                // or not mod mode is on, so it cannot end up permanently greyed
+                // out after mod mode was switched off once.
+                this.extrasModMastery_checkBox.Enabled = true;
                 this.extrasModMastery_checkBox.CheckedChanged += new EventHandler(this.extrasModMastery_checkBox_CheckedChanged);
                 addFullRow(layout, this.extrasModMastery_checkBox);
 
@@ -360,7 +364,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasModNoMonastery_checkBox = new CheckBox();
                 this.extrasModNoMonastery_checkBox.AutoSize = true;
                 this.extrasModNoMonastery_checkBox.Checked = ModSupport.noMonasteryMode;
-                this.extrasModNoMonastery_checkBox.Enabled = ModSupport.modMode;
+                // Deliberately always enabled. This box switches mod mode on
+                // itself (see its handler), so gating it on mod mode hid the
+                // one control that could turn the mode on: with mod mode off -
+                // which is every fresh window - it was greyed out and could
+                // not be ticked at all.
                 this.extrasModNoMonastery_checkBox.Text =
                     "No Monastery mode: leave out the exploration and teaching options the mod removes";
                 this.extrasModNoMonastery_checkBox.CheckedChanged +=
@@ -1449,13 +1457,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasBuilding || this.extrasModMode_checkBox == null)
                 return;
             ModSupport.modMode = this.extrasModMode_checkBox.Checked;
-            if (this.extrasModMastery_checkBox != null)
-                this.extrasModMastery_checkBox.Enabled = ModSupport.modMode;
             if (this.extrasModNoMonastery_checkBox != null)
             {
-                this.extrasModNoMonastery_checkBox.Enabled = ModSupport.modMode;
                 // The mode only means something with mod mode on, so it goes
-                // with it rather than staying on behind a disabled box.
+                // with it - but the box stays clickable, because ticking it is
+                // the way back on.
                 if (!ModSupport.modMode && this.extrasModNoMonastery_checkBox.Checked)
                     this.extrasModNoMonastery_checkBox.Checked = false;
             }
