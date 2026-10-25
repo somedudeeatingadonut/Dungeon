@@ -55,9 +55,32 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // the part that matters at low level, where the enemies of a run feel
         // walled: taking HP / Def / Res off it helps the early maps a lot and
         // the late game only by the same few points. 0 means "no trim".
+        //
+        // The game keeps one class table, so a class base is shared by the
+        // player's units of that class and by the enemy's. That would make the
+        // game harder, not easier - which is the opposite of the point - so the
+        // same values are added back to the personal bases of every character
+        // the player can field (see applyFlatTrim). Enemies, and bosses with
+        // them, keep the trim.
         public static int flatHpTrim = 0;
         public static int flatDefTrim = 0;
         public static int flatResTrim = 0;
+
+        // The characters the player can deploy, by character id. The personal
+        // base of each of these gets the trim added back, so the option only
+        // moves what the player fights. Rows 0..35 are the students, the
+        // knights and the church staff (Jeralt included); 1040..1046 are the
+        // Ashen Wolves, Jeritza and Anna. Aelfric (1044) is left out: he is a
+        // boss, not a deployable unit. Everything else - the enemy generics,
+        // Kostas, Lonato, Miklan, the Death Knight and the rest - keeps the
+        // trim, which is exactly what is wanted.
+        private static readonly int[] playableCharacters =
+        {
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+            12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+            24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
+            1040, 1041, 1042, 1043, 1045, 1046
+        };
 
         // Abilities that are never handed out, whatever the blocklist says.
         // These either hand the holder a whole boss's kit (Twin Crests, Ten
@@ -111,9 +134,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statRoleSwaps;
         public static int statDefenseClamped;
         public static int statFlatTrimmed;
+        public static int statFlatCompensated;
         public static List<string> roleSwapSamples = new List<string>();
         public static List<string> defenseClampSamples = new List<string>();
         public static List<string> flatTrimSamples = new List<string>();
+        public static List<string> flatCompensationSamples = new List<string>();
         public static List<int>[] statTypesServedByTier = new List<int>[8];
         public static List<int> statTypesServedGlobal = new List<int>();
         // How many weapon types were actually dealt per tier. The report needs
@@ -149,9 +174,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statRoleSwaps = 0;
             statDefenseClamped = 0;
             statFlatTrimmed = 0;
+            statFlatCompensated = 0;
             roleSwapSamples = new List<string>();
             defenseClampSamples = new List<string>();
             flatTrimSamples = new List<string>();
+            flatCompensationSamples = new List<string>();
             RandomizerMore.resetCounters();
             RandomizerBig.resetCounters();
             ModSupport.resetCounters();
@@ -789,14 +816,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         }
 
         // ----------------------------------------------------- flat bulk trim
-        // Subtracts a flat number of HP / Def / Res from every class base. The
-        // base is what a level 1 unit of the class has, so the early maps (where
-        // the enemies feel walled) feel it most; at level 40 the same few points
-        // are noise. Monster / boss rows are left alone, and so is every boost
-        // and growth - this only moves the starting values.
+        // Subtracts a flat number of HP / Def / Res from every class base, and
+        // hands the same values back to the personal bases of the characters the
+        // player can deploy, so only the enemies (and the bosses) get weaker.
+        // The base is what a level 1 unit of the class has, so the early maps
+        // feel it most; at level 40 the same few points are noise. Boosts and
+        // growths are not touched.
         //
-        // The game keeps one class table, so a class trimmed here is trimmed for
-        // the player's own units of that class as well; the report says so.
+        // Monster and boss class rows are included on purpose: the first boss of
+        // a run is a normal class, and a monster row is a boss by definition.
         public static void applyFlatTrim()
         {
             if (Randomizer.classData == null)
@@ -807,11 +835,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (hpTrim == 0 && defTrim == 0 && resTrim == 0)
                 return;
 
+            // Without the character file the trim cannot be given back to the
+            // player's own units, and weakening them is the opposite of what
+            // this option is for. The report says so instead of doing it.
+            if (Randomizer.personData == null || Randomizer.personDataV == null)
+                return;
+
             for (int index = 0; index < 100; index++)
             {
                 if (!(index < 88 || index == 91))
-                    continue;
-                if (RandomizerMore.isMonsterClass(index))
                     continue;
 
                 long block = Randomizer.classBlockStart + Randomizer.classBlockLen * (long)index;
@@ -855,6 +887,60 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         + ", Res " + res.ToString()
                         + (resTrim > 0 ? " -> " + Math.Max(0, res - resTrim).ToString() : ""));
             }
+
+            compensatePlayerCharacters(hpTrim, defTrim, resTrim);
+        }
+
+        // Gives the trim back to every character the player can field, in that
+        // character's own personal bases (character row: HP base +43, Def base
+        // +56, Res base +57 - the same offsets the character base randomization
+        // writes). The result is that the player's units keep the stats they
+        // had while every enemy standing in the same class keeps the trim.
+        private static void compensatePlayerCharacters(int hpTrim, int defTrim, int resTrim)
+        {
+            if (Randomizer.personData == null)
+                return;
+
+            for (int i = 0; i < playableCharacters.Length; i++)
+            {
+                long row = Randomizer.charBlockStart
+                    + Randomizer.charBlockLen * (long)playableCharacters[i];
+                if (row + 57 >= Randomizer.personData.Length)
+                    continue;
+
+                bool changed = false;
+                if (hpTrim > 0 && addCapped(Randomizer.personData, (int)(row + 43), hpTrim))
+                    changed = true;
+                if (defTrim > 0 && addCapped(Randomizer.personData, (int)(row + 56), defTrim))
+                    changed = true;
+                if (resTrim > 0 && addCapped(Randomizer.personData, (int)(row + 57), resTrim))
+                    changed = true;
+                if (!changed)
+                    continue;
+
+                statFlatCompensated++;
+                if (flatCompensationSamples.Count < 4 && Randomizer.characterNames != null
+                    && playableCharacters[i] < Randomizer.characterNames.Length
+                    && Randomizer.characterNames[playableCharacters[i]] != null)
+                    flatCompensationSamples.Add(Randomizer.characterNames[playableCharacters[i]]
+                        + " personal base +" + hpTrim + " HP, +" + defTrim + " Def, +" + resTrim
+                        + " Res  (so the class trim costs this unit nothing)");
+            }
+        }
+
+        // Adds to a byte and refuses to wrap: a personal base is small, but a mod
+        // row could be near 255 already.
+        private static bool addCapped(byte[] data, int offset, int amount)
+        {
+            if (data == null || offset < 0 || offset >= data.Length)
+                return false;
+            int value = data[offset] + amount;
+            if (value > 255)
+                value = 255;
+            if (value == data[offset])
+                return false;
+            data[offset] = (byte)value;
+            return true;
         }
 
         // ---------------------------------------------------- class identity

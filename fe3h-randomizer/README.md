@@ -561,7 +561,7 @@ into Def and Res:
 | Class identity | on (default) | on, written out | so the preset does not depend on a default that may change |
 | Defence limit | 50% (default) | 50%, written out | clamp the class base Def / Res, which is a floor for every enemy in that class |
 | Weapon effect text | on (default) | on, written out | a grafted effect has to be readable in the item screen |
-| Flat class base trim | off | **-6 HP, -2 Def, -2 Res** | the level 1 value is the part that makes the first maps feel walled |
+| Flat class base trim | off | **-6 HP, -2 Def, -2 Res** | the level 1 value is the part that makes the first maps feel walled; given back to your own units |
 
 The debug report prints the applied preset name at the top together with how
 many values it set and how many lines it had to skip - a preset that silently
@@ -694,17 +694,32 @@ the number that makes the first few maps feel walled, and at level 40 the same
 two or three points are noise. -2 Def, -2 Res and -6 HP is the setting both
 No Monastery presets use.
 
+**It only weakens the enemy side.** The game keeps one class table, so a trimmed
+class is trimmed for your own units of that class as well - which would make the
+game harder, not easier. The same values are therefore added back to the
+**personal base stats of every character you can deploy** (the students, the
+knights and staff, Jeralt, the Ashen Wolves, Jeritza and Anna). Your units end up
+with exactly the stats they had; the enemies standing in the same classes keep
+the trim. The one price: an *enemy* copy of a playable character (an enemy
+Edelgard in another route, for instance) keeps its stats too.
+
+Bosses are included: the first boss of a run sits in an ordinary class like any
+other, so it gets the trim with the rest of them. The monster / beast table is a
+separate layout that holds no class base stats (its class rows are all zero), so
+beast bosses keep their own numbers - that table is not touched at all.
+
 It runs as the very last stat pass, after the range limits, so nothing can clamp
-it back up; monster and boss rows are skipped, and boosts and growths are not
-touched. The game keeps **one class table**, so a class trimmed here is trimmed
-for your own units of that class as well - the debug report prints that note and
-every class it changed:
+it back up, and boosts and growths are not touched. If `fixed_persondata.bin` was
+not loaded the trim is **skipped** with a warning instead of quietly weakening
+your own army.
 
 ```
-flat trim applied    : 84   (HP -6, Def -2, Res -2 off every class base, last)
-    (the game keeps one class table, so the player's own units of a trimmed class are trimmed as well)
+flat trim applied    : 84   (HP -6, Def -2, Res -2 off every class base, last, monsters and boss rows included)
     Myrmidon base HP 20 -> 14, Def 5 -> 3, Res 2 -> 0
     Soldier base HP 20 -> 14, Def 5 -> 3, Res 2 -> 0
+player units given it back : 42   (the trim is added to their personal bases, so only the enemy side gets weaker)
+    Byleth personal base +6 HP, +2 Def, +2 Res  (so the class trim costs this unit nothing)
+    Edelgard personal base +6 HP, +2 Def, +2 Res  (so the class trim costs this unit nothing)
 ```
 
 ### Abilities that are never handed out

@@ -521,9 +521,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "floor for every unit in the class, so this is the part that makes the first maps\r\n"
                     + "feel walled - at level 40 the same two or three points barely register. -2 Def, -2\r\n"
                     + "Res and -6 HP is a good starting point for a No Monastery run.\r\n"
-                    + "The game keeps one class table, so a class trimmed here is trimmed for your own\r\n"
-                    + "units of that class too. Monster / boss rows are left alone, and boosts and growths\r\n"
-                    + "are not touched. 0 on a row means that stat is not trimmed."));
+                    + "Bosses are included: the first boss of a run is an ordinary class like any other.\r\n"
+                    + "(The monster / beast table is a different layout with no class base stats, so\r\n"
+                    + "beast bosses keep their own numbers - it is not touched.)\r\n"
+                    + "The game keeps one class table, so the same values are added to the personal bases\r\n"
+                    + "of every character you can deploy (the students, the staff, Jeralt, the Ashen\r\n"
+                    + "Wolves, Anna): your units keep their stats and only the enemy side gets weaker.\r\n"
+                    + "Enemy copies of a playable character (an enemy Edelgard, say) keep their stats too,\r\n"
+                    + "which is the price of doing it this way. It needs the character file loaded -\r\n"
+                    + "without it the trim is skipped rather than silently weakening your own units.\r\n"
+                    + "Boosts and growths are not touched. 0 on a row means that stat is not trimmed."));
 
                 // ---------------------------------------------------- abilities
                 addFullRow(layout, sectionLabel("Abilities that must never be randomized"));

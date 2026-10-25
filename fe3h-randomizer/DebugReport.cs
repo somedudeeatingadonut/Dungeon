@@ -676,10 +676,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("flat trim applied    : " + RandomizerExtras.statFlatTrimmed
                 + "   (HP -" + RandomizerExtras.flatHpTrim + ", Def -"
                 + RandomizerExtras.flatDefTrim + ", Res -" + RandomizerExtras.flatResTrim
-                + " off every class base, last)");
-            text.AppendLine("    (the game keeps one class table, so the player's own units of a"
-                + " trimmed class are trimmed as well)");
+                + " off every class base, last; every normal class, bosses included)");
             foreach (string sample in RandomizerExtras.flatTrimSamples)
+                text.AppendLine("    " + sample);
+            text.AppendLine("player units given it back : " + RandomizerExtras.statFlatCompensated
+                + "   (the trim is added to their personal bases, so only the enemy side"
+                + " gets weaker)");
+            foreach (string sample in RandomizerExtras.flatCompensationSamples)
                 text.AppendLine("    " + sample);
 
             // Its own check, independent of the identity pass: the trim is set on
@@ -694,6 +697,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             {
                 text.AppendLine("(class data was not written in this run, nothing to trim)");
             }
+            else if (Randomizer.personData == null)
+            {
+                text.AppendLine("(the character file was not written in this run, so the trim is"
+                    + " skipped - without it there is no way to keep the player's own units at"
+                    + " full strength)");
+                warnings.Add("the flat class base trim is set, but fixed_persondata.bin was not"
+                    + " loaded, so it was skipped (it would weaken the player's own units"
+                    + " without the character bases to give the values back)");
+            }
             else if (RandomizerExtras.statFlatTrimmed == 0)
             {
                 warnings.Add("the flat class base trim is set to -" + RandomizerExtras.flatHpTrim
@@ -703,7 +715,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             else
             {
                 passes.Add("flat trim: " + RandomizerExtras.statFlatTrimmed.ToString()
-                    + " class base(s) lost HP / Def / Res");
+                    + " class base(s) lost HP / Def / Res, "
+                    + RandomizerExtras.statFlatCompensated.ToString()
+                    + " playable character(s) got the same values back in their personal bases");
             }
 
             if (!RandomizerExtras.classIdentity)
