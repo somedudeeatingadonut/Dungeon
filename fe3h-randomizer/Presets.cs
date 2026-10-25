@@ -392,7 +392,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             + "RandomizerBig.swapScope=0\nRandomizerMore.statBoostClampMin=-3\n"
             + "RandomizerMore.statBoostClampMax=10\nRandomizerMore.statBaseClampMin=3\n"
             + "RandomizerMore.statBaseClampMax=90\nRandomizerMore.statTotalTolerance=25\n"
-            + "RandomizerExtras.classIdentity=True\nRandomizerExtras.classDefenseLimit=50\n"
+            + "RandomizerExtras.classIdentity=True\nRandomizerExtras.classDefenseClampEarly=50\n"
+            + "RandomizerExtras.classDefenseClampMid=50\nRandomizerExtras.classDefenseClampAdv=50\n"
+            + "RandomizerExtras.classDefenseClampMaster=50\n"
             + "RandomizerExtras.flatHpTrim=0\nRandomizerExtras.flatDefTrim=0\nRandomizerExtras.flatResTrim=0\n"
             + "RandomizerBig.describeWeaponEffects=True\nspellFirstRank=4\n";
 
@@ -410,7 +412,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // 30%, so the extra levels buy HP (which every unit can chip through)
         // instead of a defence wall (which a weak unit cannot).
         private const int modEnemyGrowthShift = 30;
-        private const int modClassDefenseLimit = 50;
+        // The clamp is per level band. The early classes are the ones that make
+        // the first maps feel armoured - a base is a floor for every enemy in
+        // the class, and at level 4 the floor is most of the stat - so they are
+        // held much closer to vanilla than the late ones.
+        private const int modClassDefenseEarly = 20;
+        private const int modClassDefenseMid = 35;
+        private const int modClassDefenseAdv = 50;
+        private const int modClassDefenseMaster = 50;
 
         // The same argument, one step further: a flat subtraction from the class
         // bases. The base is the level 1 value and a floor for every unit in the
@@ -439,7 +448,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             text.AppendLine("RandomizerExtras.growthShift=" + modEnemyGrowthShift.ToString());
             text.AppendLine("RandomizerExtras.classIdentity=True");
-            text.AppendLine("RandomizerExtras.classDefenseLimit=" + modClassDefenseLimit.ToString());
+            text.AppendLine("RandomizerExtras.classDefenseClampEarly=" + modClassDefenseEarly.ToString());
+            text.AppendLine("RandomizerExtras.classDefenseClampMid=" + modClassDefenseMid.ToString());
+            text.AppendLine("RandomizerExtras.classDefenseClampAdv=" + modClassDefenseAdv.ToString());
+            text.AppendLine("RandomizerExtras.classDefenseClampMaster=" + modClassDefenseMaster.ToString());
             text.AppendLine("RandomizerBig.describeWeaponEffects=True");
             text.AppendLine("RandomizerExtras.flatHpTrim=" + modFlatHpTrim.ToString());
             text.AppendLine("RandomizerExtras.flatDefTrim=" + modFlatDefTrim.ToString());
@@ -861,6 +873,21 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             {
                 string typeName = key.Substring(0, dot);
                 string fieldName = key.Substring(dot + 1);
+
+                // The clamp used to be one number. A preset written before it
+                // was split says classDefenseLimit, and the honest reading of
+                // that is "the same allowance for every band", not "ignore me".
+                if (typeName == "RandomizerExtras" && fieldName == "classDefenseLimit")
+                {
+                    int old;
+                    if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out old))
+                        return false;
+                    RandomizerExtras.classDefenseClampEarly = old;
+                    RandomizerExtras.classDefenseClampMid = old;
+                    RandomizerExtras.classDefenseClampAdv = old;
+                    RandomizerExtras.classDefenseClampMaster = old;
+                    return true;
+                }
                 for (int t = 0; t < extraTypes.Length; t++)
                 {
                     if (!string.Equals(extraTypes[t].Name, typeName, StringComparison.Ordinal))

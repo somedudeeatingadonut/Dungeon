@@ -559,7 +559,7 @@ into Def and Res:
 | --- | --- | --- | --- |
 | Level scaling (growth shift) | 10% | **30%** | the mod's extra levels buy HP, which any unit can chip through, instead of defence |
 | Class identity | on (default) | on, written out | so the preset does not depend on a default that may change |
-| Defence limit | 50% (default) | 50%, written out | clamp the class base Def / Res, which is a floor for every enemy in that class |
+| Defence clamp | 50% on every band (default) | 20 / 35 / 50 / 50 | clamp the class base Def / Res, which is a floor for every enemy in that class - per level band |
 | Weapon effect text | on (default) | on, written out | a grafted effect has to be readable in the item screen |
 | Flat class base trim | off | **-6 HP, -2 Def, -2 Res** | the level 1 value is the part that makes the first maps feel walled; given back to your own units |
 | Boss trim | off | **-6 HP, -2 Def, -2 Res** | on top, on the story units' own rows - the chapter 1 boss included |
@@ -667,18 +667,34 @@ halves of that:
   left alone, and so is any row the run did not change: a handful of vanilla
   classes have more Mag than Str on purpose (the extended lord rows and the
   special magic class), and a vanilla row is not a contradiction to fix.
-* **Def / Res** may exceed the vanilla class by a percentage (50% by default,
-  0% turns it off). A class base stat is a floor for every unit in the class and
-  the class boost is added on top, so one pair of lucky rolls used to be enough
-  to turn a beginner class into a wall - and *every enemy in it* along with it.
-  The pull-back is reported class by class:
+* **Def / Res** may exceed the vanilla class by a percentage - **one percentage
+  per level band**, because a class base is a flat addition and the same points
+  are a different thing on a level 4 unit and on a level 32 one. Four boxes:
+  **level 1-9** (`Noble`, `Commoner`, `Beginner`), **level 10-19**
+  (`Intermediate`), **level 20-29** (`Advanced`), **level 30+** (`Master`, the
+  unique and story classes). The band comes from the game's own tier byte at
+  class row `+69`, not from a guess, and 0% means "do not pull this band back".
+
+  The reason to split it is the floor: a class base is a floor for every unit in
+  the class and the class boost is added on top, so one pair of lucky rolls used
+  to be enough to turn a beginner class into a wall - and *every enemy in it*
+  along with it. Holding the low bands close to vanilla and leaving the high
+  bands room fixes exactly that, and the No Monastery presets do it (20 / 35 /
+  50 / 50). The pull-back is reported class by class, with the band and the
+  allowance that was used:
 
   ```
   classes pulled back  : 23
-      Brigand base Def 11 -> 9 (vanilla 6)
-      Brawler base Def 12 -> 9 (vanilla 6)
-      Mage base Def 10 -> 5 (vanilla 3)
+      Brigand base Def 11 -> 9 (vanilla 6, lv 10-19 35%)
+      Brawler base Def 12 -> 9 (vanilla 6, lv 10-19 35%)
+      Mage base Def 10 -> 5 (vanilla 3, lv 10-19 35%)
   ```
+
+  This clamp is a limit on the roll, not a debuff: it hits both sides, so your
+  own early classes are held to it too. That is what the **player start bonus**
+  below is for - tighten the bands, then buy the difference back on your own
+  units' personal bases. For an actual subtraction that goes *below* vanilla, the
+  flat trim is the lever, and it does not touch your units at all.
 
 Both numbers, the samples and a PASS line are in the debug report under
 `--- CLASS IDENTITY ---`.
@@ -990,7 +1006,7 @@ The report is plain text and contains:
 | Did it run? | counters for every new code path (class picks, weapon type draws, blocked ability picks, range filters, bypass rolls, growth shifts), with warnings when an enabled option never fired |
 | Class variety | weapon type spread per class tier, before vs after, the types the balancer served, and a PASS/FAIL against the safety level |
 | Ability blocklist | names every entry of the fixed list, scans class abilities, monster latent/barrier abilities and character learnset ability slots (combat arts are skipped - the same id means something else there); lists blocked abilities the randomization *introduced* (vanilla ones are reported separately, they are intentional), how many the safety pass replaced and whether the Dancer's own Dance had to be written back |
-| Class identity | whether the pass is on, the Def / Res allowance, every Str / Mag trade with before/after values, every class whose Def / Res was pulled back to vanilla + the allowance, and a PASS line when nothing needed fixing |
+| Class identity | whether the pass is on, the Def / Res allowance per level band with a clamp count for each band, every Str / Mag trade with before/after values, every class whose Def / Res was pulled back to vanilla + the allowance, and a PASS line when nothing needed fixing |
 | Weapon effect text | whether the descriptions are on, whether `msgdata.bin` was loaded, how many weapon descriptions name the effect the run gave them, and a warning if effects were remixed but there is no message table to say so |
 | Siege limit | out of range weapons and spells on every map unit, marked as "same as vanilla" or "NEW" |
 | Growth shift | per stat growth totals before and after, plus the number of classes changed |

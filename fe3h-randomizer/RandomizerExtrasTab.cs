@@ -57,7 +57,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private Label extrasModOffsets_label;
         private CheckBox extrasModMastery_checkBox;
         private CheckBox extrasClassIdentity_checkBox;
-        private NumericUpDown extrasClassDefenseLimit_numericUpDown;
+        private NumericUpDown extrasClassDefenseEarly_numericUpDown;
+        private NumericUpDown extrasClassDefenseMid_numericUpDown;
+        private NumericUpDown extrasClassDefenseAdv_numericUpDown;
+        private NumericUpDown extrasClassDefenseMaster_numericUpDown;
         private CheckBox extrasDescribeWeapons_checkBox;
         private NumericUpDown extrasFlatHp_numericUpDown;
         private NumericUpDown extrasFlatDef_numericUpDown;
@@ -454,18 +457,31 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     new EventHandler(this.extrasClassIdentity_checkBox_CheckedChanged);
                 addFullRow(layout, this.extrasClassIdentity_checkBox);
 
-                this.extrasClassDefenseLimit_numericUpDown = new NumericUpDown();
-                this.extrasClassDefenseLimit_numericUpDown.Minimum = 0;
-                this.extrasClassDefenseLimit_numericUpDown.Maximum = 200;
-                this.extrasClassDefenseLimit_numericUpDown.Increment = 10;
-                this.extrasClassDefenseLimit_numericUpDown.Value = RandomizerExtras.classDefenseLimit;
-                this.extrasClassDefenseLimit_numericUpDown.Width = 70;
-                this.extrasClassDefenseLimit_numericUpDown.Enabled = RandomizerExtras.classIdentity;
-                this.extrasClassDefenseLimit_numericUpDown.Margin = new Padding(0, 3, 0, 3);
-                this.extrasClassDefenseLimit_numericUpDown.ValueChanged +=
-                    new EventHandler(this.extrasClassDefenseLimit_numericUpDown_ValueChanged);
-                addSplitRow(layout, indentedLabel("Class Def / Res may exceed vanilla by (%):"),
-                    this.extrasClassDefenseLimit_numericUpDown);
+                // The allowance is per level band: a class base is a flat
+                // addition, so the same points are a wall at level 5 and noise
+                // at level 35. Four boxes, one per band, so the early classes
+                // can be held close to vanilla while the late ones keep room.
+                addFullRow(layout, indentedLabel("Class Def / Res may exceed vanilla (%), by class level:"));
+                this.extrasClassDefenseEarly_numericUpDown = makeDefenseClampBox(
+                    RandomizerExtras.classDefenseClampEarly,
+                    new EventHandler(this.extrasClassDefenseEarly_numericUpDown_ValueChanged));
+                addSplitRow(layout, indentedLabel("    level 1-9   (Noble, Commoner, Beginner):"),
+                    this.extrasClassDefenseEarly_numericUpDown);
+                this.extrasClassDefenseMid_numericUpDown = makeDefenseClampBox(
+                    RandomizerExtras.classDefenseClampMid,
+                    new EventHandler(this.extrasClassDefenseMid_numericUpDown_ValueChanged));
+                addSplitRow(layout, indentedLabel("    level 10-19 (Intermediate):"),
+                    this.extrasClassDefenseMid_numericUpDown);
+                this.extrasClassDefenseAdv_numericUpDown = makeDefenseClampBox(
+                    RandomizerExtras.classDefenseClampAdv,
+                    new EventHandler(this.extrasClassDefenseAdv_numericUpDown_ValueChanged));
+                addSplitRow(layout, indentedLabel("    level 20-29 (Advanced):"),
+                    this.extrasClassDefenseAdv_numericUpDown);
+                this.extrasClassDefenseMaster_numericUpDown = makeDefenseClampBox(
+                    RandomizerExtras.classDefenseClampMaster,
+                    new EventHandler(this.extrasClassDefenseMaster_numericUpDown_ValueChanged));
+                addSplitRow(layout, indentedLabel("    level 30+   (Master, unique, story classes):"),
+                    this.extrasClassDefenseMaster_numericUpDown);
 
                 addFullRow(layout, helpLabel(
                     "The weapon type and the stats of a class are rolled by two different passes, so a\r\n"
@@ -474,11 +490,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "Str and Mag (base stats, class boosts, both growth sets) are traded when they\r\n"
                     + "contradict the weapon type, so the numbers are kept but the right stat owns them.\r\n"
                     + "Hybrid classes, monsters and boss rows are left alone.\r\n"
-                    + "The percentage is the other half: a class's base Def / Res and its Def / Res boosts\r\n"
-                    + "may go this far above the vanilla class before they are pulled back. A class base is\r\n"
-                    + "a floor for every unit in it and the boost is added on top, so one lucky roll used to\r\n"
-                    + "be enough to make a beginner class - and every enemy in it - far tankier than it\r\n"
-                    + "should be. 0% turns the pull-back off."));
+                    + "The four percentages are the other half: a class's base Def / Res and its Def / Res\r\n"
+                    + "boosts may go this far above the vanilla class before they are pulled back, and they\r\n"
+                    + "are read per class level - the game's own tier byte says which band a class is in.\r\n"
+                    + "A class base is a floor for every unit in it and the boost is added on top, so three\r\n"
+                    + "points that are noise at level 35 are a wall at level 5. Hold the low bands tight and\r\n"
+                    + "the early maps stop being armoured; leave the high bands where they are. The clamp\r\n"
+                    + "hits both sides - it is a limit on the roll, not a debuff - so the player's early\r\n"
+                    + "classes are held to it too. That is what the player start bonus further down is for:\r\n"
+                    + "tighten the bands, then buy the difference back on your own units' personal bases.\r\n"
+                    + "A band at 0% is not pulled back at all."));
 
                 // ------------------------------------------------ flat bulk trim
                 addFullRow(layout, sectionLabel("Flat enemy bulk trim"));
@@ -1123,15 +1144,62 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasBuilding || this.extrasClassIdentity_checkBox == null)
                 return;
             RandomizerExtras.classIdentity = this.extrasClassIdentity_checkBox.Checked;
-            if (this.extrasClassDefenseLimit_numericUpDown != null)
-                this.extrasClassDefenseLimit_numericUpDown.Enabled = this.extrasClassIdentity_checkBox.Checked;
+            enableDefenseClampBoxes(this.extrasClassIdentity_checkBox.Checked);
         }
 
-        private void extrasClassDefenseLimit_numericUpDown_ValueChanged(object sender, EventArgs e)
+        private NumericUpDown makeDefenseClampBox(int value, EventHandler handler)
         {
-            if (this.extrasBuilding || this.extrasClassDefenseLimit_numericUpDown == null)
+            NumericUpDown box = new NumericUpDown();
+            box.Minimum = 0;
+            box.Maximum = 200;
+            box.Increment = 10;
+            box.Value = value;
+            box.Width = 70;
+            box.Enabled = RandomizerExtras.classIdentity;
+            box.Margin = new Padding(0, 3, 0, 3);
+            box.ValueChanged += handler;
+            return box;
+        }
+
+        private void enableDefenseClampBoxes(bool on)
+        {
+            if (this.extrasClassDefenseEarly_numericUpDown != null)
+                this.extrasClassDefenseEarly_numericUpDown.Enabled = on;
+            if (this.extrasClassDefenseMid_numericUpDown != null)
+                this.extrasClassDefenseMid_numericUpDown.Enabled = on;
+            if (this.extrasClassDefenseAdv_numericUpDown != null)
+                this.extrasClassDefenseAdv_numericUpDown.Enabled = on;
+            if (this.extrasClassDefenseMaster_numericUpDown != null)
+                this.extrasClassDefenseMaster_numericUpDown.Enabled = on;
+        }
+
+        private void extrasClassDefenseEarly_numericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasClassDefenseEarly_numericUpDown == null)
                 return;
-            RandomizerExtras.classDefenseLimit = (int)this.extrasClassDefenseLimit_numericUpDown.Value;
+            RandomizerExtras.classDefenseClampEarly = (int)this.extrasClassDefenseEarly_numericUpDown.Value;
+        }
+
+        private void extrasClassDefenseMid_numericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasClassDefenseMid_numericUpDown == null)
+                return;
+            RandomizerExtras.classDefenseClampMid = (int)this.extrasClassDefenseMid_numericUpDown.Value;
+        }
+
+        private void extrasClassDefenseAdv_numericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasClassDefenseAdv_numericUpDown == null)
+                return;
+            RandomizerExtras.classDefenseClampAdv = (int)this.extrasClassDefenseAdv_numericUpDown.Value;
+        }
+
+        private void extrasClassDefenseMaster_numericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasClassDefenseMaster_numericUpDown == null)
+                return;
+            RandomizerExtras.classDefenseClampMaster =
+                (int)this.extrasClassDefenseMaster_numericUpDown.Value;
         }
 
         private void extrasDescribeWeapons_checkBox_CheckedChanged(object sender, EventArgs e)

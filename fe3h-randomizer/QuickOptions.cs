@@ -177,11 +177,29 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.extrasSiege_checkBox.Checked = RandomizerExtras.limitSiegeTomes;
             if (this.extrasClassIdentity_checkBox != null)
                 this.extrasClassIdentity_checkBox.Checked = RandomizerExtras.classIdentity;
-            if (this.extrasClassDefenseLimit_numericUpDown != null)
+            if (this.extrasClassDefenseEarly_numericUpDown != null)
             {
-                this.extrasClassDefenseLimit_numericUpDown.Value = clampToControl(
-                    this.extrasClassDefenseLimit_numericUpDown, RandomizerExtras.classDefenseLimit);
-                this.extrasClassDefenseLimit_numericUpDown.Enabled = RandomizerExtras.classIdentity;
+                this.extrasClassDefenseEarly_numericUpDown.Value = clampToControl(
+                    this.extrasClassDefenseEarly_numericUpDown, RandomizerExtras.classDefenseClampEarly);
+                this.extrasClassDefenseEarly_numericUpDown.Enabled = RandomizerExtras.classIdentity;
+            }
+            if (this.extrasClassDefenseMid_numericUpDown != null)
+            {
+                this.extrasClassDefenseMid_numericUpDown.Value = clampToControl(
+                    this.extrasClassDefenseMid_numericUpDown, RandomizerExtras.classDefenseClampMid);
+                this.extrasClassDefenseMid_numericUpDown.Enabled = RandomizerExtras.classIdentity;
+            }
+            if (this.extrasClassDefenseAdv_numericUpDown != null)
+            {
+                this.extrasClassDefenseAdv_numericUpDown.Value = clampToControl(
+                    this.extrasClassDefenseAdv_numericUpDown, RandomizerExtras.classDefenseClampAdv);
+                this.extrasClassDefenseAdv_numericUpDown.Enabled = RandomizerExtras.classIdentity;
+            }
+            if (this.extrasClassDefenseMaster_numericUpDown != null)
+            {
+                this.extrasClassDefenseMaster_numericUpDown.Value = clampToControl(
+                    this.extrasClassDefenseMaster_numericUpDown, RandomizerExtras.classDefenseClampMaster);
+                this.extrasClassDefenseMaster_numericUpDown.Enabled = RandomizerExtras.classIdentity;
             }
             if (this.extrasDescribeWeapons_checkBox != null)
                 this.extrasDescribeWeapons_checkBox.Checked = RandomizerBig.describeWeaponEffects;

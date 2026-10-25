@@ -212,7 +212,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("Growth shift            : " + RandomizerExtras.growthShift + "%");
             text.AppendLine("Class identity          : " + RandomizerExtras.classIdentity
                 + (RandomizerExtras.classIdentity
-                    ? "  (Def / Res allowance " + RandomizerExtras.classDefenseLimit + "%)" : ""));
+                    ? "  (Def / Res clamp " + clampSummary() + " by class level)" : ""));
             text.AppendLine("Weapon effect text      : " + RandomizerBig.describeWeaponEffects);
             text.AppendLine("Flat class base trim    : HP -" + RandomizerExtras.flatHpTrim
                 + ", Def -" + RandomizerExtras.flatDefTrim
@@ -661,16 +661,39 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine(label + " : loaded  " + state);
         }
 
+        // The four allowances in one line: the summary and the pass use it.
+        private static string clampSummary()
+        {
+            return "+" + RandomizerExtras.classDefenseClampEarly.ToString() + "/"
+                + RandomizerExtras.classDefenseClampMid.ToString() + "/"
+                + RandomizerExtras.classDefenseClampAdv.ToString() + "/"
+                + RandomizerExtras.classDefenseClampMaster.ToString() + "%";
+        }
+
+        private static bool clampWanted()
+        {
+            return RandomizerExtras.classDefenseClampEarly > 0
+                || RandomizerExtras.classDefenseClampMid > 0
+                || RandomizerExtras.classDefenseClampAdv > 0
+                || RandomizerExtras.classDefenseClampMaster > 0;
+        }
+
         // -------------------------------------------------- class identity
         private static void AppendClassIdentity(StringBuilder text, List<string> passes,
             List<string> warnings)
         {
             text.AppendLine("--- CLASS IDENTITY ---------------------------------------------");
             text.AppendLine("identity pass        : " + RandomizerExtras.classIdentity);
-            text.AppendLine("Def / Res allowance  : "
-                + (RandomizerExtras.classIdentity && RandomizerExtras.classDefenseLimit > 0
-                    ? "+" + RandomizerExtras.classDefenseLimit.ToString() + "% above vanilla"
-                    : "off"));
+            text.AppendLine("Def / Res clamp      : "
+                + (RandomizerExtras.classIdentity && clampWanted()
+                    ? "allowance above vanilla, per class level band" : "off"));
+            if (RandomizerExtras.classIdentity && clampWanted())
+                for (int band = 0; band < 4; band++)
+                    text.AppendLine("    " + RandomizerExtras.defenseBandName(band).PadRight(9)
+                        + ": +" + RandomizerExtras.defenseClampBandValue(band).ToString() + "%"
+                        + (RandomizerExtras.defenseClampBandValue(band) == 0 ? "  (not pulled back)" : "")
+                        + ", " + RandomizerExtras.statDefenseClampedByBand[band].ToString()
+                        + " class(es) pulled back");
             text.AppendLine("rows checked         : only rows the randomization changed"
                 + " (a vanilla row is not a contradiction to fix)");
             text.AppendLine("Str / Mag trades     : " + RandomizerExtras.statRoleSwaps
@@ -782,14 +805,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             else if (RandomizerExtras.statRoleSwaps == 0 && RandomizerExtras.statDefenseClamped == 0)
             {
                 passes.Add("class identity: every class already matched its weapon type and stayed inside"
-                    + " the Def / Res allowance");
+                    + " the per-level Def / Res clamp");
             }
             else
             {
                 passes.Add("class identity: " + RandomizerExtras.statRoleSwaps.ToString()
                     + " Str/Mag trade(s), " + RandomizerExtras.statDefenseClamped.ToString()
-                    + " class(es) with Def / Res pulled back to within "
-                    + RandomizerExtras.classDefenseLimit.ToString() + "% of vanilla");
+                    + " class(es) with Def / Res pulled back to within the allowance for their level"
+                    + " (" + clampSummary() + ")");
             }
             text.AppendLine();
         }

@@ -49,7 +49,18 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // defensive values so one lucky roll cannot turn an early enemy class
         // into a wall. Bosses and monster rows are never touched.
         public static bool classIdentity = true;
-        public static int classDefenseLimit = 50;
+
+        // How far a class's Def / Res may sit above its vanilla value, as a
+        // percentage - one number per level band, because a class base is a
+        // flat addition and the same three points mean very different things
+        // on a level 4 unit and on a level 32 one. A single percentage is
+        // always either too tight for the late classes or far too loose for
+        // the early ones; this splits it where the game splits the classes
+        // (the tier byte at class row +69).
+        public static int classDefenseClampEarly = 50;   // level 1-9
+        public static int classDefenseClampMid = 50;     // level 10-19
+        public static int classDefenseClampAdv = 50;     // level 20-29
+        public static int classDefenseClampMaster = 50;  // level 30+ and unique
 
         // A flat subtraction from the class bases, applied after every other
         // pass. A class base is a floor for every unit in the class and it is
@@ -157,6 +168,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statBlockedAbilitiesRemoved;
         public static int statRoleSwaps;
         public static int statDefenseClamped;
+        // Clamped classes per level band: lv 1-9, 10-19, 20-29, 30+.
+        public static int[] statDefenseClampedByBand = new int[4];
         public static int statFlatTrimmed;
         public static int statFlatCompensated;
         public static int statBossTrimmed;
@@ -201,6 +214,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statFirstSpellRank = 0;
             statRoleSwaps = 0;
             statDefenseClamped = 0;
+            for (int i = 0; i < statDefenseClampedByBand.Length; i++)
+                statDefenseClampedByBand[i] = 0;
             statFlatTrimmed = 0;
             statFlatCompensated = 0;
             statBossTrimmed = 0;
@@ -1154,7 +1169,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 if (!hybrid)
                     matchRole(index, block, physical);
 
-                if (classDefenseLimit > 0)
+                if (defenseClampOn())
                     toneDownDefense(index, block);
             }
         }
@@ -1214,6 +1229,55 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             Randomizer.classData[secondOffset] = hold;
         }
 
+        // Which level band a class belongs to, 0..3, from the tier byte the
+        // game itself uses: 0 Noble / Commoner (level 1), 1 Beginner (5), 2
+        // Intermediate (10), 3 Advanced (20), 4 Master (30), 5 and 6 the
+        // unique and story classes. 5 is folded into Advanced the same way the
+        // tier pools do it.
+        private static int defenseBand(int tier)
+        {
+            if (tier <= 1)
+                return 0;
+            if (tier == 2)
+                return 1;
+            if (tier == 3 || tier == 5)
+                return 2;
+            return 3;
+        }
+
+        private static int defenseClampForBand(int band)
+        {
+            switch (band)
+            {
+                case 0: return classDefenseClampEarly;
+                case 1: return classDefenseClampMid;
+                case 2: return classDefenseClampAdv;
+                default: return classDefenseClampMaster;
+            }
+        }
+
+        public static int defenseClampBandValue(int band)
+        {
+            return Math.Max(0, Math.Min(200, defenseClampForBand(band)));
+        }
+
+        private static bool defenseClampOn()
+        {
+            return classDefenseClampEarly > 0 || classDefenseClampMid > 0
+                || classDefenseClampAdv > 0 || classDefenseClampMaster > 0;
+        }
+
+        public static string defenseBandName(int band)
+        {
+            switch (band)
+            {
+                case 0: return "lv 1-9";
+                case 1: return "lv 10-19";
+                case 2: return "lv 20-29";
+                default: return "lv 30+";
+            }
+        }
+
         // Keeps a class's defensive values within reach of the ones it had in
         // the vanilla file. The base stat is a floor for every unit in the class
         // and the boost is added on top, so an unlucky pair of rolls is enough
@@ -1222,11 +1286,18 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // boss / monster rows are skipped.
         private static void toneDownDefense(int classIndex, long block)
         {
+            // One allowance for this class, taken from the band its own level
+            // puts it in. 0 for a band means "do not pull this band back".
+            int band = defenseBand(Randomizer.classData[block + 69L]);
+            int clampPercent = defenseClampForBand(band);
+            if (clampPercent <= 0)
+                return;
+
             bool changed = false;
             for (int stat = 6; stat <= 7; stat++) // Def, Res
             {
                 int vanillaBase = Randomizer.classDataV[block + baseStatOffsets[stat]];
-                int allowedBase = vanillaBase + Math.Max(2, vanillaBase * classDefenseLimit / 100);
+                int allowedBase = vanillaBase + Math.Max(2, vanillaBase * clampPercent / 100);
                 int baseOffset = (int)(block + baseStatOffsets[stat]);
                 int currentBase = Randomizer.classData[baseOffset]; // 0..99, unsigned
                 if (currentBase > allowedBase)
@@ -1235,7 +1306,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     if (defenseClampSamples.Count < 6)
                         defenseClampSamples.Add(className(classIndex) + " base "
                             + (stat == 6 ? "Def" : "Res") + " " + currentBase.ToString()
-                            + " -> " + allowedBase.ToString() + " (vanilla " + vanillaBase.ToString() + ")");
+                            + " -> " + allowedBase.ToString() + " (vanilla " + vanillaBase.ToString()
+                            + ", " + defenseBandName(band) + " " + clampPercent.ToString() + "%)");
                     changed = true;
                 }
 
@@ -1244,7 +1316,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 // signed value or a negative roll would be "clamped" upwards.
                 int vanillaBoost = toSigned(Randomizer.classDataV[block + statBoostOffsets[stat]]);
                 int allowedBoost = vanillaBoost
-                    + Math.Max(3, Math.Abs(vanillaBoost) * classDefenseLimit / 100);
+                    + Math.Max(3, Math.Abs(vanillaBoost) * clampPercent / 100);
                 int boostOffset = (int)(block + statBoostOffsets[stat]);
                 int currentBoost = toSigned(Randomizer.classData[boostOffset]);
                 if (currentBoost > allowedBoost)
@@ -1258,7 +1330,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 }
             }
             if (changed)
+            {
                 statDefenseClamped++;
+                if (band >= 0 && band < statDefenseClampedByBand.Length)
+                    statDefenseClampedByBand[band]++;
+            }
         }
 
         private static int toSigned(byte value)
