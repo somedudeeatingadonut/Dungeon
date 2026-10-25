@@ -769,11 +769,17 @@ gets **+2 HP**; a 55% Spd growth gets **+3 Spd**; a 30% Res growth gets **+2 Res
 Zero-growth stats stay untouched, every stat still stops at the byte's 255 limit
 (no character is anywhere near it), and the personal base is the same byte pair
 the flat-trim compensation already uses - the mirror image of the trim, pointing
-the other way. A real level also adds the *class*'s growth on top of the
-character's, which this deliberately leaves out: class growths are one of the
-things the randomizer moves around, so using them would make the same setting
-produce a different result per roll. The figure is therefore the conservative
-half of "N levels", which is the right side to err on.
+the other way.
+
+The growths it reads are the ones **the run actually wrote**, so the bonus follows
+the roll: a unit whose growths were shuffled towards Str gets the Str, one whose
+Dex growth was clamped down gets less Dex. That is deliberate - the number of
+levels is fixed, what a level of *that unit* is worth is not.
+
+A real level also adds the *class*'s growth on top of the character's, which this
+leaves out, so the figure is the conservative half of "N levels" - the right side
+to err on. The debug report prints the exact per-stat gains, so there is nothing
+to guess at.
 
 * **Who gets it:** the same `playableCharacters` list the compensation uses - the
   units you can deploy. Never an enemy, and never a boss row.

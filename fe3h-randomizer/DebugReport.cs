@@ -700,8 +700,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             foreach (string sample in RandomizerExtras.bossTrimSamples)
                 text.AppendLine("    " + sample);
             text.AppendLine("player start bonus    : " + RandomizerExtras.statPlayerBonus
-                + "   (" + RandomizerExtras.playerStartBonus + " level(s) of stats - "
-                + "N x that unit's own growth / 100 - added to every playable unit's personal bases)");
+                + (RandomizerExtras.playerStartBonus > 0
+                    ? "   (" + RandomizerExtras.playerStartBonus + " level(s) of stats - "
+                        + "N x that unit's own growth / 100 - added to every playable unit's personal bases)"
+                    : "   (off)"));
             foreach (string sample in RandomizerExtras.playerBonusSamples)
                 text.AppendLine("    " + sample);
 
