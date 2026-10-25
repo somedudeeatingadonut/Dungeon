@@ -737,6 +737,67 @@ they are not units you can field, so the tool cannot tell an allied NPC from an
 enemy one. Against a chapter boss that is a rounding error; if an allied NPC ever
 feels too fragile, drop the number to 0 and use the class trim alone.
 
+### Player start bonus (the other direction)
+
+**Extra options > Player starting stats > Levels' worth of stats every playable
+unit starts with** - **5** in both No Monastery presets, 0 = off.
+
+The reason the first map of a No Monastery run hurts is not only that the enemies
+are trimmed *up*: the mod starts them at **level 6 on Hard and 9 on Maddening**
+while your units still start where they always did. Taking the enemy down was one
+answer; this is the other, and it is the one that does not make the fights mushy.
+
+A character's **level itself cannot be written from the data files**. It is not in
+`fixed_persondata.bin` (the character rows hold class, bases, growths and the two
+ability slots - nothing else) and it is not in any of the other `fixed_*.bin`
+files this tool writes: the level is part of the save, and the closest thing in
+the data - the start level per chapter in `fixed_scenario.bin` - is a value the
+*mod itself rewrites*, so touching it would fight the mod instead of helping.
+That is also why this option is not called "start at level 3": it cannot make the
+number on the unit card change.
+
+What a level actually *gives* is stats, and the average gain of one level is that
+unit's own growth rate. So the option converts levels into stats the honest way:
+
+```
+gain = N levels x growth / 100, rounded
+```
+
+applied to **all nine stats at once** (HP, Str, Mag, Dex, Spd, Lck, Def, Res, Cha)
+on that character's own personal base. A unit with a 45% HP growth and 5 levels
+gets **+2 HP**; a 55% Spd growth gets **+3 Spd**; a 30% Res growth gets **+2 Res**.
+Zero-growth stats stay untouched, every stat still stops at the byte's 255 limit
+(no character is anywhere near it), and the personal base is the same byte pair
+the flat-trim compensation already uses - the mirror image of the trim, pointing
+the other way. A real level also adds the *class*'s growth on top of the
+character's, which this deliberately leaves out: class growths are one of the
+things the randomizer moves around, so using them would make the same setting
+produce a different result per roll. The figure is therefore the conservative
+half of "N levels", which is the right side to err on.
+
+* **Who gets it:** the same `playableCharacters` list the compensation uses - the
+  units you can deploy. Never an enemy, and never a boss row.
+* **Who does not:** every story boss, so the boss trim and this option do not
+  cancel each other out.
+* **What it does not change:** the displayed level, EXP gain, class requirements,
+  class mastery, or the gender/stat caps. This is the stats half of a level, not a
+  level.
+* **Where it stacks:** on top of the class bases the unit is standing in, so it
+  applies whichever class it reclasses into - which is the point.
+
+```
+player start bonus    : 42   (5 level(s) of stats - N x that unit's own growth / 100 - added to every playable unit's personal bases)
+    Byleth (+5 level(s) of stats): HP +2, Str +2, Mag +2, Dex +2, Spd +2, Lck +2, Def +2, Res +2, Cha +2
+    Edelgard (+5 level(s) of stats): HP +2, Str +3, Mag +2, Dex +2, Spd +2, Lck +2, Def +2, Res +2, Cha +3
+```
+
+**Why this and not a "weaken the first three maps" option:** a chapter-specific
+nerf is invisible everywhere else in the run and has to be re-tuned per difficulty;
+a stat block on your own units is the same currency the enemy levels are spent in,
+so the two sides stay on one scale. It also composes with the trims: with the mod
+presets the enemy loses -6 HP / -2 Def / -2 Res on the class base while you gain
+several levels of growth, which is a much wider gap than either lever alone.
+
 ### Why there is no "enemy base stats" option
 
 The class table splits **growths** into two columns - a player set at `+20..+29`

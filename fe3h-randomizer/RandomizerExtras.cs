@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Fire_Emblem_Three_Houses_Randomizer_V2
 {
@@ -76,6 +77,18 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int bossHpTrim = 0;
         public static int bossDefTrim = 0;
         public static int bossResTrim = 0;
+
+        // How many levels' worth of stats the player's own units start with.
+        // A character's level lives in the save file, not in any fixed_*.bin, so
+        // a data-file randomizer cannot change the number shown - but every
+        // level gives is stats, and the expected gain of one level is the
+        // character's own growth rate. So N levels are turned into N levels of
+        // growth and added to that character's personal bases.
+        public static int playerStartBonus = 0;
+
+        // The character row offsets this needs: growths and the base they feed.
+        private static readonly int[] charGrowthOffsets = { 41, 60, 61, 62, 63, 64, 65, 66, 68 };
+        private static readonly int[] charBaseOffsets = { 43, 51, 52, 53, 54, 55, 56, 57, 59 };
 
         // The characters the player can deploy, by character id. The personal
         // base of each of these gets the trim added back, so the option only
@@ -147,11 +160,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statFlatTrimmed;
         public static int statFlatCompensated;
         public static int statBossTrimmed;
+        public static int statPlayerBonus;
         public static List<string> roleSwapSamples = new List<string>();
         public static List<string> defenseClampSamples = new List<string>();
         public static List<string> flatTrimSamples = new List<string>();
         public static List<string> flatCompensationSamples = new List<string>();
         public static List<string> bossTrimSamples = new List<string>();
+        public static List<string> playerBonusSamples = new List<string>();
         public static List<int>[] statTypesServedByTier = new List<int>[8];
         public static List<int> statTypesServedGlobal = new List<int>();
         // How many weapon types were actually dealt per tier. The report needs
@@ -189,11 +204,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statFlatTrimmed = 0;
             statFlatCompensated = 0;
             statBossTrimmed = 0;
+            statPlayerBonus = 0;
             roleSwapSamples = new List<string>();
             defenseClampSamples = new List<string>();
             flatTrimSamples = new List<string>();
             flatCompensationSamples = new List<string>();
             bossTrimSamples = new List<string>();
+            playerBonusSamples = new List<string>();
             RandomizerMore.resetCounters();
             RandomizerBig.resetCounters();
             ModSupport.resetCounters();
@@ -824,6 +841,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 applyFlatTrim();
             }
 
+            // The start bonus is character-table only, so it does not sit inside
+            // the class block: a run that loaded just the character file still
+            // gets it. It is a raise, not a clamp, so nothing undoes it later.
+            applyPlayerStartBonus();
+
             // Runs last, after every other pass has written its values. It
             // guards its own data, so a run that loaded only the character file
             // still gets its learnsets cleaned.
@@ -996,6 +1018,55 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         + " Def, -" + resTrim + " Res");
             }
         }
+
+        // Turns the level bonus into stats. One level of a stat gains that
+        // character's growth in it (50% growth = half a point per level on
+        // average), so N levels are N * growth / 100 points, rounded. This is
+        // added to the personal base, which is the only per-character stat the
+        // data files own - the level number itself lives in the save.
+        public static void applyPlayerStartBonus()
+        {
+            int levels = Math.Max(0, Math.Min(20, playerStartBonus));
+            if (levels == 0)
+                return;
+            if (Randomizer.personData == null)
+                return;
+
+            for (int i = 0; i < playableCharacters.Length; i++)
+            {
+                long row = Randomizer.charBlockStart
+                    + Randomizer.charBlockLen * (long)playableCharacters[i];
+                if (row + 68 >= Randomizer.personData.Length)
+                    continue;
+
+                bool changed = false;
+                StringBuilder summary = new StringBuilder();
+                for (int stat = 0; stat < charGrowthOffsets.Length; stat++)
+                {
+                    int growth = Randomizer.personData[row + charGrowthOffsets[stat]];
+                    int gain = (growth * levels + 50) / 100;
+                    if (gain <= 0)
+                        continue;
+                    if (!addCapped(Randomizer.personData, (int)(row + charBaseOffsets[stat]), gain))
+                        continue;
+                    changed = true;
+                    if (summary.Length > 0)
+                        summary.Append(", ");
+                    summary.Append(statNames[stat]).Append(" +").Append(gain.ToString());
+                }
+                if (!changed)
+                    continue;
+
+                statPlayerBonus++;
+                if (playerBonusSamples.Count < 4 && Randomizer.characterNames != null
+                    && playableCharacters[i] < Randomizer.characterNames.Length
+                    && Randomizer.characterNames[playableCharacters[i]] != null)
+                    playerBonusSamples.Add(Randomizer.characterNames[playableCharacters[i]]
+                        + " (+" + levels + " level(s) of stats): " + summary.ToString());
+            }
+        }
+
+        private static readonly string[] statNames = { "HP", "Str", "Mag", "Dex", "Spd", "Lck", "Def", "Res", "Cha" };
 
         private static bool isPlayableCharacter(int index)
         {

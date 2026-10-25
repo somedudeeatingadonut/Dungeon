@@ -87,6 +87,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 RandomizerExtras.bossHpTrim = 0;
                 RandomizerExtras.bossDefTrim = 0;
                 RandomizerExtras.bossResTrim = 0;
+                // A bonus the user asked for, so turning everything off takes it
+                // away again - the same rule as the trims.
+                RandomizerExtras.playerStartBonus = 0;
             }
 
             // RandomizerMore passes.
@@ -200,6 +203,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasBossRes_numericUpDown != null)
                 this.extrasBossRes_numericUpDown.Value = clampToControl(
                     this.extrasBossRes_numericUpDown, RandomizerExtras.bossResTrim);
+
+            if (this.extrasPlayerStartBonus_numericUpDown != null)
+                this.extrasPlayerStartBonus_numericUpDown.Value = clampToControl(
+                    this.extrasPlayerStartBonus_numericUpDown, RandomizerExtras.playerStartBonus);
 
             if (this.extrasBossAb_checkBox != null)
                 this.extrasBossAb_checkBox.Checked = RandomizerMore.protectBossAbilities;

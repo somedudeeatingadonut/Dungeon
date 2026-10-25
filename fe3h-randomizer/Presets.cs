@@ -427,6 +427,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private const int modBossDefTrim = 2;
         private const int modBossResTrim = 2;
 
+        // No Monastery starts the enemies at level 6 on Hard and 9 on Maddening
+        // while the player's own units keep their vanilla start, so the first
+        // map asks for a level 12 Jeralt. The trims above take the enemy down;
+        // this takes the player up by the same currency a level is made of -
+        // that unit's own growth, once per level, on every stat. Five levels is
+        // the Maddening gap (9 - ~4); it is also a sane gain on Hard.
+        private const int modPlayerStartBonus = 5;
+
         private static void appendModBulkLines(StringBuilder text)
         {
             text.AppendLine("RandomizerExtras.growthShift=" + modEnemyGrowthShift.ToString());
@@ -439,6 +447,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("RandomizerExtras.bossHpTrim=" + modBossHpTrim.ToString());
             text.AppendLine("RandomizerExtras.bossDefTrim=" + modBossDefTrim.ToString());
             text.AppendLine("RandomizerExtras.bossResTrim=" + modBossResTrim.ToString());
+            text.AppendLine("RandomizerExtras.playerStartBonus=" + modPlayerStartBonus.ToString());
         }
         private const string builtInModSafeName = "No Monastery (mod safe)";
         private const string builtInPluginSafeName = "No Monastery 2.1 (plugin, mod safe)";

@@ -65,6 +65,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private NumericUpDown extrasBossHp_numericUpDown;
         private NumericUpDown extrasBossDef_numericUpDown;
         private NumericUpDown extrasBossRes_numericUpDown;
+        private NumericUpDown extrasPlayerStartBonus_numericUpDown;
         private CheckBox extrasModNoMonastery_checkBox;
         private ComboBox extrasPreset_comboBox;
         private Label extrasPresetInfo_label;
@@ -584,6 +585,31 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "the Flame Emperor, Nemesis, the final bosses ...). Generic soldiers are covered by\r\n"
                     + "the class trim instead, and 0 on a row means that stat is not trimmed.\r\n"
                     + "The report lists the rows that changed, so it is easy to check in game."));
+
+                // ------------------------------------------------ player start
+                addFullRow(layout, sectionLabel("Player starting stats"));
+
+                this.extrasPlayerStartBonus_numericUpDown = new NumericUpDown();
+                this.extrasPlayerStartBonus_numericUpDown.Minimum = 0;
+                this.extrasPlayerStartBonus_numericUpDown.Maximum = 20;
+                this.extrasPlayerStartBonus_numericUpDown.Increment = 1;
+                this.extrasPlayerStartBonus_numericUpDown.Value = RandomizerExtras.playerStartBonus;
+                this.extrasPlayerStartBonus_numericUpDown.Width = 70;
+                this.extrasPlayerStartBonus_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasPlayerStartBonus_numericUpDown.ValueChanged +=
+                    new EventHandler(this.extrasPlayerStartBonus_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Levels' worth of stats every playable unit starts with:"),
+                    this.extrasPlayerStartBonus_numericUpDown);
+
+                addFullRow(layout, helpLabel(
+                    "A unit's level is not in any of the files this tool writes - it lives in the save.\r\n"
+                    + "What a level gives is stats, and the average gain of one level is that unit's own\r\n"
+                    + "growth rate, so N levels are N x growth / 100 points added to that character's\r\n"
+                    + "personal base, for all nine stats at once. 5 is a good match for a No Monastery run\r\n"
+                    + "on Maddening (the mod starts enemies at 9 there), 3 for Hard (enemies at 6).\r\n"
+                    + "The level shown in game does not change, and neither does EXP or class\r\n"
+                    + "requirements - this is the stats half only. It applies to the units you can deploy\r\n"
+                    + "and never to enemies. 0 turns it off."));
 
                 // ---------------------------------------------------- abilities
                 addFullRow(layout, sectionLabel("Abilities that must never be randomized"));
@@ -1137,6 +1163,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 RandomizerExtras.bossDefTrim = (int)this.extrasBossDef_numericUpDown.Value;
             if (this.extrasBossRes_numericUpDown != null)
                 RandomizerExtras.bossResTrim = (int)this.extrasBossRes_numericUpDown.Value;
+        }
+
+        private void extrasPlayerStartBonus_numericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding || this.extrasPlayerStartBonus_numericUpDown == null)
+                return;
+            RandomizerExtras.playerStartBonus = (int)this.extrasPlayerStartBonus_numericUpDown.Value;
         }
 
         private void extrasGrowthShift_numericUpDown_ValueChanged(object sender, EventArgs e)

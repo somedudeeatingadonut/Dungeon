@@ -224,6 +224,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + ", Res -" + RandomizerExtras.bossResTrim
                 + (RandomizerExtras.bossHpTrim == 0 && RandomizerExtras.bossDefTrim == 0
                     && RandomizerExtras.bossResTrim == 0 ? "  (off)" : ""));
+            text.AppendLine("Player start bonus      : " + RandomizerExtras.playerStartBonus
+                + (RandomizerExtras.playerStartBonus > 0
+                    ? " level(s) of stats  (+N x growth / 100 on every personal base)"
+                    : "  (off)"));
             text.AppendLine();
         }
 
@@ -695,6 +699,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + " off the named, non-playable character rows, on top of the class trim)");
             foreach (string sample in RandomizerExtras.bossTrimSamples)
                 text.AppendLine("    " + sample);
+            text.AppendLine("player start bonus    : " + RandomizerExtras.statPlayerBonus
+                + "   (" + RandomizerExtras.playerStartBonus + " level(s) of stats - "
+                + "N x that unit's own growth / 100 - added to every playable unit's personal bases)");
+            foreach (string sample in RandomizerExtras.playerBonusSamples)
+                text.AppendLine("    " + sample);
 
             // Its own check, independent of the identity pass: the trim is set on
             // the tab, so the report has to say whether it actually did anything.
@@ -742,6 +751,26 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + " class base(s) lost HP / Def / Res, "
                     + RandomizerExtras.statFlatCompensated.ToString()
                     + " playable character(s) got the same values back in their personal bases");
+            }
+
+            // Same rule as the trims: an option that is set has to say whether it did
+            // anything, because "I set 5 and nothing happened" is the report that
+            // costs a run.
+            if (RandomizerExtras.playerStartBonus > 0)
+            {
+                if (Randomizer.personData == null)
+                    warnings.Add("the player start bonus is set to "
+                        + RandomizerExtras.playerStartBonus + " level(s) but fixed_persondata.bin was"
+                        + " not loaded, so no personal base was raised");
+                else if (RandomizerExtras.statPlayerBonus == 0)
+                    warnings.Add("the player start bonus is set to "
+                        + RandomizerExtras.playerStartBonus + " level(s) but no playable character"
+                        + " row changed (their growths may all be 0, or the rows were out of range)");
+                else
+                    passes.Add("player start bonus: " + RandomizerExtras.statPlayerBonus.ToString()
+                        + " playable unit(s) started with "
+                        + RandomizerExtras.playerStartBonus.ToString()
+                        + " extra level(s) of stats on their personal bases");
             }
 
             if (!RandomizerExtras.classIdentity)
