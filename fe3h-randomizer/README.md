@@ -562,6 +562,7 @@ into Def and Res:
 | Defence limit | 50% (default) | 50%, written out | clamp the class base Def / Res, which is a floor for every enemy in that class |
 | Weapon effect text | on (default) | on, written out | a grafted effect has to be readable in the item screen |
 | Flat class base trim | off | **-6 HP, -2 Def, -2 Res** | the level 1 value is the part that makes the first maps feel walled; given back to your own units |
+| Boss trim | off | **-6 HP, -2 Def, -2 Res** | on top, on the story units' own rows - the chapter 1 boss included |
 
 The debug report prints the applied preset name at the top together with how
 many values it set and how many lines it had to skip - a preset that silently
@@ -712,6 +713,49 @@ It runs as the very last stat pass, after the range limits, so nothing can clamp
 it back up, and boosts and growths are not touched. If `fixed_persondata.bin` was
 not loaded the trim is **skipped** with a warning instead of quietly weakening
 your own army.
+
+### Boss trim (extra, on top)
+
+**Extra options > Boss trim** - the same three spinners again, for the story
+units only: **-6 HP / -2 Def / -2 Res** in both No Monastery presets, 0 = off.
+
+A boss shares its class row with the soldiers next to it, so the class table
+cannot tell them apart. The character table can: a boss is a **named character
+who is not one of your units**, and its personal bases are its own. That is what
+this trims, so it stacks on top of the class trim for exactly the fights that
+matter - and never touches the player's people.
+
+```
+boss rows trimmed    : 37   (HP -6, Def -2, Res -2 off the named, non-playable character rows, on top of the class trim)
+    Kostas (row 43) personal base -6 HP, -2 Def, -2 Res
+    Lonato (row 44) personal base -6 HP, -2 Def, -2 Res
+    Death Knight (row 42) personal base -6 HP, -2 Def, -2 Res
+```
+
+Story NPCs on your side (Rodrigue, Judith, Nader, Rhea) are in the same group -
+they are not units you can field, so the tool cannot tell an allied NPC from an
+enemy one. Against a chapter boss that is a rounding error; if an allied NPC ever
+feels too fragile, drop the number to 0 and use the class trim alone.
+
+### Why there is no "enemy base stats" option
+
+The class table splits **growths** into two columns - a player set at `+20..+29`
+and an enemy set at `+19/+30..+38` - which is why the level scaling can move the
+enemy growths into HP without touching your own units' growths.
+
+The **base stats** are not split: `+75` (HP) and `+85..+93` are one block per
+class, read by the player's units and by every enemy standing in that class. There
+is no second copy to aim at, and no other table in the game's data files that
+holds per-class enemy base stats. The two things the tool can do about that are
+exactly what is on the tab now:
+
+| Lever | What it reaches |
+| --- | --- |
+| Class base trim (with the compensation) | every enemy in every class, bosses and generic soldiers alike |
+| Boss trim | the named story units, on their own personal bases, on top |
+
+If a run still feels over-tuned on a specific fight, the boss numbers are the
+fine dial; the class numbers are the coarse one.
 
 ```
 flat trim applied    : 84   (HP -6, Def -2, Res -2 off every class base, last, monsters and boss rows included)

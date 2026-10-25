@@ -62,6 +62,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private NumericUpDown extrasFlatHp_numericUpDown;
         private NumericUpDown extrasFlatDef_numericUpDown;
         private NumericUpDown extrasFlatRes_numericUpDown;
+        private NumericUpDown extrasBossHp_numericUpDown;
+        private NumericUpDown extrasBossDef_numericUpDown;
+        private NumericUpDown extrasBossRes_numericUpDown;
         private CheckBox extrasModNoMonastery_checkBox;
         private ComboBox extrasPreset_comboBox;
         private Label extrasPresetInfo_label;
@@ -531,6 +534,56 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + "which is the price of doing it this way. It needs the character file loaded -\r\n"
                     + "without it the trim is skipped rather than silently weakening your own units.\r\n"
                     + "Boosts and growths are not touched. 0 on a row means that stat is not trimmed."));
+
+                // ------------------------------------------------------ boss trim
+                addFullRow(layout, sectionLabel("Boss trim (extra, on top of the class trim)"));
+
+                this.extrasBossHp_numericUpDown = new NumericUpDown();
+                this.extrasBossHp_numericUpDown.Minimum = 0;
+                this.extrasBossHp_numericUpDown.Maximum = 40;
+                this.extrasBossHp_numericUpDown.Increment = 1;
+                this.extrasBossHp_numericUpDown.Value = RandomizerExtras.bossHpTrim;
+                this.extrasBossHp_numericUpDown.Width = 70;
+                this.extrasBossHp_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasBossHp_numericUpDown.ValueChanged +=
+                    new EventHandler(this.extrasBossTrim_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("HP taken off every boss:"),
+                    this.extrasBossHp_numericUpDown);
+
+                this.extrasBossDef_numericUpDown = new NumericUpDown();
+                this.extrasBossDef_numericUpDown.Minimum = 0;
+                this.extrasBossDef_numericUpDown.Maximum = 20;
+                this.extrasBossDef_numericUpDown.Increment = 1;
+                this.extrasBossDef_numericUpDown.Value = RandomizerExtras.bossDefTrim;
+                this.extrasBossDef_numericUpDown.Width = 70;
+                this.extrasBossDef_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasBossDef_numericUpDown.ValueChanged +=
+                    new EventHandler(this.extrasBossTrim_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Def taken off every boss:"),
+                    this.extrasBossDef_numericUpDown);
+
+                this.extrasBossRes_numericUpDown = new NumericUpDown();
+                this.extrasBossRes_numericUpDown.Minimum = 0;
+                this.extrasBossRes_numericUpDown.Maximum = 20;
+                this.extrasBossRes_numericUpDown.Increment = 1;
+                this.extrasBossRes_numericUpDown.Value = RandomizerExtras.bossResTrim;
+                this.extrasBossRes_numericUpDown.Width = 70;
+                this.extrasBossRes_numericUpDown.Margin = new Padding(0, 3, 0, 3);
+                this.extrasBossRes_numericUpDown.ValueChanged +=
+                    new EventHandler(this.extrasBossTrim_numericUpDown_ValueChanged);
+                addSplitRow(layout, indentedLabel("Res taken off every boss:"),
+                    this.extrasBossRes_numericUpDown);
+
+                addFullRow(layout, helpLabel(
+                    "Taken off the personal base stats of the story units, on top of the class trim above.\r\n"
+                    + "A boss shares its class row with the soldiers standing next to it, so the class table\r\n"
+                    + "cannot tell them apart - but a boss is a named character who is not one of your own\r\n"
+                    + "units, and its personal bases are its own. That is where this goes.\r\n"
+                    + "The same three numbers leave your own characters alone, always: only named,\r\n"
+                    + "non-playable character rows are touched (Kostas, Lonato, Miklan, the Death Knight,\r\n"
+                    + "the Flame Emperor, Nemesis, the final bosses ...). Generic soldiers are covered by\r\n"
+                    + "the class trim instead, and 0 on a row means that stat is not trimmed.\r\n"
+                    + "The report lists the rows that changed, so it is easy to check in game."));
 
                 // ---------------------------------------------------- abilities
                 addFullRow(layout, sectionLabel("Abilities that must never be randomized"));
@@ -1072,6 +1125,18 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 RandomizerExtras.flatDefTrim = (int)this.extrasFlatDef_numericUpDown.Value;
             if (this.extrasFlatRes_numericUpDown != null)
                 RandomizerExtras.flatResTrim = (int)this.extrasFlatRes_numericUpDown.Value;
+        }
+
+        private void extrasBossTrim_numericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            if (this.extrasBuilding)
+                return;
+            if (this.extrasBossHp_numericUpDown != null)
+                RandomizerExtras.bossHpTrim = (int)this.extrasBossHp_numericUpDown.Value;
+            if (this.extrasBossDef_numericUpDown != null)
+                RandomizerExtras.bossDefTrim = (int)this.extrasBossDef_numericUpDown.Value;
+            if (this.extrasBossRes_numericUpDown != null)
+                RandomizerExtras.bossResTrim = (int)this.extrasBossRes_numericUpDown.Value;
         }
 
         private void extrasGrowthShift_numericUpDown_ValueChanged(object sender, EventArgs e)

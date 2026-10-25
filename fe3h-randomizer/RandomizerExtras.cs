@@ -66,6 +66,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int flatDefTrim = 0;
         public static int flatResTrim = 0;
 
+        // An extra subtraction for the story units, on top of the class trim
+        // above. The class table cannot tell a boss from the soldiers standing
+        // next to it (they share a class row), but the character table can: a
+        // boss is a named character who is not one of the units the player can
+        // deploy, and its personal base stats are its own. This is the only
+        // per-unit stat lever the game data has - the growths have a separate
+        // enemy column, the base stats do not.
+        public static int bossHpTrim = 0;
+        public static int bossDefTrim = 0;
+        public static int bossResTrim = 0;
+
         // The characters the player can deploy, by character id. The personal
         // base of each of these gets the trim added back, so the option only
         // moves what the player fights. Rows 0..35 are the students, the
@@ -135,10 +146,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statDefenseClamped;
         public static int statFlatTrimmed;
         public static int statFlatCompensated;
+        public static int statBossTrimmed;
         public static List<string> roleSwapSamples = new List<string>();
         public static List<string> defenseClampSamples = new List<string>();
         public static List<string> flatTrimSamples = new List<string>();
         public static List<string> flatCompensationSamples = new List<string>();
+        public static List<string> bossTrimSamples = new List<string>();
         public static List<int>[] statTypesServedByTier = new List<int>[8];
         public static List<int> statTypesServedGlobal = new List<int>();
         // How many weapon types were actually dealt per tier. The report needs
@@ -175,10 +188,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statDefenseClamped = 0;
             statFlatTrimmed = 0;
             statFlatCompensated = 0;
+            statBossTrimmed = 0;
             roleSwapSamples = new List<string>();
             defenseClampSamples = new List<string>();
             flatTrimSamples = new List<string>();
             flatCompensationSamples = new List<string>();
+            bossTrimSamples = new List<string>();
             RandomizerMore.resetCounters();
             RandomizerBig.resetCounters();
             ModSupport.resetCounters();
@@ -823,22 +838,30 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // feel it most; at level 40 the same few points are noise. Boosts and
         // growths are not touched.
         //
-        // Monster and boss class rows are included on purpose: the first boss of
-        // a run is a normal class, and a monster row is a boss by definition.
+        // Bosses are included: a chapter boss sits in an ordinary class, so it is
+        // trimmed with the rest of them. The beast / monster table is a separate
+        // layout with no class base stats in it, so it is not touched at all.
         public static void applyFlatTrim()
         {
-            if (Randomizer.classData == null)
-                return;
             int hpTrim = Math.Max(0, Math.Min(60, flatHpTrim));
             int defTrim = Math.Max(0, Math.Min(40, flatDefTrim));
             int resTrim = Math.Max(0, Math.Min(40, flatResTrim));
-            if (hpTrim == 0 && defTrim == 0 && resTrim == 0)
+
+            // The character file is needed either way: for the class trim it is
+            // what keeps the player's own units at full strength, and for the
+            // boss trim it is the only table the trim can work on.
+            if (Randomizer.personData == null || Randomizer.personDataV == null)
                 return;
 
-            // Without the character file the trim cannot be given back to the
-            // player's own units, and weakening them is the opposite of what
-            // this option is for. The report says so instead of doing it.
-            if (Randomizer.personData == null || Randomizer.personDataV == null)
+            if (hpTrim > 0 || defTrim > 0 || resTrim > 0)
+                trimClassBases(hpTrim, defTrim, resTrim);
+
+            trimBossCharacters();
+        }
+
+        private static void trimClassBases(int hpTrim, int defTrim, int resTrim)
+        {
+            if (Randomizer.classData == null)
                 return;
 
             for (int index = 0; index < 100; index++)
@@ -926,6 +949,74 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         + " personal base +" + hpTrim + " HP, +" + defTrim + " Def, +" + resTrim
                         + " Res  (so the class trim costs this unit nothing)");
             }
+        }
+
+        // The extra trim for the story units. A character row counts as a boss
+        // when the tool's name table knows a name for it (the generic soldiers
+        // have none) and it is not one of the units the player can deploy. Its
+        // personal bases are its own, so this reaches exactly the chapter bosses
+        // and story enemies, and stacks on top of the class trim.
+        private static void trimBossCharacters()
+        {
+            int hpTrim = Math.Max(0, Math.Min(60, bossHpTrim));
+            int defTrim = Math.Max(0, Math.Min(40, bossDefTrim));
+            int resTrim = Math.Max(0, Math.Min(40, bossResTrim));
+            if (hpTrim == 0 && defTrim == 0 && resTrim == 0)
+                return;
+            if (Randomizer.personData == null || Randomizer.characterNames == null)
+                return;
+
+            for (int index = 0; index < Randomizer.characterNames.Length; index++)
+            {
+                if (Randomizer.characterNames[index] == null
+                    || Randomizer.characterNames[index].Length == 0)
+                    continue;
+                // The player's own people are never trimmed here.
+                if (isPlayableCharacter(index))
+                    continue;
+
+                long row = Randomizer.charBlockStart + Randomizer.charBlockLen * (long)index;
+                if (row + 57 >= Randomizer.personData.Length)
+                    continue;
+
+                bool changed = false;
+                if (hpTrim > 0 && subtractFloored(Randomizer.personData, (int)(row + 43), hpTrim, 1))
+                    changed = true;
+                if (defTrim > 0 && subtractFloored(Randomizer.personData, (int)(row + 56), defTrim, 0))
+                    changed = true;
+                if (resTrim > 0 && subtractFloored(Randomizer.personData, (int)(row + 57), resTrim, 0))
+                    changed = true;
+                if (!changed)
+                    continue;
+
+                statBossTrimmed++;
+                if (bossTrimSamples.Count < 8)
+                    bossTrimSamples.Add(Randomizer.characterNames[index] + " (row "
+                        + index.ToString() + ") personal base -" + hpTrim + " HP, -" + defTrim
+                        + " Def, -" + resTrim + " Res");
+            }
+        }
+
+        private static bool isPlayableCharacter(int index)
+        {
+            for (int i = 0; i < playableCharacters.Length; i++)
+                if (playableCharacters[i] == index)
+                    return true;
+            return false;
+        }
+
+        // Subtracts and never goes below the floor (1 for HP, 0 for Def / Res).
+        private static bool subtractFloored(byte[] data, int offset, int amount, int floor)
+        {
+            if (data == null || offset < 0 || offset >= data.Length)
+                return false;
+            int value = data[offset] - amount;
+            if (value < floor)
+                value = floor;
+            if (value == data[offset])
+                return false;
+            data[offset] = (byte)value;
+            return true;
         }
 
         // Adds to a byte and refuses to wrap: a personal base is small, but a mod

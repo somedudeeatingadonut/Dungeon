@@ -84,6 +84,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 RandomizerExtras.flatHpTrim = 0;
                 RandomizerExtras.flatDefTrim = 0;
                 RandomizerExtras.flatResTrim = 0;
+                RandomizerExtras.bossHpTrim = 0;
+                RandomizerExtras.bossDefTrim = 0;
+                RandomizerExtras.bossResTrim = 0;
             }
 
             // RandomizerMore passes.
@@ -188,6 +191,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasFlatRes_numericUpDown != null)
                 this.extrasFlatRes_numericUpDown.Value = clampToControl(
                     this.extrasFlatRes_numericUpDown, RandomizerExtras.flatResTrim);
+            if (this.extrasBossHp_numericUpDown != null)
+                this.extrasBossHp_numericUpDown.Value = clampToControl(
+                    this.extrasBossHp_numericUpDown, RandomizerExtras.bossHpTrim);
+            if (this.extrasBossDef_numericUpDown != null)
+                this.extrasBossDef_numericUpDown.Value = clampToControl(
+                    this.extrasBossDef_numericUpDown, RandomizerExtras.bossDefTrim);
+            if (this.extrasBossRes_numericUpDown != null)
+                this.extrasBossRes_numericUpDown.Value = clampToControl(
+                    this.extrasBossRes_numericUpDown, RandomizerExtras.bossResTrim);
 
             if (this.extrasBossAb_checkBox != null)
                 this.extrasBossAb_checkBox.Checked = RandomizerMore.protectBossAbilities;

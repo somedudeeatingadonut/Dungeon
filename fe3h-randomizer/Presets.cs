@@ -420,6 +420,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private const int modFlatDefTrim = 2;
         private const int modFlatResTrim = 2;
 
+        // ... and the same again for the story units, whose personal bases are
+        // their own: a boss that needs a level 12 Jeralt to kill is not a fight,
+        // it is a wall.
+        private const int modBossHpTrim = 6;
+        private const int modBossDefTrim = 2;
+        private const int modBossResTrim = 2;
+
         private static void appendModBulkLines(StringBuilder text)
         {
             text.AppendLine("RandomizerExtras.growthShift=" + modEnemyGrowthShift.ToString());
@@ -429,6 +436,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("RandomizerExtras.flatHpTrim=" + modFlatHpTrim.ToString());
             text.AppendLine("RandomizerExtras.flatDefTrim=" + modFlatDefTrim.ToString());
             text.AppendLine("RandomizerExtras.flatResTrim=" + modFlatResTrim.ToString());
+            text.AppendLine("RandomizerExtras.bossHpTrim=" + modBossHpTrim.ToString());
+            text.AppendLine("RandomizerExtras.bossDefTrim=" + modBossDefTrim.ToString());
+            text.AppendLine("RandomizerExtras.bossResTrim=" + modBossResTrim.ToString());
         }
         private const string builtInModSafeName = "No Monastery (mod safe)";
         private const string builtInPluginSafeName = "No Monastery 2.1 (plugin, mod safe)";
@@ -532,7 +542,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             modSafe.Description = "No Monastery 1.3.3, the data-file release: the same run with everything"
                 + " the mod ships handed back to it (" + ModSupport.conflictCount(ModSupport.kindDataMod).ToString()
                 + " options off), first spell at C, 30% of the enemy growth shifted into HP,"
-                + " -6 HP / -2 Def / -2 Res on every class base";
+                + " -6 HP / -2 Def / -2 Res on every class base and on every boss";
             modSafe.Data = builtInModSafeData();
             modSafe.BuiltIn = true;
             cache.Add(modSafe);
@@ -542,7 +552,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             pluginSafe.Description = "No Monastery 2.1, the Skyline plugin release: the same run with only"
                 + " the " + ModSupport.conflictCount(ModSupport.kindPluginMod).ToString()
                 + " options the plugin recalculates turned off, first spell at C,"
-                + " 30% of the enemy growth shifted into HP, -6 HP / -2 Def / -2 Res on every class base";
+                + " 30% of the enemy growth shifted into HP, -6 HP / -2 Def / -2 Res on every class base"
+                + " and on every boss";
             pluginSafe.Data = builtInPluginSafeData();
             pluginSafe.BuiltIn = true;
             cache.Add(pluginSafe);

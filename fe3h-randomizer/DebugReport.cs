@@ -219,6 +219,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + ", Res -" + RandomizerExtras.flatResTrim
                 + (RandomizerExtras.flatHpTrim == 0 && RandomizerExtras.flatDefTrim == 0
                     && RandomizerExtras.flatResTrim == 0 ? "  (off)" : ""));
+            text.AppendLine("Boss trim (extra)       : HP -" + RandomizerExtras.bossHpTrim
+                + ", Def -" + RandomizerExtras.bossDefTrim
+                + ", Res -" + RandomizerExtras.bossResTrim
+                + (RandomizerExtras.bossHpTrim == 0 && RandomizerExtras.bossDefTrim == 0
+                    && RandomizerExtras.bossResTrim == 0 ? "  (off)" : ""));
             text.AppendLine();
         }
 
@@ -684,11 +689,30 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + " gets weaker)");
             foreach (string sample in RandomizerExtras.flatCompensationSamples)
                 text.AppendLine("    " + sample);
+            text.AppendLine("boss rows trimmed    : " + RandomizerExtras.statBossTrimmed
+                + "   (HP -" + RandomizerExtras.bossHpTrim + ", Def -"
+                + RandomizerExtras.bossDefTrim + ", Res -" + RandomizerExtras.bossResTrim
+                + " off the named, non-playable character rows, on top of the class trim)");
+            foreach (string sample in RandomizerExtras.bossTrimSamples)
+                text.AppendLine("    " + sample);
 
             // Its own check, independent of the identity pass: the trim is set on
             // the tab, so the report has to say whether it actually did anything.
             bool trimWanted = RandomizerExtras.flatHpTrim > 0 || RandomizerExtras.flatDefTrim > 0
                 || RandomizerExtras.flatResTrim > 0;
+            bool bossWanted = RandomizerExtras.bossHpTrim > 0 || RandomizerExtras.bossDefTrim > 0
+                || RandomizerExtras.bossResTrim > 0;
+            if (bossWanted)
+            {
+                if (RandomizerExtras.statBossTrimmed == 0)
+                    warnings.Add("the boss trim is set to -" + RandomizerExtras.bossHpTrim
+                        + " / -" + RandomizerExtras.bossDefTrim + " / -"
+                        + RandomizerExtras.bossResTrim + " but no boss row changed");
+                else
+                    passes.Add("boss trim: " + RandomizerExtras.statBossTrimmed.ToString()
+                        + " story unit(s) lost HP / Def / Res on their own rows");
+            }
+
             if (!trimWanted)
             {
                 text.AppendLine("(flat trim is 0 / 0 / 0 - off)");
