@@ -1782,8 +1782,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasModNoMonastery_checkBox != null)
                 this.extrasModNoMonastery_checkBox.Checked = ModSupport.noMonasteryMode;
 
-            MessageBox.Show("Applied \"" + preset.Name + "\".\r\n\r\n"
-                + applied.ToString() + " setting(s) set"
+            MessageBox.Show("Applied \"" + preset.Name + "\"  [" + preset.SourceShort() + "].\r\n\r\n"
+                + applied.ToString() + " of " + RandomizerPresets.lastAppliedKeys.ToString()
+                + " value(s) set"
                 + (skipped > 0 ? ", " + skipped.ToString() + " line(s) skipped" : "")
                 + ".\r\n\r\nEverything the mod owns is left to the mod: for a data-file release that is its\r\n"
                 + "dialogue, shops, monastery options, mastery EXP and level curve; for the 2.1\r\n"
@@ -1798,9 +1799,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             if (this.extrasPreset_comboBox == null)
                 return;
-            string keep = null;
+            // Kept by identity, not by name: a user file can have the same name as
+            // a built-in, and matching on the name used to jump to the wrong one.
+            bool keepBuiltIn = false;
+            string keepPath = null;
             if (this.extrasPreset_comboBox.SelectedItem != null)
-                keep = ((RandomizerPresets.Preset)this.extrasPreset_comboBox.SelectedItem).Name;
+            {
+                RandomizerPresets.Preset current =
+                    (RandomizerPresets.Preset)this.extrasPreset_comboBox.SelectedItem;
+                keepBuiltIn = current.BuiltIn;
+                keepPath = current.Path;
+            }
 
             this.extrasPreset_comboBox.BeginUpdate();
             this.extrasPreset_comboBox.Items.Clear();
@@ -1812,12 +1821,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasPreset_comboBox.Items.Count == 0)
                 return;
             int selected = 0;
-            if (keep != null)
+            if (keepBuiltIn || keepPath != null)
                 for (int i = 0; i < this.extrasPreset_comboBox.Items.Count; i++)
                 {
                     RandomizerPresets.Preset preset =
                         (RandomizerPresets.Preset)this.extrasPreset_comboBox.Items[i];
-                    if (string.Equals(preset.Name, keep, StringComparison.Ordinal))
+                    if (preset.BuiltIn == keepBuiltIn
+                        && string.Equals(preset.Path, keepPath, StringComparison.Ordinal))
                     {
                         selected = i;
                         break;
@@ -1857,8 +1867,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             RandomizerPresets.lastApplied = preset.Name;
 
-            string message = "Applied \"" + preset.Name + "\".\r\n\r\n"
-                + applied.ToString() + " setting(s) set.";
+            string message = "Applied \"" + preset.Name + "\"  [" + preset.SourceShort() + "].\r\n\r\n"
+                + applied.ToString() + " of " + RandomizerPresets.lastAppliedKeys.ToString()
+                + " value(s) set.";
             if (skipped > 0)
                 message += "\r\n" + skipped.ToString()
                     + " line(s) in the preset could not be used (unknown name or bad value).";

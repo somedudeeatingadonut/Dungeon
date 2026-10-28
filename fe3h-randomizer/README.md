@@ -595,6 +595,49 @@ restored, so a preset always ran those numbers at the tool's defaults. They are
 saved now, and any preset file that predates the fix simply leaves them at the
 defaults.
 
+### Which preset a run actually used
+
+A preset name is not enough to identify a preset. The list used to show only the
+name, and a saved file called `My run - No Monastery 2.1, 2026-10-24.txt` looked
+exactly like the built-in of the same name. Applying one while the other was meant
+gave a run whose every value came from somewhere the user never picked - and the
+report, which also printed only the name, could not show it found the wrong one.
+So which preset it was is now written down everywhere it can be read:
+
+* **the list** - `My run - No Monastery 2.1, 2026-10-24   [built in]` or
+  `...   [file: My run - No Monastery 2.1, 2026-10-24.txt]`. The combo box also
+  keeps its selection by *identity*, so re-saving a file under the name of the
+  selected preset cannot make the selection jump to the other one.
+* **the apply message** - `Applied "X"  [file: X.txt].` and `N of M value(s) set`,
+  where M is how many keys the preset itself had. A preset that half-applies says
+  so at the moment it is applied, not three runs later.
+* **the debug report** - next to the preset name and its value count:
+
+  ```
+  Preset       : My run - No Monastery 2.1, 2026-10-24   (1116 value(s) set)
+  Preset source: built in   (preset had 1116 key(s))
+  Changed after: 3 setting(s) differ from the applied preset (see the list below)
+    RandomizerExtras.flatHpTrimEarly: preset=10, run=6
+    RandomizerExtras.bossHpTrim: preset=6, run=1
+    RandomizerExtras.playerStartBonus: preset=5, run=1
+  ```
+
+  `Preset source` is either `built in` or the full path of the file. `Changed
+  after` is the important line: it lists every setting whose value in the run is
+  not the value the applied preset wrote, with both numbers. When it says
+  `none - the run matches the applied preset exactly`, the preset alone explains
+  every value in the run. When it lists something, that value was changed after
+  the preset was applied - by a box on the tab, or by another preset.
+* **`FE3H Randomizer Applied Preset.txt`** - written next to the debug report on
+  every report, holding the preset text that was applied, verbatim, with its name,
+  source, file path and key count at the top. The report can then be diffed against
+  the preset without guessing which build produced it.
+
+Two presets may no longer share a name. **Save current settings as preset** adds
+` (my file)` when the name is a built-in's, and the report warns when a `presets`
+folder from an older version already holds such a file, naming the folder so the
+duplicate can be renamed.
+
 ### Range limits, next to the thing they limit
 
 The three "keep it inside this range" options live on the tab that randomizes

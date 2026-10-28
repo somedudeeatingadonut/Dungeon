@@ -39,9 +39,33 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             public bool BuiltIn;
             public string Path;
 
+            // Where this preset came from, in one phrase: "built in" or the
+            // file it was read from. Two presets can share a name - a file the
+            // user saved is very likely to have the same name as the built-in it
+            // was derived from - and without this the list and the debug report
+            // could not tell them apart. A run was debugged against the wrong
+            // one because of exactly that.
+            public string Source()
+            {
+                if (this.BuiltIn)
+                    return "built in";
+                if (this.Path != null && this.Path.Length > 0)
+                    return "file: " + this.Path;
+                return "file";
+            }
+
+            public string SourceShort()
+            {
+                if (this.BuiltIn)
+                    return "built in";
+                if (this.Path != null && this.Path.Length > 0)
+                    return "file: " + System.IO.Path.GetFileName(this.Path);
+                return "file";
+            }
+
             public override string ToString()
             {
-                return this.BuiltIn ? this.Name + "  (built in)" : this.Name;
+                return this.Name + "   [" + this.SourceShort() + "]";
             }
         }
 
@@ -615,6 +639,115 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // ------------------------------------------------------------- registry
         private static List<Preset> cache;
 
+        // What the run is using that the applied preset did not set. The report
+        // used to show only the values the run ended up with, so a value that was
+        // changed after the preset was applied looked exactly like a value the
+        // preset produced - which is unanswerable from a debug report and cost a
+        // whole round of guessing.
+        //
+        // Returns one line per key: "key: preset=X, run=Y".
+        public static List<string> diffFromApplied(Settings settings)
+        {
+            List<string> result = new List<string>();
+            if (lastAppliedData == null || lastAppliedData.Length == 0)
+                return result;
+
+            Dictionary<string, string> wanted = parse(lastAppliedData);
+            foreach (KeyValuePair<string, string> pair in wanted)
+            {
+                string key = pair.Key;
+                if (key == "ModSupport.originalFolder" || key == "ModSupport.modFolder")
+                    continue; // a path, not an option
+                string mine = currentValue(settings, key);
+                if (mine == null)
+                    continue; // not something this build has (an older preset)
+                if (string.Equals(mine, pair.Value, StringComparison.Ordinal))
+                    continue;
+                result.Add(key + ": preset=" + pair.Value + ", run=" + mine);
+            }
+            return result;
+        }
+
+        // Reads one setting back out, in the same "name=value" vocabulary the
+        // preset files use. null when this build has no such setting.
+        private static string currentValue(Settings settings, string key)
+        {
+            if (key == "RandomizerExtras.blockedAbilities")
+            {
+                // Order does not matter for the blocklist, so compare it sorted.
+                List<int> ids = new List<int>(RandomizerExtras.blockedAbilities);
+                ids.Sort();
+                StringBuilder list = new StringBuilder();
+                for (int i = 0; i < ids.Count; i++)
+                {
+                    if (list.Length > 0)
+                        list.Append(',');
+                    list.Append(ids[i].ToString());
+                }
+                return list.ToString();
+            }
+
+            int dot = key.IndexOf('.');
+            if (dot > 0)
+            {
+                string typeName = key.Substring(0, dot);
+                string fieldName = key.Substring(dot + 1);
+                for (int t = 0; t < extraTypes.Length; t++)
+                {
+                    if (!string.Equals(extraTypes[t].Name, typeName, StringComparison.Ordinal))
+                        continue;
+                    FieldInfo field = extraTypes[t].GetField(fieldName, BindingFlags.Public | BindingFlags.Static);
+                    if (field == null || !isSimple(field))
+                        return null;
+                    try
+                    {
+                        return format(field.GetValue(null));
+                    }
+                    catch
+                    {
+                        return null;
+                    }
+                }
+                return null;
+            }
+
+            if (settings == null)
+                return null;
+            FieldInfo settingsField = typeof(Settings).GetField(key, BindingFlags.Public | BindingFlags.Instance);
+            if (settingsField == null || !isSimple(settingsField))
+                return null;
+            try
+            {
+                return format(settingsField.GetValue(settings));
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // Names that appear more than once in the list - normally a user file
+        // saved under the same name as the built-in it came from. Applying "the"
+        // preset of that name is then a coin toss, so both the list and the
+        // report say so.
+        public static List<string> duplicateNames()
+        {
+            List<string> result = new List<string>();
+            List<Preset> presets = all();
+            for (int i = 0; i < presets.Count; i++)
+            {
+                if (result.Contains(presets[i].Name))
+                    continue;
+                for (int j = i + 1; j < presets.Count; j++)
+                    if (string.Equals(presets[i].Name, presets[j].Name, StringComparison.Ordinal))
+                    {
+                        result.Add(presets[i].Name);
+                        break;
+                    }
+            }
+            return result;
+        }
+
         public static List<Preset> all()
         {
             if (cache == null)
@@ -869,6 +1002,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             resetToDefaults(settings);
 
             Dictionary<string, string> pairs = parse(preset.Data);
+            lastApplied = preset.Name;
+            lastAppliedData = preset.Data;
+            lastAppliedSource = preset.Source();
+            lastAppliedPath = preset.Path == null ? "" : preset.Path;
+            lastAppliedKeys = pairs.Count;
             int skipped = 0;
             foreach (KeyValuePair<string, string> pair in pairs)
             {
@@ -1060,6 +1198,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (name == null || name.Trim().Length == 0)
                 return null;
             string safeName = sanitize(name.Trim());
+            // A file may not take a built-in name. Two presets with the same
+            // name are indistinguishable in the list, in the report and in the
+            // combo box, so whichever one the user meant, the other can be
+            // applied instead and the values look like they came from nowhere.
+            if (builtInNameExists(safeName))
+                safeName = safeName + " (my file)";
             string folder = presetFolder();
             Directory.CreateDirectory(folder);
             string path = Path.Combine(folder, safeName + ".txt");
@@ -1082,6 +1226,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             {
                 return false;
             }
+        }
+
+        // True when one of the presets the exe ships is called this.
+        private static bool builtInNameExists(string name)
+        {
+            string[] builtIn = { builtInRunName, builtInModSafeName, builtInPluginSafeName };
+            for (int i = 0; i < builtIn.Length; i++)
+                if (string.Equals(builtIn[i], name, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            return false;
         }
 
         private static string sanitize(string name)
@@ -1107,6 +1261,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // The preset that is currently applied, so the tab can show it - and how
         // much of it actually landed, which is how a broken preset shows up.
         public static string lastApplied = "";
+        // Provenance of the last applied preset: where it came from, and how many
+        // keys it actually had. A preset that sets 1116 of its 1116 keys is not
+        // the same thing as one that silently skipped a few.
+        public static string lastAppliedData = "";
+        public static string lastAppliedSource = "";
+        public static string lastAppliedPath = "";
+        public static int lastAppliedKeys;
         public static int lastAppliedSet;
         public static int lastAppliedSkipped;
 

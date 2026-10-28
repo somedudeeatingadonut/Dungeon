@@ -62,6 +62,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 string path = Path.Combine(folder, "FE3H Randomizer Debug.txt");
                 File.WriteAllText(path, text);
                 lastReportPath = path;
+                // The exact preset text that produced this run, next to the
+                // report. Without it a report can only say that a value is not
+                // what the user expected; with it, the difference is a diff.
+                WriteAppliedPreset(folder);
                 return path;
             }
             catch (Exception exception)
@@ -90,6 +94,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             List<string> failures = new List<string>();
 
             AppendHeader(text, reason);
+            AppendPresetWarnings(warnings);
             AppendCrashDetail(text);
             AppendEnvironment(text);
             AppendPerformance(text, warnings);
@@ -123,17 +128,56 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("Reason       : " + (reason == null ? "" : reason));
             text.AppendLine("Seed         : " + (Randomizer.seed.ToString()));
             if (RandomizerPresets.lastApplied != null && RandomizerPresets.lastApplied.Length > 0)
+            {
                 text.AppendLine("Preset       : " + RandomizerPresets.lastApplied
                     + "   (" + RandomizerPresets.lastAppliedSet.ToString() + " value(s) set"
                     + (RandomizerPresets.lastAppliedSkipped > 0
                         ? ", " + RandomizerPresets.lastAppliedSkipped.ToString() + " line(s) skipped"
                         : "") + ")");
+                // Which preset that name actually was. Two can share a name, and a
+                // report that only prints the name cannot tell them apart.
+                text.AppendLine("Preset source: " + RandomizerPresets.lastAppliedSource
+                    + "   (preset had " + RandomizerPresets.lastAppliedKeys.ToString() + " key(s))");
+                AppendPresetDiff(text);
+            }
             text.AppendLine("Random numbers generated: " + (Randomizer.rng == null ? "n/a" : Randomizer.rng.GetRandomNumberCount().ToString()));
             text.AppendLine("Last stage   : " + (Randomizer.debugStage == null ? "(none)" : Randomizer.debugStage));
             if (Randomizer.fallbackInterpolationUses > 0)
                 text.AppendLine("Interpolation: " + Randomizer.fallbackInterpolationUses.ToString()
                     + " value(s) rolled with the Linear style because the option had no style on");
             text.AppendLine();
+        }
+
+        // Settings that do not match the preset that was applied. Either the
+        // preset did not carry them or they were changed after it was applied -
+        // and a run that silently differs from the preset the user picked is
+        // exactly the thing a debug report has to be able to show.
+        private static void AppendPresetDiff(StringBuilder text)
+        {
+            List<string> diff = null;
+            try
+            {
+                diff = RandomizerPresets.diffFromApplied(Randomizer.settingsForDebug);
+            }
+            catch (Exception exception)
+            {
+                text.AppendLine("Changed after : (could not compare: " + exception.Message + ")");
+                return;
+            }
+            if (diff == null || diff.Count == 0)
+            {
+                text.AppendLine("Changed after : none - the run matches the applied preset exactly");
+                return;
+            }
+
+            text.AppendLine("Changed after : " + diff.Count.ToString()
+                + " setting(s) differ from the applied preset (see the list below, and the");
+            text.AppendLine("                preset text in \"FE3H Randomizer Applied Preset.txt\")");
+            int limit = Math.Min(diff.Count, 60);
+            for (int i = 0; i < limit; i++)
+                text.AppendLine("  " + diff[i]);
+            if (diff.Count > limit)
+                text.AppendLine("  ... and " + (diff.Count - limit).ToString() + " more");
         }
 
         private static void AppendCrashDetail(StringBuilder text)
@@ -684,6 +728,54 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 || RandomizerExtras.classDefenseClampMid > 0
                 || RandomizerExtras.classDefenseClampAdv > 0
                 || RandomizerExtras.classDefenseClampMaster > 0;
+        }
+
+        // A preset name that appears twice is a trap: the list shows both, the
+        // report shows neither path, and applying "the" one of them is a guess.
+        private static void AppendPresetWarnings(List<string> warnings)
+        {
+            List<string> duplicates = RandomizerPresets.duplicateNames();
+            if (duplicates.Count == 0)
+                return;
+            StringBuilder list = new StringBuilder();
+            for (int i = 0; i < duplicates.Count; i++)
+            {
+                if (list.Length > 0)
+                    list.Append("; ");
+                list.Append('"').Append(duplicates[i]).Append('"');
+            }
+            warnings.Add("more than one preset is called " + list.ToString()
+                + " - a saved file with the same name as a built-in one. The applied one is"
+                + " named under Preset source above; delete or rename the file in "
+                + RandomizerPresets.presetFolder() + " so the next run cannot pick the wrong one");
+        }
+
+        // The preset that was applied, word for word, plus where it came from. The
+        // report's own copy of the values is the *result*; this is the input, and
+        // the two can be compared with any text diff.
+        private static void WriteAppliedPreset(string folder)
+        {
+            try
+            {
+                string data = RandomizerPresets.lastAppliedData;
+                if (RandomizerPresets.lastApplied == null || RandomizerPresets.lastApplied.Length == 0)
+                    return;
+                StringBuilder text = new StringBuilder();
+                text.AppendLine("# The preset this run used, exactly as the tool read it.");
+                text.AppendLine("# name    : " + RandomizerPresets.lastApplied);
+                text.AppendLine("# source  : " + RandomizerPresets.lastAppliedSource);
+                if (RandomizerPresets.lastAppliedPath != null && RandomizerPresets.lastAppliedPath.Length > 0)
+                    text.AppendLine("# file    : " + RandomizerPresets.lastAppliedPath);
+                text.AppendLine("# keys    : " + RandomizerPresets.lastAppliedKeys.ToString()
+                    + "   set: " + RandomizerPresets.lastAppliedSet.ToString()
+                    + "   skipped: " + RandomizerPresets.lastAppliedSkipped.ToString());
+                text.AppendLine();
+                text.AppendLine(data == null ? "(the preset text was not kept)" : data);
+                File.WriteAllText(Path.Combine(folder, "FE3H Randomizer Applied Preset.txt"), text.ToString());
+            }
+            catch
+            {
+            }
         }
 
         // -------------------------------------------------- class identity
