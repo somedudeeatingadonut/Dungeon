@@ -93,6 +93,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             base.OnLoad(e);
             var perfLoadWatch = System.Diagnostics.Stopwatch.StartNew();
             this.applyPerformanceTweaks();
+            // The folders picked last time, read before anything is built so the
+            // boxes come up already pointing at them.
+            RememberedFolders.load();
+            RememberedFolders.applyToRuntime();
             this.buildBatchTab();
             this.buildExtrasTab();
             // Range limits on the Stat Boosts / Growth Boosts / Stat Bases tabs.
@@ -146,7 +150,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.batchInputFolder_textBox = new TextBox();
                 this.batchInputFolder_textBox.Anchor = AnchorStyles.Left | AnchorStyles.Right;
                 this.batchInputFolder_textBox.Margin = new Padding(0, 6, 8, 6);
-                this.batchInputFolder_textBox.Text = Application.StartupPath;
+                this.batchInputFolder_textBox.Text = RememberedFolders.inputFolder.Length > 0
+                    ? RememberedFolders.inputFolder : Application.StartupPath;
+                this.batchInputFolder_textBox.TextChanged +=
+                    new EventHandler(this.batchInputFolder_textBox_TextChanged);
                 layout.Controls.Add(this.batchInputFolder_textBox, 1, 1);
 
                 this.batchBrowseInput_button = new Button();
@@ -185,8 +192,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 this.batchOutputFolder_textBox = new TextBox();
                 this.batchOutputFolder_textBox.Anchor = AnchorStyles.Left | AnchorStyles.Right;
                 this.batchOutputFolder_textBox.Margin = new Padding(0, 6, 8, 6);
-                this.batchOutputFolder_textBox.Text = Path.Combine(Application.StartupPath, "randomizer output");
+                this.batchOutputFolder_textBox.Text = RememberedFolders.outputFolder.Length > 0
+                    ? RememberedFolders.outputFolder
+                    : Path.Combine(Application.StartupPath, "randomizer output");
                 this.batchOutputFolder_textBox.TextChanged += new EventHandler(this.batchOutputFolder_textBox_TextChanged);
+                this.batchOutputFolder_textBox.TextChanged +=
+                    new EventHandler(this.batchOutputFolderRemembered_TextChanged);
                 layout.Controls.Add(this.batchOutputFolder_textBox, 1, 4);
 
                 this.batchBrowseOutput_button = new Button();
@@ -244,7 +255,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                 this.batchOutputFolder = this.batchOutputFolder_textBox.Text.Trim();
 
+                if (this.batchIncludeSubfolders_checkBox != null)
+                    this.batchIncludeSubfolders_checkBox.Checked = RememberedFolders.includeSubfolders;
+
                 this.batchWriteLog("Batch mode ready.");
+                if (RememberedFolders.restoredNote.Length > 0)
+                    this.batchWriteLog("Remembered folders: " + RememberedFolders.restoredNote
+                        + "   (\"" + RememberedFolders.storeFile() + "\")");
+                if (RememberedFolders.inputFolder.Length > 0
+                    && Directory.Exists(RememberedFolders.inputFolder))
+                    this.batchWriteLog("Press \"Scan folder and load all files\" - the box above already holds "
+                        + "the folder from last time.");
                 this.batchWriteLog("1. Pick the folder that holds your dumped game files and press \"Scan folder and load all files\".");
                 this.batchWriteLog("2. Pick an output folder and press \"Randomize and save to output folder\".");
                 this.batchWriteLog("Everything is written into nx\\sound, patch1\\common\\common, patch3\\nx\\data, patch4, patch4\\common\\common and patch4\\nx\\data.");
@@ -284,6 +305,28 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private void batchOutputFolder_textBox_TextChanged(object sender, EventArgs e)
         {
             this.batchOutputFolder = this.batchOutputFolder_textBox.Text.Trim();
+        }
+
+        // Remembered so the next start already points at it. Kept separate from
+        // the handler above, which also runs while the window is being built.
+        private void batchOutputFolderRemembered_TextChanged(object sender, EventArgs e)
+        {
+            if (this.batchOutputFolder_textBox == null)
+                return;
+            string folder = this.batchOutputFolder_textBox.Text.Trim();
+            if (folder.Length == 0 || !Directory.Exists(folder))
+                return;
+            RememberedFolders.rememberOutput(folder);
+        }
+
+        private void batchInputFolder_textBox_TextChanged(object sender, EventArgs e)
+        {
+            if (this.batchInputFolder_textBox == null)
+                return;
+            string folder = this.batchInputFolder_textBox.Text.Trim();
+            if (folder.Length == 0 || !Directory.Exists(folder))
+                return;
+            RememberedFolders.rememberInput(folder);
         }
 
         private void batchOpenOutput_button_Click(object sender, EventArgs e)
@@ -413,8 +456,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private void batchScanFolder(string folder)
         {
             // Remembered for the debug report, which uses it to point at other
-            // copies of a data file (a mod unzipped one level too high, say).
+            // copies of a data file (a mod unzipped one level too high, say) - and
+            // kept for the next start, so the same folder is one click away.
             ModSupport.lastScanFolder = folder;
+            RememberedFolders.rememberScan(folder);
+            if (this.batchIncludeSubfolders_checkBox != null)
+                RememberedFolders.includeSubfolders = this.batchIncludeSubfolders_checkBox.Checked;
 
             // A Skyline plugin mod keeps no data files, so there is nothing for the
             // size checks to notice. Look for its plugin folder once instead.

@@ -27711,6 +27711,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
         private void RandomizerForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            // Whatever folders are live in the tool right now are the ones to
+            // come back to, including any set through a preset or a dialog that
+            // did not go through the batch tab.
+            RememberedFolders.captureFromRuntime();
             if (data1FileStream != null)
                 data1FileStream.Close();
         }

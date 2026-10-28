@@ -836,6 +836,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("describe effects     : " + RandomizerBig.describeWeaponEffects);
             text.AppendLine("msgdata.bin loaded   : " + Randomizer.msgLoaded);
             text.AppendLine("descriptions written : " + RandomizerBig.statWeaponDescriptionsDone);
+            text.AppendLine("effect summaries      : " + EffectText.describedCount() + " of "
+                + Randomizer.effectNames.Length
+                + " effect id(s) say what they do on the card (the rest keep the bare name)");
             if (RandomizerBig.statWeaponTextMissing > 0)
             {
                 text.AppendLine("no description entry : " + RandomizerBig.statWeaponTextMissing
@@ -877,7 +880,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             else
             {
                 passes.Add("weapon text: " + RandomizerBig.statWeaponDescriptionsDone.ToString()
-                    + " weapon description(s) name the effect the run gave them");
+                    + " weapon description(s) name the effect the run gave them and say what it"
+                    + " does (" + EffectText.describedCount() + " of "
+                    + Randomizer.effectNames.Length + " effect id(s) have a summary)");
             }
             text.AppendLine();
         }

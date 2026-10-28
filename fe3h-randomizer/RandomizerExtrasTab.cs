@@ -1519,6 +1519,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasBuilding || this.extrasModFolder_textBox == null)
                 return;
             ModSupport.modFolder = this.extrasModFolder_textBox.Text.Trim();
+            if (ModSupport.modFolder.Length > 0)
+                RememberedFolders.rememberMod(ModSupport.modFolder);
         }
 
         private void extrasModFolderBrowse_button_Click(object sender, EventArgs e)
@@ -1534,6 +1536,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasModFolder_textBox != null)
                 this.extrasModFolder_textBox.Text = folder;
             ModSupport.modFolder = folder;
+            RememberedFolders.rememberMod(folder);
             this.extrasModCheck(folder, true);
         }
 
@@ -1637,6 +1640,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasBuilding || this.extrasModOriginals_textBox == null)
                 return;
             ModSupport.originalFolder = this.extrasModOriginals_textBox.Text.Trim();
+            if (ModSupport.originalFolder.Length > 0)
+                RememberedFolders.rememberOriginals(ModSupport.originalFolder);
         }
 
         private void extrasModOriginalsBrowse_button_Click(object sender, EventArgs e)
@@ -1649,6 +1654,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (this.extrasModOriginals_textBox != null)
                 this.extrasModOriginals_textBox.Text = folder;
             ModSupport.originalFolder = folder;
+            RememberedFolders.rememberOriginals(folder);
         }
 
         private void extrasModReadOffsets_button_Click(object sender, EventArgs e)

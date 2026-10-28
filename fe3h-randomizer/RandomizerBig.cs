@@ -507,7 +507,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             int effect = data[block + weaponSlotEffect];
             if (effect != effectNone && effect >= 0 && effect < Randomizer.effectNames.Length
                 && Randomizer.effectNames[effect] != null && Randomizer.effectNames[effect].Length > 0)
-                text.Append("Inflicts ").Append(Randomizer.effectNames[effect]).Append(".\n");
+            {
+                // The name alone ("Inflicts Survival Instinct.") told the player
+                // nothing without a wiki, so the effect's own one-line summary
+                // follows it. EffectText leaves the line out when there is
+                // nothing it can say without guessing.
+                text.Append(EffectText.inflictsLine(effect, Randomizer.effectNames[effect])).Append("\n");
+            }
 
             int effectiveness = data[block + weaponSlotEffectiveness];
             if (effectiveness != 0)
@@ -858,7 +864,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 int effect = data[block + weaponSlotEffect];
                 string effectName = effect >= 0 && effect < Randomizer.effectNames.Length
                     ? Randomizer.effectNames[effect] : "(unknown)";
-                Randomizer.changelog += "\n" + name + " : " + effectName;
+                string effectDetail = EffectText.forEffect(effect);
+                Randomizer.changelog += "\n" + name + " : " + effectName
+                    + (effectDetail.Length > 0 ? "  (" + effectDetail + ")" : "");
                 shown++;
             }
         }

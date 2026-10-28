@@ -544,17 +544,31 @@ Three presets are built in:
 
 | Preset | What it is |
 | --- | --- |
-| **My run - No Monastery 2.1, 2026-10-24** | The owner's own *Save current settings as preset* file from that run: all 1,099 values, including the five range limits the saver used to drop and the options added since. Applying it repeats that run. |
+| **My run - No Monastery 2.1, 2026-10-24** | The **exact** settings of the 1.14.1 run of 2026-10-28 (seed 613943720), taken from that run's own `FULL SETTINGS DUMP`: **1,119 values** - all 1,051 `Settings` fields plus the 68 values that live outside `Settings` (the extra passes, range limits, graft chances, blocklist and mod switches). Applying it repeats that run. |
 | **No Monastery (mod safe)** | No Monastery **1.3.3** (the data-file release): the same run with the 38 options the mod ships written off explicitly, mod mode on and the mod's mastery EXP kept. |
 | **No Monastery 2.1 (plugin, mod safe)** | No Monastery **2.1 "with Aldebaran"** (the Skyline plugin): the same run with only the 3 options the plugin recalculates written off - level scaling and the mastery abilities / combat arts it hands out by skill rank - mod mode on, and mastery EXP left randomised because the plugin has no values of its own to keep. |
 
-All three are generated from that saved file rather than typed in by hand, so the
-values match it one for one; his machine's paths and mod switches (`ModSupport.*`)
-are stripped from the base preset and put back by the two mod ones. The mod-safe
-presets do not merely *omit* the conflicting options: they write each of them as
-`False` after the run's values, because the tool's default for a few (the mastery
-EXP requirements, for instance) is on and a preset is applied on top of the
-defaults.
+The base preset is now built from the debug report rather than from a saved file,
+because the report is the only place that holds **every** value the run used. Two
+things used to come back wrong from a saved preset:
+
+* **the interpolation styles.** A saved file only carries the options that were
+  on, so 41 flags such as `atkMightLinear`, `atkHitBinomial`, `caRangeProportional`
+  and their `...Dev` partners were simply missing - applying the preset left them
+  at the tool's defaults, which is not what the run used. The dump has all of them,
+  and all of them are written now.
+* **the roller ranges.** The same applied to every `...Min` / `...Max` pair that
+  the saved file happened to omit.
+
+Nothing is left to a default any more: if a value exists in `Settings`, the
+preset writes it. His machine's *paths* are deliberately **not** baked in - a mod
+folder is remembered by the tool instead (see *Folders are remembered*), so moving
+the mod does not fight a stale path in the preset.
+
+The mod-safe presets do not merely *omit* the conflicting options: they write each
+of them as `False` after the run's values, because the tool's default for a few
+(the mastery EXP requirements, for instance) is on and a preset is applied on top
+of the defaults.
 
 Both No Monastery presets also change the three balance values of 1.12.8, because
 the mod itself makes the problem worse - it starts units in intermediate classes
@@ -636,9 +650,30 @@ until it fired. **Extra options > Weapon effect text** (on by default) writes th
 new effect into the weapon's own description:
 
 ```
-Inflicts Seal Defense.
+Inflicts Seal Defense - after combat the target's Def drops for one turn.
 Deals magic damage.
 ```
+
+**The line says what the effect does, not only what it is called.** Until 1.15.0
+the card read `Inflicts Survival Instinct.`, which named the effect and left the
+player to look it up; an iron bow+ that "inflicts survival instinct" told you
+nothing about survival instinct. Every effect id now carries a one-line summary:
+
+```
+Inflicts Poison - the target loses HP at the start of each turn.
+Inflicts Impregnable Wall - halves the damage taken and dealt by the units in the area for one turn.
+Inflicts Survival Instinct - the holder's attacks get stronger as its HP falls.
+Inflicts Alert Stance+ - the holder gains more Avo if it waits without acting.
+Inflicts Lucky Seven - the holder gains a random stat boost at the start of each turn.
+```
+
+91 of the 97 effect ids have a summary (the 6 without are the unnamed ids 94/95
+and `None`). The wording is deliberately qualitative - it says what happens, never
+a number that could disagree with the game's own rules text - and where nothing
+can be said about an effect without guessing, the bare name is kept rather than
+inventing a rule. The same summary is written next to the effect in the changelog,
+and the debug report counts how many ids are covered
+(`effect summaries : 91 of 97`).
 
 The generated line covers everything the run actually wrote - the effect id, the
 effectiveness bits (Infantry / Heavy Armor / Cavalry / Flying / Dragon / Monster)
@@ -1007,6 +1042,34 @@ Copy `nx`, `patch1`, `patch3` and `patch4` from the output folder into the
 Empty folders are not created, so you only get the patch folders that actually
 received files.
 
+### Folders are remembered
+
+The three folders the Batch tab needs - **game files**, **output**, and (under
+Extra options) **mod** and **originals** - are written down when you pick them and
+filled in again on the next start, so a run is one click on *Scan folder and load
+all files* rather than four browse dialogs. The batch log says what was restored
+and where the file is:
+
+```
+Remembered folders: game files: D:\Downloads\1roms\SWOITCH\fe3h; output: F:\EGG\out   ("F:\EGG\Dungeon-1.15.0\remembered folders.txt")
+Press "Scan folder and load all files" - the box above already holds the folder from last time.
+```
+
+The file is `remembered folders.txt`, next to the exe (it moves with a copied
+build). When the exe sits in `bin\Release` - a developer build - it goes to
+`%APPDATA%\FE3H Randomizer\` instead, so a rebuild does not leave state behind in
+the source tree. Delete the file to start from nothing.
+
+**A folder that has moved is looked for before it is given up on.** If the
+remembered path is not there any more, the tool tries the same path on every other
+drive letter (an SD card that came back as `E:` instead of `F:`), then looks for a
+folder with the same name beside or one level above where it used to be. Whatever
+it finds is what the box gets, so a shuffled drive letter costs nothing.
+
+Two smaller things ride along: the *include subfolders* tick is remembered, and the
+folder the last scan read is kept, which is what the "Browse..." dialogs open in
+(and what the mod check uses to find a Skyline plugin next to the game files).
+
 ## Performance tweaks
 
 Small, paint-and-layout-only changes - no randomization logic is touched:
@@ -1059,6 +1122,7 @@ The report is plain text and contains:
 | Class variety | weapon type spread per class tier, before vs after, the types the balancer served, and a PASS/FAIL against the safety level |
 | Ability blocklist | names every entry of the fixed list, scans class abilities, monster latent/barrier abilities and character learnset ability slots (combat arts are skipped - the same id means something else there); lists blocked abilities the randomization *introduced* (vanilla ones are reported separately, they are intentional), how many the safety pass replaced and whether the Dancer's own Dance had to be written back |
 | Class identity | whether the pass is on, the Def / Res allowance per level band with a clamp count for each band, every Str / Mag trade with before/after values, every class whose Def / Res was pulled back to vanilla + the allowance, and a PASS line when nothing needed fixing |
+| Weapon effect text | how many descriptions were written, **how many effect ids have a plain-language summary** (`effect summaries : 91 of 97`), and a warning when a remix ran but `msgdata.bin` was not loaded |
 | Weapon effect text | whether the descriptions are on, whether `msgdata.bin` was loaded, how many weapon descriptions name the effect the run gave them, and a warning if effects were remixed but there is no message table to say so |
 | Siege limit | out of range weapons and spells on every map unit, marked as "same as vanilla" or "NEW" |
 | Growth shift | per stat growth totals before and after, plus the number of classes changed |
