@@ -2,28 +2,30 @@
  FE3H Randomizer - debug report
 ================================================================
 
-Written      : 2026-10-23 08:39:07
+Written      : 2026-10-28 03:51:55
 Reason       : after saving to the output folder
-Seed         : 64379
-Random numbers generated: 145673
+Seed         : 613943720
+Preset       : My run - No Monastery 2.1, 2026-10-24   (1116 value(s) set)
+Random numbers generated: 149084
+Last stage   : finished
 
 --- ENVIRONMENT ------------------------------------------------
-Exe path     : F:\EGG\Dungeon-1.8.2\fe3h-randomizer\bin\Release\Fire Emblem Three Houses Randomizer V2.exe
-Exe folder   : F:\EGG\Dungeon-1.8.2\fe3h-randomizer\bin\Release
-Assembly     : 1.8.2.0
-File version : 1.8.2.0
+Exe path     : F:\EGG\Dungeon-1.14.1\fe3h-randomizer\bin\Release\Fire Emblem Three Houses Randomizer V2.exe
+Exe folder   : F:\EGG\Dungeon-1.14.1\fe3h-randomizer\bin\Release
+Assembly     : 1.14.1.0
+File version : 1.14.1.0
 OS           : Microsoft Windows NT 6.2.9200.0
 .NET         : 4.0.30319.42000
 64-bit process: False
 UI culture   : en-US
 
 --- PERFORMANCE ------------------------------------------------
-window build (all controls) : 411 ms
-extra tabs built            : 1618 ms
-display refresh             : 1237 calls, 1577 ms total, 1 ms average, 203 ms worst
+window build (all controls) : 634 ms
+extra tabs built            : 5334 ms
+display refresh             : 23 calls, 232 ms total, 10 ms average, 160 ms worst
 last tab switch             : Batch: folders : 5 ms
-worst tab switch            : Weapons : 102 ms
-tab switches over 250 ms    : 0
+worst tab switch            : Extra options : 393 ms
+tab switches over 250 ms    : 4
 startup / layout timings:
     pre-layout of tab "Weapons" : 7 ms
     pre-layout of tab "Characters" : 5 ms
@@ -36,7 +38,7 @@ startup / layout timings:
 
 --- NEW OPTIONS ------------------------------------------------
 Even class variety      : True
-Class variety safety    : 25%
+Class variety safety    : 35%
 Ability blocklist on    : True
 Blocked abilities       : 20
     148 : Special Dance
@@ -63,116 +65,241 @@ Siege limit on          : True
 Max enemy weapon range  : 4
 Siege bypass chance     : 10%
 Growth shift            : 10%
+Class identity          : True  (Def / Res clamp +20/35/50/50% by class level)
+Weapon effect text      : True
+Flat class base trim    : HP -6/4/1/1, Def -2/2/1/0, Res -7/2/1/0  (lv 1-9 / 10-19 / 20-29 / 30+)
+Boss trim (extra)       : HP -1, Def -1, Res -1
+Player start bonus      : 1 level(s) of stats  (+N x growth / 100 on every personal base)
 
 --- MORE OPTIONS -----------------------------------------------
-Boss abilities kept as they are: True   (slots restored 110, still changed 0)
-Boss stats kept as they are    : True   (slots restored 4, still changed 0, plus 7 raised on purpose by the scaling bonus)
-Boss level scaling bonus       : 75% of the scaling   (level scaling on, multiplier 150%, base stats raised 0, stat boosts raised 7, bosses touched 7)
+Boss abilities kept as they are: True   (slots restored 111, still changed 0)
+Boss stats kept as they are    : True   (slots restored 3, still changed 0)
+Boss level scaling bonus       : 50% of the scaling   (level scaling off, multiplier 150%, base stats raised 0, stat boosts raised 0, bosses touched 0)
 No repeated class ability      : True   (rerolled 1, left 0)
-One mastery ability per tier   : True   (rerolled 1, left 0)
-One mastery art per tier       : True   (rerolled 0)
-Unique personal abilities      : True   (rerolled 6, left 0)
-Growth range limit             : True  (15% to 105%)   (pulled back 386, changed growths now 0% to 105%)
-Even growth totals             : False  (tolerance 40%)   (classes evened 0)
-Keep each class's best growth  : True   (classes kept 52)
-    class growth totals now   : 45 to 516, average 222
-Stat boost range limit         : True  (-4 to 12)   (pulled back 0, changed boosts now -4 to 10)
-Even base stat totals          : False  (tolerance 25%)   (classes evened 0)
-Base stat range limit          : True  (4 to 99)   (pulled back 24, changed bases now 4 to 36)   3 vanilla value(s) outside the limit kept on purpose
+One mastery ability per tier   : True   (rerolled 3, left 0)
+One mastery art per tier       : True   (rerolled 1)
+Unique personal abilities      : True   (rerolled 5, left 0)
+Growth range limit             : True  (5% to 100%)   (pulled back 423, changed growths now 5% to 100%)
+Even growth totals             : True  (tolerance 60%)   (classes evened 26)
+Keep each class's best growth  : True   (classes kept 51)
+    class growth totals now   : 100 to 386, average 260
+Stat boost range limit         : True  (-3 to 10)   (pulled back 12, changed boosts now -3 to 10)
+Even base stat totals          : True  (tolerance 30%)   (classes evened 16)
+Base stat range limit          : True  (3 to 30)   (pulled back 49, changed bases now 1 to 34)   2 vanilla value(s) outside the limit kept on purpose
 
 --- BIG OPTIONS ------------------------------------------------
 Swap class stat profiles       : False   (classes swapped 0, scope per tier)
 Swap class growth profiles     : False   (classes swapped 0)
 Shuffle character sheets       : False   (characters swapped 0)
 Boss remix                     : False   (bosses remixed 0)
-Weapons <- weapon effects     : 40%   (grafted 191, different type only: False)
-Weapons <- combat art effect  : 10%   (grafted 36)
+Weapons <- weapon effects     : 40%   (grafted 193, different type only: False)
+Weapons <- combat art effect  : 10%   (grafted 25)
 Weapons <- gambit effects     : 10%   (grafted 27)
-Combat arts <- combat art     : 40%   (grafted 35)
-Combat arts <- weapon effect  : 10%   (grafted 5)
-Gambits <- gambit effects     : 40%   (grafted 28)
-Gambits <- weapon effects     : 10%   (grafted 4)
-Unique weapon effect sets     : False   (rerolled 0, left 217)
-    weapons with an effect : 285
+Combat arts <- combat art     : 20%   (grafted 22)
+Combat arts <- weapon effect  : 10%   (grafted 4)
+Gambits <- gambit effects     : 20%   (grafted 17)
+Gambits <- weapon effects     : 80%   (grafted 48)
+Unique weapon effect sets     : True   (rerolled 138, left 74)
+    weapons with an effect : 276
     classes differing from vanilla : 65
     characters differing from vanilla : 42
 
+--- CLASS IDENTITY ---------------------------------------------
+identity pass        : True
+Def / Res clamp      : allowance above vanilla, per class level band
+    lv 1-9   : +20%, 4 class(es) pulled back
+    lv 10-19 : +35%, 8 class(es) pulled back
+    lv 20-29 : +50%, 11 class(es) pulled back
+    lv 30+   : +50%, 11 class(es) pulled back
+rows checked         : only rows the randomization changed (a vanilla row is not a contradiction to fix)
+Str / Mag trades     : 30   (class stats that contradicted their weapon type and were swapped)
+    Soldier (physical weapon): Str 9 / Mag 13 -> Str 13 / Mag 9
+    Fighter (physical weapon): Str 8 / Mag 14 -> Str 14 / Mag 8
+    Monk (magic weapon): Str 13 / Mag 11 -> Str 11 / Mag 13
+    Lord (physical weapon): Str 6 / Mag 7 -> Str 7 / Mag 6
+    Mercenary (physical weapon): Str 5 / Mag 7 -> Str 7 / Mag 5
+    Thief (physical weapon): Str 5 / Mag 7 -> Str 7 / Mag 5
+classes pulled back  : 34   (Def / Res above the allowance, mostly early classes)
+    Soldier base Res 7 -> 4 (vanilla 2, lv 1-9 20%)
+    Fighter base Res 6 -> 4 (vanilla 2, lv 1-9 20%)
+    Monk base Def 9 -> 5 (vanilla 3, lv 1-9 20%)
+    Cavalier base Def 12 -> 8 (vanilla 6, lv 10-19 35%)
+    Brigand base Def 12 -> 8 (vanilla 6, lv 10-19 35%)
+    Brigand boost Def 4 -> 3 (vanilla 0)
+flat trim applied    : 65   (off every class base, last; every normal class, bosses included)
+    lv 1-9   : -6 HP, -2 Def, -7 Res, 7 class(es)
+    lv 10-19 : -4 HP, -2 Def, -2 Res, 14 class(es)
+    lv 20-29 : -1 HP, -1 Def, -1 Res, 19 class(es)
+    lv 30+   : -1 HP, -0 Def, -0 Res, 25 class(es)
+    Noble (lv 1-9 -6/-2/-7) base HP 30 -> 24, Def 0 -> 0, Res 0 -> 0
+    Commoner (lv 1-9 -6/-2/-7) base HP 30 -> 24, Def 0 -> 0, Res 0 -> 0
+    Myrmidon (lv 1-9 -6/-2/-7) base HP 30 -> 24, Def 6 -> 4, Res 4 -> 0
+    Soldier (lv 1-9 -6/-2/-7) base HP 30 -> 24, Def 6 -> 4, Res 4 -> 0
+    Fighter (lv 1-9 -6/-2/-7) base HP 30 -> 24, Def 6 -> 4, Res 4 -> 0
+    Monk (lv 1-9 -6/-2/-7) base HP 30 -> 24, Def 5 -> 3, Res 5 -> 0
+player units given it back : 42   (largest band trim added to their personal bases, so only the enemy side gets weaker and no unit falls below vanilla in any class)
+    Male Byleth personal base +6 HP, +2 Def, +7 Res  (the largest band trim, so the class trim costs this unit nothing in any class)
+    Female Byleth personal base +6 HP, +2 Def, +7 Res  (the largest band trim, so the class trim costs this unit nothing in any class)
+    Edelgard personal base +6 HP, +2 Def, +7 Res  (the largest band trim, so the class trim costs this unit nothing in any class)
+    Dimitri personal base +6 HP, +2 Def, +7 Res  (the largest band trim, so the class trim costs this unit nothing in any class)
+boss rows trimmed    : 37   (HP -1, Def -1, Res -1 off the named, non-playable character rows, on top of the class trim)
+    Rhea (row 36) personal base -1 HP, -1 Def, -1 Res
+    Sothis (row 37) personal base -1 HP, -1 Def, -1 Res
+    Kronya (row 38) personal base -1 HP, -1 Def, -1 Res
+    Solon (row 39) personal base -1 HP, -1 Def, -1 Res
+    Thales (row 40) personal base -1 HP, -1 Def, -1 Res
+    Cornelia (row 41) personal base -1 HP, -1 Def, -1 Res
+    Death Knight (row 42) personal base -1 HP, -1 Def, -1 Res
+    Kostas (row 43) personal base -1 HP, -1 Def, -1 Res
+player start bonus    : 42   (1 level(s) of stats - N x that unit's own growth / 100 - added to every playable unit's personal bases)
+    Male Byleth (+1 level(s) of stats): HP +1, Str +1, Dex +1, Spd +1, Lck +1
+    Female Byleth (+1 level(s) of stats): HP +1, Mag +1, Dex +1, Spd +1, Lck +1
+    Edelgard (+1 level(s) of stats): HP +1, Mag +1, Spd +1, Cha +1
+    Dimitri (+1 level(s) of stats): HP +1, Dex +1, Lck +1, Def +1, Cha +1
+
+--- WEAPON EFFECT TEXT -----------------------------------------
+describe effects     : True
+msgdata.bin loaded   : True
+descriptions written : 204
+item data loaded     : True
+
 --- LOADED FILES -----------------------------------------------
-DATA1.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\DATA1.bin  [file 6936719456 bytes]  [only the battalion section is held in memory]
-fixed_persondata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_persondata.bin  [file 139456 bytes]
-fixed_classdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_classdata.bin  [file 23812 bytes]
-fixed_data.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_data.bin  [file 39000 bytes]
-fixed_calendardata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch3\nx\data\fixed_calendardata.bin  [file 14696 bytes]
-fixed_lobby_common.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_lobby_common.bin  [file 44616 bytes]
-fixed_act_data.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_act_data.bin  [file 172732 bytes]
-fixed_growthdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_growthdata.bin  [file 1404 bytes]
-fixed_lobby_activity.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_lobby_activity.bin  [file 16504 bytes]
-fixed_groupworkdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_groupworkdata.bin  [file 4432 bytes]
-fixed_presentdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_presentdata.bin  [file 6180 bytes]
-fixed_shopdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_shopdata.bin  [file 18676 bytes]
-fixed_lobby_quest.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_lobby_quest.bin  [file 8672 bytes]
-fixed_scenario.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\nx\data\fixed_scenario.bin  [file 4784 bytes]
-msgdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\common\common\msgdata.bin  [file 9586308 bytes]
-scrdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\common\common\scrdata.bin  [file 6736028 bytes]
-gwscrdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch1\common\common\gwscrdata.bin  [file 941488 bytes]
-tuscrdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\common\common\tuscrdata.bin  [file 787776 bytes]
-btlscrdata.bin : loaded  D:\Downloads\1roms\SWOITCH\New folder\patch4\common\common\btlscrdata.bin  [file 807848 bytes]
-BGM.ktsl2stbin : loaded  D:\Downloads\1roms\SWOITCH\New folder\nx\sound\BGM.ktsl2stbin  [file 398136704 bytes]
+DATA1.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\DATA1.bin  [file 6936719456 bytes]  [only the battalion section is held in memory]
+fixed_persondata.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\nx\data\fixed_persondata.bin  [file 139456 bytes]
+fixed_classdata.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\nx\data\fixed_classdata.bin  [file 23812 bytes]
+fixed_data.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\nx\data\fixed_data.bin  [file 39000 bytes]
+fixed_calendardata.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch3\nx\data\fixed_calendardata.bin  [file 14696 bytes]
+fixed_lobby_common.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\nx\data\fixed_lobby_common.bin  [file 44616 bytes]
+fixed_act_data.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\nx\data\fixed_act_data.bin  [file 172732 bytes]
+fixed_growthdata.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\nx\data\fixed_growthdata.bin  [file 1404 bytes]
+fixed_lobby_activity.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\nx\data\fixed_lobby_activity.bin  [file 16504 bytes]
+fixed_groupworkdata.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\nx\data\fixed_groupworkdata.bin  [file 4432 bytes]
+fixed_presentdata.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\nx\data\fixed_presentdata.bin  [file 6180 bytes]
+fixed_shopdata.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\nx\data\fixed_shopdata.bin  [file 18676 bytes]
+fixed_lobby_quest.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\nx\data\fixed_lobby_quest.bin  [file 8672 bytes]
+fixed_scenario.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\nx\data\fixed_scenario.bin  [file 4784 bytes]
+msgdata.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\common\common\msgdata.bin  [file 9586308 bytes]
+scrdata.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\common\common\scrdata.bin  [file 6736028 bytes]
+gwscrdata.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch1\common\common\gwscrdata.bin  [file 941488 bytes]
+tuscrdata.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\common\common\tuscrdata.bin  [file 787776 bytes]
+btlscrdata.bin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\patch4\common\common\btlscrdata.bin  [file 807848 bytes]
+BGM.ktsl2stbin : loaded  D:\Downloads\1roms\SWOITCH\fe3h\nx\sound\BGM.ktsl2stbin  [file 398136704 bytes]
+
+--- TOTAL CONVERSION MOD ---------------------------------------
+mod mode             : True
+no monastery mode    : True
+mod recognised       : No Monastery 2.1 (Skyline plugin)
+table offsets        : not needed - No Monastery 2.1 (Skyline plugin) changes the game by code, not by data files, so the game's own fixed_*.bin are the right input and the compiled-in offsets are correct
+left out of this run : 3 option(s) - weekly goals, seminars, faculty training
+
+--- MOD COMPATIBILITY -----------------------------------------
+Mod mode                       : True
+Mod checked                    : No Monastery 2.1 (Skyline plugin)   - a Skyline plugin: no game data files, nothing to line up
+Mod folder                     : C:\Users\Owl\AppData\Roaming\Ryujinx\sdcard\atmosphere\contents\010055d009f78000\NoMonastery with Aldebaran
+Mod detail                     : romfs\skyline\plugins\libno_monastery.nro, exefs\subsdk9
+Keep class mastery EXP         : True   (restored 63 requirement(s))
+fixed_classdata.bin : same size as the original (23812 bytes) - the game's own copy, which is what this mod wants
+fixed_persondata.bin : same size as the original (139456 bytes) - the game's own copy, which is what this mod wants
+fixed_data.bin : same size as the original (39000 bytes) - the game's own copy, which is what this mod wants
+fixed_act_data.bin : same size as the original (172732 bytes) - the game's own copy, which is what this mod wants
+fixed_calendardata.bin : same size as the original (14696 bytes) - the game's own copy, which is what this mod wants
+fixed_lobby_common.bin : same size as the original (44616 bytes) - the game's own copy, which is what this mod wants
+fixed_growthdata.bin : same size as the original (1404 bytes) - the game's own copy, which is what this mod wants
+fixed_lobby_activity.bin : same size as the original (16504 bytes) - the game's own copy, which is what this mod wants
+fixed_groupworkdata.bin : same size as the original (4432 bytes) - the game's own copy, which is what this mod wants
+fixed_presentdata.bin : same size as the original (6180 bytes) - the game's own copy, which is what this mod wants
+fixed_shopdata.bin : same size as the original (18676 bytes) - the game's own copy, which is what this mod wants
+fixed_lobby_quest.bin : same size as the original (8672 bytes) - the game's own copy, which is what this mod wants
+fixed_scenario.bin : same size as the original (4784 bytes) - the game's own copy, which is what this mod wants
+
+files that differ from the original data: 0 of 13
+    correct for No Monastery 2.1 (Skyline plugin): it ships no game data, so there is
+    nothing to replace - the files above are the right ones to randomize
+
+class table
+    rows read: 100, tier values 0 to 6, monster rows: 26
+    mastery EXP values in use: 0, 20, 60, 100, 150, 200   (the base randomizer would replace these)
+    class rows in the loaded file: 100
+    Dancer row: 43  (default)
+    populated class rows outside the randomized range (88..99, except 91): 88, 89, 90, 92, 93, 94, 95, 96, 97, 98, 99
+        those rows are left alone on purpose - a class a mod added there keeps
+        its own stats, growths and abilities
+original files folder          : (not set)
+folder the last scan read      : D:\Downloads\1roms\SWOITCH\fe3h
+offset maps                    : not needed - No Monastery 2.1 (Skyline plugin) changes the game by code, not by data files, so the game's own fixed_*.bin are the right input and the compiled-in offsets are correct
+table offsets adjusted         : 0
+no map needed: No Monastery 2.1 (Skyline plugin) ships no game data, so the
+game's own files are the right input and the compiled-in offsets
+are already correct - nothing here needs moving
+
+enabled options that fight the mod: 2   (of the 3 this mod kind owns)
+    randClassMasteryAb : class and mastery abilities - the plugin re-grants them by skill rank
+    randClassMasteryCa : mastery combat arts - the plugin re-grants them by skill rank
+enabled options that still work but behave differently with this mod:
+    certification requirements - the plugin auto-certs anything at 90% or better, so units may certify into the randomized classes on recruitment
+    class abilities - the plugin hands the class's own ability list out by skill rank, so it will grant the randomized ones
 
 --- NEW CODE - DID IT RUN? -------------------------------------
 class variety picks           : 0
-class weapon type draws       : 127
-class type bag refills        : 12
-class pick deck rebuilds      : 26
-ability picks                 : 970
-ability picks with blocks     : 892
-weapon range filter calls     : 379
+class weapon type draws       : 122
+class type bag refills        : 11
+class pick deck rebuilds      : 25
+ability picks                 : 994
+ability picks with blocks     : 918
+weapon range filter calls     : 405
 weapons removed by range      : 0
-siege bypass rolls won        : 41
+siege bypass rolls won        : 30
 enemy spells picked           : 0
 spells replaced for range     : 0
 classes growth shifted        : 41
 tier spread passes            : 2
+first character spell rank    : C (rank 4)
 
 --- CLASS VARIETY CHECK ----------------------------------------
 Weapon types per class tier (classes, not characters):
 tier       Sword Lance   Axe   Bow Brawl Magic   ???  Dark
 before start       2     0     0     0     0     0     0     0
-after  start       0     0     0     0     1     1     0     0
+after  start       0     0     1     1     0     0     0     0
 before begin       2     1     1     0     0     0     1     0
-after  begin       0     1     1     2     0     2     0     0
+after  begin       0     0     1     1     1     1     1     0
 before inter       5     2     2     1     1     2     1     0
-after  inter       2     2     1     3     2     4     2     0
+after  inter       2     2     2     2     2     4     1     0
 before adv         4     3     4     1     2     4     3     0
-after  adv         3     5     4     2     5     7     3     0
+after  adv         3     3     5     3     2     7     3     0
 before master      1     3     3     1     1     3     2     0
-after  master      2     2     2     2     2     4     3     0
+after  master      2     2     3     3     1     3     1     0
 before unique      5     4     4     2     0     1     0     0
-after  unique      3     3     2     3     2     5     4     0
+after  unique      2     4     3     3     5     5     2     0
 
 What the balancer actually served:
-  start  : 8 of 8 types (Magic, Brawl, ???, Dark, Sword, Bow, Axe, Lance)
-  begin  : 8 of 8 types (Magic, Lance, Axe, Bow, ???, Dark, Brawl, Sword)
-  inter  : 8 of 8 types (Magic, Axe, Lance, Bow, ???, Dark, Sword, Brawl)
-  adv    : 8 of 8 types (Brawl, Lance, Sword, Dark, Bow, Magic, ???, Axe)
-  master : 7 of 8 types (Dark, ???, Bow, Axe, Brawl, Magic, Sword)
-  unique : 8 of 8 types (Dark, Sword, Bow, Magic, Lance, Axe, ???, Brawl)
-  whole run : 8 of 8 types (Bow, Brawl, ???, Lance, Axe, Sword, Dark, Magic)
+  start  : 8 of 8 types (Bow, Axe, Sword, Lance, Magic, Dark, ???, Brawl)
+  begin  : 8 of 8 types (Brawl, Bow, Axe, ???, Magic, Sword, Dark, Lance)
+  inter  : 8 of 8 types (Bow, Brawl, Sword, Dark, Magic, Lance, Axe, ???)
+  adv    : 8 of 8 types (Bow, Brawl, Magic, Lance, Axe, Dark, ???, Sword)
+  master : 8 of 8 types (Axe, Bow, Sword, Lance, ???, Dark, Brawl, Magic)
+  unique : 8 of 8 types (Lance, Axe, Dark, ???, Bow, Brawl, Magic, Sword)
+  whole run : 8 of 8 types (Magic, Bow, Axe, Brawl, Sword, ???, Lance, Dark)
 
-WARN  master only served 7 weapon types out of 8 dealt (safety 25%)
-Most common weapon type per tier: start =Brawl x1  begin =Bow x2  inter =Magic x4  adv   =Magic x7  master=Magic x4  unique=Magic x5  
+Most common weapon type per tier: start =Axe x1  begin =Axe x1  inter =Magic x4  adv   =Magic x7  master=Axe x3  unique=Brawl x5  
 
 --- ABILITY BLOCKLIST CHECK ------------------------------------
+user blocklist       : 20 ability(ies)
+always blocked       : 18 ability(ies), whatever the blocklist says
+                       190 Dragon Effect Null, 191 Monster Effect Null, 193 Air of Intimidation, 195 Giant Wings, 197 Divine Dragon Horn, 198 Path of the Conqueror, 204 Twin Crests, 205 Ancient Dragon Wrath, 206 Surging Light, 207 Ancient Dragonskin, 225 Mighty King of Legend, 226 Ten Elites, 244 Monstrous Appeal, 246 Umbral Leach, 247 Manifest Phantoms, 148 Special Dance, 154 Missing Number, 158 Dance
 ability slots scanned  : 7260
-blocked abilities found: 64  (64 already in the vanilla file, 0 new)
+blocked abilities found: 8  (8 already in the vanilla file, 0 new)
+always-blocked found : 89  (89 already in the vanilla file, 0 new)
 blocked abilities replaced by the safety pass: 0
+Dancer row (class 43) Dance written back: 1 (the ability spread rotates whole slots, so the Dancer can lose it)
 note: the vanilla data already contains these on purpose (monster classes), they are not touched by the blocklist
 
 --- SIEGE / RANGE CHECK ----------------------------------------
 obtainable weapons above range 4 : 0 (still in the game data, filtered from enemy pools)
 spells above range 4 : 4 (replaced by 0 rerolls in this run)
 map units scanned          : 4560
-out of range spell slots   : 46   (1 new, 45 same as vanilla)
+out of range spell slots   : 47   (2 new, 45 same as vanilla)
+  scenario 21 unit 13 : spell 12 range 10 (NEW)
+  scenario 30 unit 13 : spell 12 range 10 (NEW)
   scenario 21 unit 22 : spell 12 range 10 (same as vanilla)
   scenario 21 unit 25 : spell 12 range 10 (same as vanilla)
   scenario 22 unit 20 : spell 5 range 10 (same as vanilla)
@@ -183,49 +310,61 @@ out of range spell slots   : 46   (1 new, 45 same as vanilla)
   scenario 25 unit 69 : spell 12 range 10 (same as vanilla)
   scenario 25 unit 74 : spell 5 range 10 (same as vanilla)
   scenario 25 unit 77 : spell 5 range 10 (same as vanilla)
-out of range weapon slots  : 1   (0 new, 1 same as vanilla, bypass chance 10%, bypass rolls won 41)
+out of range weapon slots  : 1   (0 new, 1 same as vanilla, bypass chance 10%, bypass rolls won 30)
   scenario 30 unit 20 : weapon 220 range 30 (same as vanilla)
 
 --- GROWTH SHIFT CHECK -----------------------------------------
-classes with changed enemy growths: 97  (counter says 41)
+classes with changed enemy growths: 96   (the growth shift itself changed 41)
+    the rest differ from vanilla because their growths were randomized, not shifted
 stat      enemy growth total  before -> after   |  player before -> after
-HP            1875 ->   2788   |    1380 ->   2990
-Str           1788 ->   2917   |    1319 ->   1517
-Mag            998 ->   2303   |    1209 ->   1262
-Dex            215 ->   1606   |     205 ->    820
-Spd           1734 ->   1685   |    3704 ->   2160
-Lck             90 ->   2101   |      70 ->    780
-Def           2777 ->   2114   |    2173 ->   1226
-Res           4495 ->   3005   |    3729 ->   2053
-Cha            440 ->   1905   |     435 ->   1255
+HP            1875 ->   2711   |    1380 ->   3224
+Str           1788 ->   2323   |    1319 ->   1373
+Mag            998 ->   2409   |    1209 ->   1309
+Dex            215 ->   2985   |     205 ->   1057
+Spd           1734 ->   2143   |    3704 ->   2509
+Lck             90 ->   1935   |      70 ->   1121
+Def           2777 ->   2463   |    2173 ->   1516
+Res           4495 ->   2937   |    3729 ->   3124
+Cha            440 ->   2102   |     435 ->   1469
 
 --- SUMMARY ----------------------------------------------------
-passed  : 22
-warnings: 1
+passed  : 31
+warnings: 3
 failures: 0
   PASS  boss / monster abilities are untouched
-  PASS  boss / monster stats are untouched (the 7 slot(s) raised by the scaling bonus are expected and not counted)
+  PASS  boss / monster stats are untouched
   PASS  no class has the same ability twice
   PASS  every class in a tier has a different mastery ability
-  PASS  mastery combat arts: 0 re-rolled to keep the tier unique
-  PASS  boss scaling bonus: 7 boss stat(s) raised across 7 boss class(es)
+  PASS  mastery combat arts: 1 re-rolled to keep the tier unique
+  PASS  boss scaling bonus: not needed (level scaling is off)
   PASS  every character has a different personal ability
-  PASS  growth range limit held (changed class growths 0% to 105%)   36 vanilla value(s) outside the limit kept on purpose
-  PASS  stat boost range limit held (-4 to 10)
-  PASS  base stat range limit held (4 to 36)   3 vanilla value(s) outside the limit kept on purpose
-  PASS  weapons taking other weapons' effects: 191 entr(ies) at 40% chance
-  PASS  weapons taking a combat art effect: 36 entr(ies) at 10% chance
+  PASS  growth range limit held (changed class growths 5% to 100%)   12 vanilla value(s) outside the limit kept on purpose
+  PASS  growth totals evened: 26 class(es) scaled, totals now 100 to 386
+  PASS  stat boost range limit held (-3 to 10)
+  PASS  weapons taking other weapons' effects: 193 entr(ies) at 40% chance
+  PASS  weapons taking a combat art effect: 25 entr(ies) at 10% chance
   PASS  weapons taking a gambit's effects: 27 entr(ies) at 10% chance
-  PASS  combat arts taking another art's effect: 35 entr(ies) at 40% chance
-  PASS  combat arts taking a weapon's effect: 5 entr(ies) at 10% chance
-  PASS  gambits taking another gambit's effects: 28 entr(ies) at 40% chance
-  PASS  gambits taking a weapon's effects: 4 entr(ies) at 10% chance
-  PASS  class variety code ran (0 class picks, 127 weapon type draws)
-  PASS  class variety: spread is within the 25% safety level
+  PASS  combat arts taking another art's effect: 22 entr(ies) at 20% chance
+  PASS  combat arts taking a weapon's effect: 4 entr(ies) at 10% chance
+  PASS  gambits taking another gambit's effects: 17 entr(ies) at 20% chance
+  PASS  gambits taking a weapon's effects: 48 entr(ies) at 80% chance
+  PASS  unique weapon effect sets: 74 weapon(s) share a set, unavoidable - 276 weapons have an effect but only 96 effect ids exist
+  PASS  boss trim: 37 story unit(s) lost HP / Def / Res on their own rows
+  PASS  flat trim: 65 class base(s) lost HP / Def / Res, 42 playable character(s) got the same values back in their personal bases
+  PASS  player start bonus: 42 playable unit(s) started with 1 extra level(s) of stats on their personal bases
+  PASS  class identity: 30 Str/Mag trade(s), 34 class(es) with Def / Res pulled back to within the allowance for their level (+20/35/50/50%)
+  PASS  weapon text: 204 weapon description(s) name the effect the run gave them
+  PASS  No Monastery mode left out 3 option(s) the mod removes (weekly goals, seminars, faculty training)
+  PASS  mod kind: No Monastery 2.1 (Skyline plugin) - no data files to line up, the game's own data is randomized as usual
+  PASS  class variety code ran (0 class picks, 122 weapon type draws)
+  PASS  class variety: spread is within the 35% safety level
   PASS  ability blocklist: no blocked ability was introduced
+  PASS  siege limit: 2 new out of range spell(s) allowed by the bypass chance
   PASS  siege limit: no new out of range weapon on a map unit (1 were already there in vanilla)
   PASS  growth shift: enemy HP growth total rose, Str/Mag/Def/Res fell
-  WARN  master served fewer weapon types than it was dealt
+  WARN  tab switching is still slow (Extra options : 393 ms)
+  WARN  base stat range limit: bases are 1 to 34 after the run
+  WARN  2 enabled option(s) conflict with the mod - apply the "No Monastery 2.1 (plugin, mod safe)" preset
 
 If anything says FAIL or a new option looks like it did nothing,
 send this file along with the build and it can be checked quickly.
@@ -934,8 +1073,8 @@ atkHitExponential: False
 atkHitExponentialDev: 1.5
 randAtkWeight: True
 randAtkWeightP: 50
-atkWeightBinomial: True
-atkWeightLinear: False
+atkWeightBinomial: False
+atkWeightLinear: True
 atkWeightLinearDev: 6
 atkWeightProportional: False
 atkWeightProportionalDev: 0.5
@@ -992,10 +1131,10 @@ randCaHitP: 25
 randBattalions: True
 randBattalionEndurance: True
 randBattalionEnduranceP: 80
-battalionEnduranceBinomial: False
+battalionEnduranceBinomial: True
 battalionEnduranceLinear: False
 battalionEnduranceLinearDev: 30
-battalionEnduranceProportional: True
+battalionEnduranceProportional: False
 battalionEnduranceProportionalDev: 0.5
 battalionEnduranceExponential: False
 battalionEnduranceExponentialDev: 2
@@ -1021,9 +1160,9 @@ modelSize1Min: 0.85
 modelSize1Max: 1.15
 modelSize2Min: 0.85
 modelSize2Max: 1.16
-modelPreTsChestSizeMin: 0.08
+modelPreTsChestSizeMin: 0.07
 modelPreTsChestSizeMax: 1.75
-modelPostTsChestSizeMin: 0.1
+modelPostTsChestSizeMin: 0.08
 modelPostTsChestSizeMax: 2.45
 randCrests: True
 crest1P: 60
@@ -1040,7 +1179,7 @@ recruitmentRequirementStatsMax: 22
 recruitmentRequirementRanksMin: 3
 recruitmentRequirementRanksMax: 6
 preserveCharCaps: False
-randCharCaps: True
+randCharCaps: False
 removeCharCaps: False
 hpCharCapsMin: 80
 hpCharCapsMax: 200
@@ -1126,6 +1265,7 @@ buddingTalentLessonCountMin: 10
 buddingTalentLessonCountMax: 14
 randSpellLists: True
 spellAtD: True
+spellFirstRank: 4
 baseSpellLists: True
 regularSpellListReasonCountMin: 3
 regularSpellListReasonCountMax: 3
@@ -1157,11 +1297,11 @@ randStartInventories: True
 baseStartInventories: True
 randStartInventoryItem: True
 startInventoryItemP: 100
-randFacultyTraining: True
+randFacultyTraining: False
 baseFacultyTraining: True
-randSeminars: True
+randSeminars: False
 baseSeminars: True
-randGoals: True
+randGoals: False
 baseGoals: True
 randStartRanks: True
 baseStartRanks: True
@@ -1179,14 +1319,14 @@ randGardenEventP: 10
 randFishingEvent: False
 randFishingEventP: 30
 shuffleBgm: True
-changeMsg: False
+changeMsg: True
 changeScr: False
 changeGwscr: False
 changeTuscr: False
 changeBtlscr: False
 changeData1Text: False
 baseText: True
-qolText: False
+qolText: True
 randText: False
 preserveStringLength: False
 randTextSource: False
@@ -1276,9 +1416,9 @@ randNpcMapSpawn: False
 randEnemyMapSpawn: True
 randComMapSpawn: False
 randMapSpawnP: 15
-changeLv: True
+changeLv: False
 lvMultiplier: 150
 amplifyMaddening: False
 amplifyMaddeningAmount: 50
-ensureLowLvEarly: True
+ensureLowLvEarly: False
 
