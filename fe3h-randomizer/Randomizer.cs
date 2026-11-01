@@ -5732,6 +5732,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 noteStage("items");
                 Randomizer.itemData = new byte[Randomizer.itemDataV.Length];
                 Randomizer.itemDataV.CopyTo((Array)Randomizer.itemData, 0);
+                // Read the status table out of the file itself before anything is
+                // written to it: it is what says which effects can land on an
+                // enemy, and how big each one is for the item cards.
+                EffectRules.attach(Randomizer.itemData);
                 if (settings.randWeapons)
                 {
                     changelog += "\n\n\n---WEAPONS---";
@@ -5779,8 +5783,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                         if (settings.randAtkStatusEffects)
                         {
+                            // A weapon is used on an enemy (mode 0), so only a
+                            // status that can be left on the unit it hit is
+                            // written. Drawing from all 94 ids put "raises the
+                            // holder's Str" on weapons, which a weapon has no
+                            // way to do - EffectRules has the evidence.
                             if (p(settings.atkStatusEffectsP))
-                                itemData[weaponBlockStart + weaponMod + 12L] = (byte)rng.Next(0, 94); // Weapon effect
+                                itemData[weaponBlockStart + weaponMod + 12L] =
+                                    (byte)EffectRules.randomAttack(rng); // Weapon effect
                             else
                                 itemData[weaponBlockStart + weaponMod + 12L] = (byte)96;
                         }
@@ -5943,8 +5953,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                         if (settings.randAtkStatusEffects)
                         {
+                            // Same rule as the weapons: a spell that damages can
+                            // only leave a debuff behind, a healing or supportive
+                            // spell can only hand out a buff (byte +4 is the
+                            // spell's use mode).
                             if (p(settings.atkStatusEffectsP) || itemData[magicBlockStart + magicMod + 16L] == 0)
-                                itemData[magicBlockStart + magicMod + 12L] = (byte)rng.Next(0, 94); // Magic effect
+                                itemData[magicBlockStart + magicMod + 12L] =
+                                    (byte)EffectRules.randomForMode(
+                                        itemData[magicBlockStart + magicMod + 4L], rng); // Magic effect
                             else
                                 itemData[magicBlockStart + magicMod + 12L] = (byte)96;
                         }
@@ -6106,7 +6122,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         if (settings.randAtkStatusEffects)
                         {
                             if (p(settings.atkStatusEffectsP))
-                                itemData[turretBlockStart + turretMod + 12L] = (byte)rng.Next(0, 94); // Turret effect
+                                // A turret only ever shoots at an enemy, so it
+                                // gets an effect that can land on one.
+                                itemData[turretBlockStart + turretMod + 12L] =
+                                    (byte)EffectRules.randomAttack(rng); // Turret effect
                             else
                                 itemData[turretBlockStart + turretMod + 12L] = (byte)96;
                         }
@@ -6254,8 +6273,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                         if (settings.randAtkStatusEffects)
                         {
+                            // A gambit's own use mode (byte +4) decides whether
+                            // its status lands on the enemy or on the allies in
+                            // the area, so the status has to match it: a support
+                            // gambit can only carry a buff and a damaging one can
+                            // only carry a debuff, which is exactly how the
+                            // vanilla support gambits are built.
                             if (p(settings.atkStatusEffectsP) || itemData[gambitBlockStart + gambitMod + 16L] == 0)
-                                itemData[gambitBlockStart + gambitMod + 12L] = (byte)rng.Next(0, 94); // Gambit effect
+                                itemData[gambitBlockStart + gambitMod + 12L] =
+                                    (byte)EffectRules.randomForMode(
+                                        itemData[gambitBlockStart + gambitMod + 4L], rng); // Gambit effect
                             else
                                 itemData[gambitBlockStart + gambitMod + 12L] = (byte)96;
                         }
@@ -6423,7 +6450,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         if (settings.randAtkStatusEffects)
                         {
                             if (p(settings.atkStatusEffectsP))
-                                itemData[blowBlockStart + blowMod + 12L] = (byte)rng.Next(0, 94); // Staggering blow effect
+                                // Monster area attacks (staggering blows) land on
+                                // enemies, so only a debuff belongs on them.
+                                itemData[blowBlockStart + blowMod + 12L] =
+                                    (byte)EffectRules.randomAttack(rng); // Staggering blow effect
                             else
                                 itemData[blowBlockStart + blowMod + 12L] = (byte)96;
                         }

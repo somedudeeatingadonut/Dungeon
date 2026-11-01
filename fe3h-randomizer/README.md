@@ -173,10 +173,43 @@ pass, so a remixed boss still cannot be handed a blocked ability.
 
 ### Weapon effects remix
 
-Weapons, gambits and combat arts store their effect in the **same id space**
-(weapon and gambit effect = byte +12 of a 24-byte block, combat art effect =
-byte +7 of an 18-byte block, 0..93 with 96 meaning "none"), which makes a real
-crossover possible without inventing anything:
+Weapons and gambits store a **status effect** at byte +12 of their 24-byte
+block (0..93, 96 = none). A combat art stores something *else* at byte +7: an
+art effect (`CAEffect`: 18 leaves the foe at 1 HP, 20 hits twice, 24 freezes,
+25 silences, 26/27/28 take 5 Str / Def / Res, 30 restores HP, 43 is effective
+against everything, and the high values are the damage formulas). The two lists
+only overlap in four places, and until 1.16.0 the remix copied numbers straight
+across them - which is why a sword could end up "inflicting Strength Rally", an
+id that means "the holder gets +4 Str" and that a weapon has no way to apply.
+
+The other half of the same problem is the item's **use mode**, byte +4:
+
+| Mode | What it is | Statuses vanilla puts on it |
+| --- | --- | --- |
+| 0 | deals damage | debuffs: Poison, Silence, Mire, Swarm, Banshee, Rattled, Confusion, the Seals, Frozen |
+| 7 | use on self | Torch |
+| 9 / 10 | give X to an ally / silence | Ward, Silence (the spells) |
+| 14 | support (ally gambits) | Impregnable Wall, Sacred Shield, Retribution, Stride, Blessing, Absolute Defense, Battleground Cafe |
+
+The mode decides **who the status lands on**, so the two have to agree - and in
+vanilla they always do: not one of the 500 weapons carries a buff status, and no
+damaging item anywhere carries one. A "raise the holder's Str" effect on a
+weapon is a promise the item cannot keep, because the only unit an attack can
+reach is the one it hit. (The single exception in the whole game is the Sword of
+Seiros, the only weapon with a non-zero mode - 6, "heal half damage" - which is
+how a weapon can affect its own holder at all.)
+
+So the tool now keeps them in step, using the game's own status table
+(`amount, unknown, VFX, stat` per id) to sort the ids into the 25 that land on
+the unit an attack hit and the 69 self / ally buffs:
+
+* the **status effect** option on the Weapons tab draws only from the 25, so a
+  weapon always gets an effect it can actually apply;
+* a gambit draws from the pool that matches **its own** mode - a support gambit
+  gets a buff, a damaging one gets a debuff;
+* the remix refuses a donor whose effect has no meaning on the receiving item
+  instead of copying a number across, and counts those rolls in the report
+  (`grafts passed over`).
 
 Every graft is its own **percentage chance**, rolled once per entry, so they can be
 mixed at whatever rate you like. An entry is rolled at most once, in the order
@@ -185,19 +218,22 @@ shown below, and stops at the first graft that succeeds.
 | Option | Default | What it does |
 | --- | --- | --- |
 | Weapons take another weapon's effects (%) | 0 | Copies the status effect, the effectiveness bits and the property bits (double attack, magic damage, ignore defence, leave at 1 HP) from another weapon. |
-| Weapons take a combat art effect (%) | 0 | The weapon's status effect is replaced by a combat-art effect id. |
+| Weapons take a combat art effect (%) | 0 | The art's effect is translated into the weapon list: Encloser's freeze becomes Frozen, Ward Arrow's silence becomes Silence, Waning / Break / Schism Shot's -5 Str / Def / Res become the matching Seal, "leaves the foe at 1 HP" / "hits twice" / "effective against everything" become the weapon's own property and effectiveness bits. An art effect with no weapon equivalent (a damage formula, a reposition) is passed over. |
 | Weapons take a gambit's effects (%) | 0 | The full effect set comes from a gambit. |
 | Combat arts take another art's effect (%) | 0 | The art's effect id is replaced by another art's. |
-| Combat arts take a weapon's effect (%) | 0 | The art's effect id comes from a weapon. |
+| Combat arts take a weapon's effect (%) | 0 | The other direction of the same translation (Frozen becomes "freezes the foe", a Seal becomes the matching -5, and so on). A weapon effect with no art equivalent is passed over. |
 | Gambits take another gambit's effects (%) | 0 | The gambit's whole effect set comes from another gambit. |
 | Gambits take a weapon's effects (%) | 0 | The gambit's whole effect set comes from a weapon. |
 | Weapon donors must be a different weapon type | off | Applies to the three weapon grafts: the donor must be a different weapon type, so a sword can genuinely behave like a bow. |
-| No two weapons share the same effect set | off | Duplicate effect combinations are re-rolled. Effect ids are 0..95, so a run with more than 96 weapons that have an effect cannot make every one of them unique - the report says how many had to share in that case instead of calling it a failure. |
+| No two weapons share the same effect set | off | Duplicate effect combinations are re-rolled, inside the 25 ids a weapon can actually apply (the old list walked all 96, including the 69 buffs and the two nameless ids, so "unique" could mean "uniquely useless"). With more weapons than ids the report says how many had to share instead of calling it a failure. |
 
 Only the **effects** move - might, hit, crit, weight, range and durability stay
 exactly as the normal weapon randomization set them, so these stack with
 `randAtk*` instead of replacing it. A weapon, art or gambit with no eligible donor
 is left alone, and unused art rows (flag 63) and empty gambit rows are skipped.
+The remix also stays inside weapon id 0-299, which is the run of item cards the
+message table has (index 11462 is already "Leather Shield"), so no graft can land
+on a row the item screen has nowhere to describe.
 
 The changelog gets a `---EFFECT REMIX---` section with the counts, the chance
 used for each graft, and the first 40 renamed weapon effects, because the normal
@@ -710,13 +746,34 @@ Inflicts Alert Stance+ - the holder gains more Avo if it waits without acting.
 Inflicts Lucky Seven - the holder gains a random stat boost at the start of each turn.
 ```
 
-91 of the 97 effect ids have a summary (the 6 without are the unnamed ids 94/95
-and `None`). The wording is deliberately qualitative - it says what happens, never
-a number that could disagree with the game's own rules text - and where nothing
-can be said about an effect without guessing, the bare name is kept rather than
-inventing a rule. The same summary is written next to the effect in the changelog,
-and the debug report counts how many ids are covered
-(`effect summaries : 91 of 97`).
+94 of the 97 effect ids have a summary (the 3 without are the two nameless ids
+94/95 and `None`). Since 1.16.0 the plain stat families quote the game's own
+number, read out of the status table in `fixed_data.bin` rather than guessed:
+
+```
+Inflicts Seal Defense - after combat the target's Def drops by 6 for one turn.
+Inflicts Dexterity Rally - raises nearby allies' Dex by 8 for one turn.
+Inflicts Speed Reinforced - raises the holder's Spd by 12 while it is active.
+```
+
+Everything else stays qualitative - it says what happens, never a number that
+could disagree with the game's rules text - and where nothing can be said about
+an effect without guessing, the bare name is kept rather than inventing a rule.
+The same summary is written next to the effect in the changelog, and the debug
+report counts how many ids are covered (`effect summaries : 94 of 97`).
+
+**Every changed weapon has a card.** The pass used to skip any weapon the tool
+has no name for, which silently left the DLC weapons (ids 223-230, real rows with
+real descriptions) reading as plain weapons, and it never reached the rows above
+299 at all. The item help text is one entry per weapon id for exactly 300 entries,
+so the pass now covers that whole run - and the remix writes inside it, which is
+what makes "a grafted effect always says what it does" true rather than nearly
+true. The debug report prints both counts:
+
+```
+weapons with an effect : 151   (151 of them inside the 300 rows the item screen has a card for, 300)
+effect kinds available : 25 of 96 status effect(s) land on the unit an attack hits; the other 69 are self / ally buffs that only a support mode can apply
+```
 
 The generated line covers everything the run actually wrote - the effect id, the
 effectiveness bits (Infantry / Heavy Armor / Cavalry / Flying / Dragon / Monster)
@@ -1165,8 +1222,7 @@ The report is plain text and contains:
 | Class variety | weapon type spread per class tier, before vs after, the types the balancer served, and a PASS/FAIL against the safety level |
 | Ability blocklist | names every entry of the fixed list, scans class abilities, monster latent/barrier abilities and character learnset ability slots (combat arts are skipped - the same id means something else there); lists blocked abilities the randomization *introduced* (vanilla ones are reported separately, they are intentional), how many the safety pass replaced and whether the Dancer's own Dance had to be written back |
 | Class identity | whether the pass is on, the Def / Res allowance per level band with a clamp count for each band, every Str / Mag trade with before/after values, every class whose Def / Res was pulled back to vanilla + the allowance, and a PASS line when nothing needed fixing |
-| Weapon effect text | how many descriptions were written, **how many effect ids have a plain-language summary** (`effect summaries : 91 of 97`), and a warning when a remix ran but `msgdata.bin` was not loaded |
-| Weapon effect text | whether the descriptions are on, whether `msgdata.bin` was loaded, how many weapon descriptions name the effect the run gave them, and a warning if effects were remixed but there is no message table to say so |
+| Weapon effect text | whether the descriptions are on, whether `msgdata.bin` was loaded, how many weapon descriptions name the effect the run gave them (**how many effect ids have a plain-language summary** - `effect summaries : 94 of 97`), how many of the 96 statuses a weapon can actually apply (`effect kinds`), and a warning if effects were remixed but there is no message table to say so |
 | Siege limit | out of range weapons and spells on every map unit, marked as "same as vanilla" or "NEW" |
 | Growth shift | per stat growth totals before and after, plus the number of classes changed |
 | Summary | every PASS / WARN / FAIL line and a final count |
@@ -1176,6 +1232,16 @@ A crash during randomization now also writes the report (with the stack trace in
 the message box) instead of only failing with a dialog.
 
 ## What changed in the original code
+
+* **Status effects are matched to the item that carries them.** The original
+  randomizer drew one of ids 0..93 for every weapon, gambit, spell and turret and
+  wrote it into the status byte, whatever the item was. 69 of those ids are self
+  or ally buffs, and an item's *use mode* (byte +4) is what decides who a status
+  lands on - so "the holder's Str rises" on a weapon was an effect that could
+  never happen. The pools are now split by that mode (the 25 that land on the
+  unit an attack hit, the 69 that need a support use), combat-art effects are
+  translated instead of copied across id lists, and the item card says which of
+  the two an effect is. See *Weapon effects remix*.
 
 Everything new is in **`BatchTools.cs`**, a partial class file. `RandomizerForm.cs`
 has exactly two edits:

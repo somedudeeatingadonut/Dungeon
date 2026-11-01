@@ -76,6 +76,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static int statGambitFromWeaponGrafted;
         public static int statWeaponEffectsRerolled;
         public static int statWeaponDescriptionsDone;
+        // Grafts that were rolled but had to be passed over because the effect
+        // has no meaning on the other side (a combat art's damage formula has no
+        // weapon status that means the same thing, a support gambit cannot carry
+        // a debuff). The report counts them so "the remix ran" and "the remix did
+        // something" are not confused.
+        public static int statGraftNoCounterpart;
         // Weapons whose effect changed but that have no description entry at the
         // index this pass writes to. A non-zero value means the message table is
         // laid out differently (another language set, another mod), and the
@@ -97,6 +103,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statGambitFromWeaponGrafted = 0;
             statWeaponEffectsRerolled = 0;
             statWeaponDescriptionsDone = 0;
+            statGraftNoCounterpart = 0;
         }
 
         // ------------------------------------------------------------- the run
@@ -336,16 +343,24 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         // Only the *effects* move. Might / hit / crit / weight / range /
         // durability are left exactly as the normal randomization set them, so
         // this composes with randAtk* instead of overwriting it.
-        private const int weaponSlotEffect = 12;
+        private const int weaponSlotMode = 4;        // the item's use mode
+        private const int weaponSlotEffect = 12;     // its status effect
         private const int weaponSlotEffectiveness = 14;
         private const int weaponSlotProperties = 22;
         private const int weaponSlotType = 5;
-        private const int artSlotEffect = 7;
-        private const int artSlotUsedFlag = 13;   // 63 marks an unused art row
+        private const int artSlotEffect = 7;         // a *different* list, see EffectRules
+        private const int artSlotUsedFlag = 13;      // 63 marks an unused art row
         private const int artCount = 80;
         private const int gambitCount = 80;
         private const int weaponCount = 500;
         private const int effectNone = 96;
+
+        // The item screen has a description for weapon id 0..299 (index 11162 of
+        // the message table) and the next entry belongs to a shield, so a weapon
+        // above 299 has no card to explain an effect on. The remix only writes
+        // inside the run that has text, which is what makes "every changed
+        // weapon says what it does" true instead of nearly true.
+        public const int weaponCardRows = weaponDescriptionCount;
 
         private static void remixWeaponEffects()
         {
@@ -353,6 +368,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 return;
             if (!anyEffectRemix())
                 return;
+            // Cheap and idempotent: makes this pass work on its own even if it is
+            // ever called from somewhere that did not read the table first.
+            EffectRules.attach(Randomizer.itemData);
 
             remixWeapons();
             remixCombatArts();
@@ -378,7 +396,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private static void remixWeapons()
         {
             byte[] data = Randomizer.itemData;
-            for (int index = 0; index < weaponCount; index++)
+            for (int index = 0; index < weaponCount && index < weaponCardRows; index++)
             {
                 int target = (int)Randomizer.weaponBlockStart + (int)Randomizer.weaponBlockLen * index;
                 if (target + weaponSlotProperties >= data.Length)
@@ -399,14 +417,21 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     int donor = pickArtDonor(-1);
                     if (donor >= 0)
                     {
-                        data[target + weaponSlotEffect] = data[artBlock(donor) + artSlotEffect];
-                        statWeaponFromArtGrafted++;
-                        continue;
+                        if (graftFromArt(data, artBlock(donor), target))
+                        {
+                            statWeaponFromArtGrafted++;
+                            continue;
+                        }
+                        // The art's effect has no counterpart on a weapon (a
+                        // damage formula, a reposition, ...). Leaving the weapon
+                        // alone is the only honest answer; copying the number
+                        // across is what used to put "Strength Rally" on a sword.
+                        statGraftNoCounterpart++;
                     }
                 }
                 if (roll(weaponFromGambitChance))
                 {
-                    int donor = pickGambitDonor(-1);
+                    int donor = pickGambitDonor(-1, -1);
                     if (donor >= 0)
                     {
                         graftEffect(data, gambitBlock(donor), target);
@@ -414,6 +439,22 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     }
                 }
             }
+        }
+
+        // Copies a combat art's effect onto a weapon through the only meanings
+        // the two lists share (EffectRules.statusForArtEffect), so a weapon can
+        // get "freezes the foe" from Encloser but never an art's damage formula.
+        private static bool graftFromArt(byte[] data, int source, int target)
+        {
+            int[] bits = new int[2]; // property bits, effectiveness bits
+            int status = EffectRules.statusForArtEffect(data[source + artSlotEffect], bits);
+            if (status < 0)
+                return false;
+            if (status != effectNone)
+                data[target + weaponSlotEffect] = (byte)status;
+            data[target + weaponSlotProperties] |= (byte)bits[0];
+            data[target + weaponSlotEffectiveness] |= (byte)bits[1];
+            return true;
         }
 
         // -------------------------------------------------- combat arts
@@ -443,11 +484,28 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     int donor = pickWeaponDonor(-1);
                     if (donor >= 0)
                     {
-                        data[target + artSlotEffect] = data[weaponBlock(donor) + weaponSlotEffect];
-                        statArtFromWeaponGrafted++;
+                        int mapped = artEffectFromWeapon(data, weaponBlock(donor));
+                        if (mapped > 0)
+                        {
+                            data[target + artSlotEffect] = (byte)mapped;
+                            statArtFromWeaponGrafted++;
+                            continue;
+                        }
+                        statGraftNoCounterpart++;
                     }
                 }
             }
+        }
+
+        // A weapon's effect, translated into the art list. -1 when there is
+        // nothing on the art side that means the same thing.
+        private static int artEffectFromWeapon(byte[] data, int source)
+        {
+            int mapped = EffectRules.artEffectForStatus(data[source + weaponSlotEffect]);
+            if (mapped > 0)
+                return mapped;
+            return EffectRules.artEffectForWeapon(
+                data[source + weaponSlotProperties], data[source + weaponSlotEffectiveness]);
         }
 
         // ------------------------------------------------------- gambits
@@ -466,7 +524,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
                 if (roll(gambitGraftChance))
                 {
-                    int donor = pickGambitDonor(index);
+                    int donor = pickGambitDonor(index, data[target + weaponSlotMode]);
                     if (donor >= 0)
                     {
                         graftEffect(data, gambitBlock(donor), target);
@@ -476,11 +534,20 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 }
                 if (roll(gambitFromWeaponChance))
                 {
-                    int donor = pickWeaponDonor(-1);
-                    if (donor >= 0)
+                    // A support gambit hands its effect to the allies in the
+                    // area, so a weapon's debuff has no business on it.
+                    if (data[target + weaponSlotMode] == 0)
                     {
-                        graftEffect(data, weaponBlock(donor), target);
-                        statGambitFromWeaponGrafted++;
+                        int donor = pickWeaponDonor(-1);
+                        if (donor >= 0)
+                        {
+                            graftEffect(data, weaponBlock(donor), target);
+                            statGambitFromWeaponGrafted++;
+                        }
+                    }
+                    else
+                    {
+                        statGraftNoCounterpart++;
                     }
                 }
             }
@@ -600,18 +667,22 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
             byte[] data = Randomizer.itemData;
             byte[] vanilla = Randomizer.itemDataV;
-            // The item help text is written in weapon id order from index 11162.
-            // The original code only ever wrote 0..299 (the named weapons) and
-            // 300 ("Viskam") is past the end of that run of text, so this pass
-            // stops at 299 as well.
+            // The item help text is written in weapon id order from index 11162,
+            // one entry per weapon id, for exactly 300 entries: the entry for
+            // weapon 300 (11462) is already "Leather Shield", the first piece of
+            // equipment. This pass covers that whole run.
+            //
+            // It used to skip every weapon the tool has no *name* for, which
+            // silently left the DLC weapons (223-230, real rows with real
+            // descriptions) undescribed, and it never reached the rows above 299
+            // that the remix used to write to. Both are gone: the text index does
+            // not depend on the name table, and the remix now only writes inside
+            // this run.
             for (int index = 0; index < weaponCount && index < weaponDescriptionCount; index++)
             {
                 int block = weaponBlock(index);
                 if (block + weaponSlotProperties >= data.Length)
                     break;
-                if (Randomizer.weaponNames == null || index >= Randomizer.weaponNames.Length
-                    || Randomizer.weaponNames[index] == null)
-                    continue;
 
                 bool changed = block + weaponSlotProperties < vanilla.Length
                     && (data[block + weaponSlotEffect] != vanilla[block + weaponSlotEffect]
@@ -669,11 +740,21 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             byte[] data = Randomizer.itemData;
             List<string> seen = new List<string>();
-            int[] candidates = new int[weaponEffectIdSpace];
-            for (int i = 0; i < candidates.Length; i++)
-                candidates[i] = i;
+            // Only the ids a weapon can actually apply. The old list was every
+            // id from 0 to 95, which includes the 69 self / ally buffs and the
+            // two nameless entries - a "unique" effect that does nothing, or
+            // nothing at all, is not worth the trade.
+            int usable = 0;
+            for (int i = 0; i < weaponEffectIdSpace; i++)
+                if (EffectRules.worksOnAttack(i))
+                    usable++;
+            int[] candidates = new int[usable];
+            usable = 0;
+            for (int i = 0; i < weaponEffectIdSpace; i++)
+                if (EffectRules.worksOnAttack(i))
+                    candidates[usable++] = i;
 
-            for (int index = 0; index < weaponCount; index++)
+            for (int index = 0; index < weaponCount && index < weaponCardRows; index++)
             {
                 int target = weaponBlock(index);
                 if (target + weaponSlotProperties >= data.Length)
@@ -698,6 +779,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     candidates[swap] = hold;
                 }
 
+                if (candidates.Length == 0)
+                    break;
                 byte original = data[target + weaponSlotEffect];
                 int found = -1;
                 for (int i = 0; i < candidates.Length; i++)
@@ -752,6 +835,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             data[target + weaponSlotProperties] = data[source + weaponSlotProperties];
         }
 
+        // A weapon can only pass on a status that lands on the unit it hit, and
+        // only if it applies it the same way (mode 0, the damaging mode every
+        // weapon uses). A donor that fails either test has nothing a weapon can
+        // actually use, so it is passed over instead of handing out an effect
+        // that cannot fire.
         private static int pickWeaponDonor(int targetIndex)
         {
             byte[] data = Randomizer.itemData;
@@ -771,8 +859,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 int source = weaponBlock(donor);
                 if (source + weaponSlotProperties >= data.Length)
                     continue;
-                if (data[source + weaponSlotEffect] == effectNone)
+                int status = data[source + weaponSlotEffect];
+                if (status == effectNone)
                     continue; // donor has no effect, nothing to give
+                if (!EffectRules.worksOnAttack(status))
+                    continue; // a buff cannot be left on the unit that was hit
+                if (data[source + weaponSlotMode] != 0)
+                    continue; // it is not applied by a plain attack
                 if (weaponDonorsDifferInType && targetType >= 0
                     && data[source + weaponSlotType] == targetType)
                     continue;
@@ -794,14 +887,18 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     continue;
                 if (data[source + artSlotUsedFlag] == 63)
                     continue; // unused row
-                if (data[source + artSlotEffect] == effectNone)
-                    continue;
+                if (data[source + artSlotEffect] == 0)
+                    continue; // the art has no effect of its own
                 return donor;
             }
             return -1;
         }
 
-        private static int pickGambitDonor(int skipIndex)
+        // forMode is the mode of the item that will receive the effects: 0 for a
+        // weapon or a damaging gambit (only a debuff can be applied that way),
+        // anything else for a support gambit (only a buff), and -1 for a weapon,
+        // which additionally needs the donor to be a plain damage gambit.
+        private static int pickGambitDonor(int skipIndex, int forMode)
         {
             byte[] data = Randomizer.itemData;
             for (int attempt = 0; attempt < 24; attempt++)
@@ -812,7 +909,22 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 int source = gambitBlock(donor);
                 if (source + weaponSlotProperties >= data.Length)
                     continue;
-                if (data[source + weaponSlotEffect] == effectNone)
+                int status = data[source + weaponSlotEffect];
+                if (status == effectNone)
+                    continue;
+                if (forMode < 0)
+                {
+                    if (!EffectRules.worksOnAttack(status))
+                        continue;
+                    if (data[source + weaponSlotMode] != 0)
+                        continue;
+                }
+                else if (forMode == 0)
+                {
+                    if (!EffectRules.worksOnAttack(status))
+                        continue;
+                }
+                else if (!EffectRules.worksOnSupport(status))
                     continue;
                 return donor;
             }
@@ -840,6 +952,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + "  (chance " + gambitGraftChance + "%)";
             Randomizer.changelog += "\nGambit <- weapon: " + statGambitFromWeaponGrafted.ToString()
                 + "  (chance " + gambitFromWeaponChance + "%)";
+            if (statGraftNoCounterpart > 0)
+                Randomizer.changelog += "\nRolls passed over (the effect means nothing on that item): "
+                    + statGraftNoCounterpart.ToString();
             if (uniqueWeaponEffects)
                 Randomizer.changelog += "\nWeapons with a duplicate effect set re-rolled: " + statWeaponEffectsRerolled.ToString();
             if (weaponDonorsDifferInType)
@@ -888,13 +1003,34 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             return count;
         }
 
+        // The same count restricted to the rows the item screen has a card for -
+        // the only weapons a graft can appear on, now that the remix stops at
+        // weaponCardRows. The two numbers differing is normal: the ordinary
+        // status-effect option still writes to every row the original tool
+        // randomised, including ones with no card.
+        public static int countWeaponCardsWithEffects()
+        {
+            if (Randomizer.itemData == null)
+                return 0;
+            int count = 0;
+            for (int index = 0; index < weaponCount && index < weaponCardRows; index++)
+            {
+                int block = weaponBlock(index);
+                if (block + weaponSlotProperties >= Randomizer.itemData.Length)
+                    break;
+                if (Randomizer.itemData[block + weaponSlotEffect] != effectNone)
+                    count++;
+            }
+            return count;
+        }
+
         public static int countDuplicateWeaponEffects()
         {
             if (Randomizer.itemData == null)
                 return 0;
             List<string> seen = new List<string>();
             int duplicates = 0;
-            for (int index = 0; index < weaponCount; index++)
+            for (int index = 0; index < weaponCount && index < weaponCardRows; index++)
             {
                 int block = weaponBlock(index);
                 if (block + weaponSlotProperties >= Randomizer.itemData.Length)

@@ -159,12 +159,43 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
 
         // The extra clarity for one effect id, or "" when there is nothing that
         // can be said about it without guessing.
+        //
+        // The three stat families (the Seals, the Rallies and the "Reinforced"
+        // buffs) are built from the game's own status table instead of the fixed
+        // wording below, so the card quotes the real number - "lowers the
+        // target's Str by 5 for one turn" rather than "drops for one turn".
         public static string forEffect(int effect)
         {
+            string generated = statLine(effect);
+            if (generated != null)
+                return generated;
             if (effect < 0 || effect >= help.Length)
                 return "";
             string text = help[effect];
             return text == null ? "" : text;
+        }
+
+        // null when this effect is not one of the plain stat families (or the
+        // status table was not available), so the fixed wording below is used.
+        private static string statLine(int effect)
+        {
+            bool seal = (effect >= 17 && effect <= 19) || (effect >= 30 && effect <= 35)
+                || (effect >= 37 && effect <= 41);
+            bool rally = (effect >= 21 && effect <= 26) || (effect >= 72 && effect <= 74);
+            bool reinforced = effect >= 42 && effect <= 71;
+            if (!seal && !rally && !reinforced)
+                return null;
+
+            string stat = EffectRules.statName(effect);
+            int amount = EffectRules.amount(effect);
+            if (stat.Length == 0 || amount == 0)
+                return null; // the fixed wording below is the best we can do
+            string byValue = " by " + Math.Abs(amount).ToString();
+            if (seal)
+                return "after combat the target's " + stat + " drops" + byValue + " for one turn";
+            if (rally)
+                return "raises nearby allies' " + stat + byValue + " for one turn";
+            return "raises the holder's " + stat + byValue + " while it is active";
         }
 
         // "Inflicts Name - what it does." / "Inflicts Name." when nothing is known.

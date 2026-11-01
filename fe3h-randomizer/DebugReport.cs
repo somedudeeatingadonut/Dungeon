@@ -512,7 +512,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("Unique weapon effect sets     : " + RandomizerBig.uniqueWeaponEffects
                 + "   (rerolled " + RandomizerBig.statWeaponEffectsRerolled.ToString()
                 + ", left " + RandomizerBig.countDuplicateWeaponEffects().ToString() + ")");
-            text.AppendLine("    weapons with an effect : " + RandomizerBig.countWeaponsWithEffects().ToString());
+            text.AppendLine("    weapons with an effect : " + RandomizerBig.countWeaponsWithEffects().ToString()
+                + "   (" + RandomizerBig.countWeaponCardsWithEffects().ToString()
+                + " of them on the " + RandomizerBig.weaponCardRows.ToString()
+                + " rows that have an item card; the rest are rows the item screen"
+                + " has no card for)");
+            text.AppendLine("    effect kinds available : " + EffectRules.summary());
+            if (RandomizerBig.statGraftNoCounterpart > 0)
+                text.AppendLine("    grafts passed over : " + RandomizerBig.statGraftNoCounterpart.ToString()
+                    + "  (the rolled effect has no meaning on that kind of item - a combat art's"
+                    + " damage formula has no weapon equivalent, a support gambit cannot carry a"
+                    + " debuff - so the item was left as it was rather than given a dead effect)");
             text.AppendLine("    classes differing from vanilla : " + RandomizerBig.countChangedClasses().ToString());
             text.AppendLine("    characters differing from vanilla : " + RandomizerBig.countChangedCharacters().ToString());
             text.AppendLine();
@@ -558,15 +568,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             if (RandomizerBig.uniqueWeaponEffects)
             {
                 int duplicates = RandomizerBig.countDuplicateWeaponEffects();
-                int withEffect = RandomizerBig.countWeaponsWithEffects();
+                int withEffect = RandomizerBig.countWeaponCardsWithEffects();
                 if (duplicates == 0)
                     passes.Add("no two weapons share an effect set (" + withEffect.ToString()
                         + " weapon(s) with an effect)");
-                else if (withEffect > RandomizerBig.weaponEffectIdSpace)
+                else if (withEffect > EffectRules.attackCount())
                     passes.Add("unique weapon effect sets: " + duplicates.ToString()
                         + " weapon(s) share a set, unavoidable - " + withEffect.ToString()
                         + " weapons have an effect but only "
-                        + RandomizerBig.weaponEffectIdSpace.ToString() + " effect ids exist");
+                        + EffectRules.attackCount().ToString()
+                        + " effect id(s) can be applied by a weapon at all");
                 else
                     warnings.Add(duplicates.ToString() + " weapon(s) still share an effect set");
             }
@@ -931,6 +942,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("effect summaries      : " + EffectText.describedCount() + " of "
                 + Randomizer.effectNames.Length
                 + " effect id(s) say what they do on the card (the rest keep the bare name)");
+            text.AppendLine("effect kinds          : " + EffectRules.summary());
+            text.AppendLine("cards                 : weapon id 0-" + (RandomizerBig.weaponCardRows - 1).ToString()
+                + " (message table index " + RandomizerBig.weaponDescriptionStart + " onward, "
+                + RandomizerBig.weaponCardRows.ToString() + " entries); the remix only writes inside it");
             if (RandomizerBig.statWeaponTextMissing > 0)
             {
                 text.AppendLine("no description entry : " + RandomizerBig.statWeaponTextMissing
@@ -975,8 +990,27 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + " weapon description(s) name the effect the run gave them and say what it"
                     + " does (" + EffectText.describedCount() + " of "
                     + Randomizer.effectNames.Length + " effect id(s) have a summary)");
+                warningIfOutsideCards(warnings);
             }
             text.AppendLine();
+        }
+
+        // Every weapon the remix touched has a card, so a changed weapon with no
+        // description can only come from the ordinary status-effect option on a
+        // row above 299. That is worth one line, not a warning: the row has no
+        // item screen entry for the game to show anything in.
+        private static void warningIfOutsideCards(List<string> warnings)
+        {
+            if (Randomizer.itemData == null)
+                return;
+            int outside = RandomizerBig.countWeaponsWithEffects()
+                - RandomizerBig.countWeaponCardsWithEffects();
+            if (outside <= 0)
+                return;
+            warnings.Add(outside.ToString() + " weapon row(s) above "
+                + (RandomizerBig.weaponCardRows - 1).ToString()
+                + " have an effect from the ordinary status option; they have no item screen"
+                + " card, so nothing can describe them there (the remix leaves them alone)");
         }
 
         // ------------------------------------------------ total conversion mode
