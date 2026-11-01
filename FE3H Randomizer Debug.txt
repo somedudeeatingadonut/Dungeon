@@ -2,30 +2,44 @@
  FE3H Randomizer - debug report
 ================================================================
 
-Written      : 2026-10-28 03:51:55
+Written      : 2026-10-28 04:38:57
 Reason       : after saving to the output folder
-Seed         : 613943720
-Preset       : My run - No Monastery 2.1, 2026-10-24   (1116 value(s) set)
-Random numbers generated: 149084
+Seed         : 64977
+Preset       : My run - No Monastery 2.1, 2026-10-24   (1119 value(s) set)
+Preset source: built in   (preset had 1119 key(s))
+Changed after : 11 setting(s) differ from the applied preset (see the list below, and the
+                preset text in "FE3H Randomizer Applied Preset.txt")
+  modelSize2Max: preset=1.16, run=1.2
+  RandomizerExtras.flatHpTrimEarly: preset=6, run=5
+  RandomizerExtras.flatHpTrimMaster: preset=1, run=0
+  RandomizerExtras.flatDefTrimMaster: preset=0, run=1
+  RandomizerExtras.flatResTrimEarly: preset=7, run=2
+  RandomizerExtras.flatResTrimMaster: preset=0, run=1
+  RandomizerExtras.bossHpTrim: preset=1, run=0
+  RandomizerMore.growthClampMin: preset=5, run=10
+  RandomizerMore.growthClampMax: preset=100, run=70
+  RandomizerBig.weaponGraftChance: preset=40, run=20
+  RandomizerBig.gambitFromWeaponChance: preset=80, run=10
+Random numbers generated: 149075
 Last stage   : finished
 
 --- ENVIRONMENT ------------------------------------------------
-Exe path     : F:\EGG\Dungeon-1.14.1\fe3h-randomizer\bin\Release\Fire Emblem Three Houses Randomizer V2.exe
-Exe folder   : F:\EGG\Dungeon-1.14.1\fe3h-randomizer\bin\Release
-Assembly     : 1.14.1.0
-File version : 1.14.1.0
+Exe path     : F:\EGG\Dungeon-1.15.1\fe3h-randomizer\bin\Release\Fire Emblem Three Houses Randomizer V2.exe
+Exe folder   : F:\EGG\Dungeon-1.15.1\fe3h-randomizer\bin\Release
+Assembly     : 1.15.1.0
+File version : 1.15.1.0
 OS           : Microsoft Windows NT 6.2.9200.0
 .NET         : 4.0.30319.42000
 64-bit process: False
 UI culture   : en-US
 
 --- PERFORMANCE ------------------------------------------------
-window build (all controls) : 634 ms
-extra tabs built            : 5334 ms
-display refresh             : 23 calls, 232 ms total, 10 ms average, 160 ms worst
-last tab switch             : Batch: folders : 5 ms
-worst tab switch            : Extra options : 393 ms
-tab switches over 250 ms    : 4
+window build (all controls) : 408 ms
+extra tabs built            : 4946 ms
+display refresh             : 19 calls, 218 ms total, 11 ms average, 158 ms worst
+last tab switch             : Batch: folders : 6 ms
+worst tab switch            : Extra options : 398 ms
+tab switches over 250 ms    : 1
 startup / layout timings:
     pre-layout of tab "Weapons" : 7 ms
     pre-layout of tab "Characters" : 5 ms
@@ -67,100 +81,101 @@ Siege bypass chance     : 10%
 Growth shift            : 10%
 Class identity          : True  (Def / Res clamp +20/35/50/50% by class level)
 Weapon effect text      : True
-Flat class base trim    : HP -6/4/1/1, Def -2/2/1/0, Res -7/2/1/0  (lv 1-9 / 10-19 / 20-29 / 30+)
-Boss trim (extra)       : HP -1, Def -1, Res -1
+Flat class base trim    : HP -5/4/1/0, Def -2/2/1/1, Res -2/2/1/1  (lv 1-9 / 10-19 / 20-29 / 30+)
+Boss trim (extra)       : HP -0, Def -1, Res -1
 Player start bonus      : 1 level(s) of stats  (+N x growth / 100 on every personal base)
 
 --- MORE OPTIONS -----------------------------------------------
-Boss abilities kept as they are: True   (slots restored 111, still changed 0)
-Boss stats kept as they are    : True   (slots restored 3, still changed 0)
+Boss abilities kept as they are: True   (slots restored 108, still changed 0)
+Boss stats kept as they are    : True   (slots restored 2, still changed 0)
 Boss level scaling bonus       : 50% of the scaling   (level scaling off, multiplier 150%, base stats raised 0, stat boosts raised 0, bosses touched 0)
 No repeated class ability      : True   (rerolled 1, left 0)
-One mastery ability per tier   : True   (rerolled 3, left 0)
-One mastery art per tier       : True   (rerolled 1)
-Unique personal abilities      : True   (rerolled 5, left 0)
-Growth range limit             : True  (5% to 100%)   (pulled back 423, changed growths now 5% to 100%)
-Even growth totals             : True  (tolerance 60%)   (classes evened 26)
-Keep each class's best growth  : True   (classes kept 51)
-    class growth totals now   : 100 to 386, average 260
-Stat boost range limit         : True  (-3 to 10)   (pulled back 12, changed boosts now -3 to 10)
-Even base stat totals          : True  (tolerance 30%)   (classes evened 16)
-Base stat range limit          : True  (3 to 30)   (pulled back 49, changed bases now 1 to 34)   2 vanilla value(s) outside the limit kept on purpose
+One mastery ability per tier   : True   (rerolled 2, left 0)
+One mastery art per tier       : True   (rerolled 0)
+Unique personal abilities      : True   (rerolled 3, left 0)
+Growth range limit             : True  (10% to 70%)   (pulled back 1472, changed growths now 10% to 70%)
+Even growth totals             : True  (tolerance 60%)   (classes evened 23)
+Keep each class's best growth  : True   (classes kept 52)
+    class growth totals now   : 10 to 431, average 250
+Stat boost range limit         : True  (-3 to 10)   (pulled back 10, changed boosts now -3 to 10)
+Even base stat totals          : True  (tolerance 30%)   (classes evened 20)
+Base stat range limit          : True  (3 to 30)   (pulled back 58, changed bases now 1 to 30)   7 vanilla value(s) outside the limit kept on purpose
 
 --- BIG OPTIONS ------------------------------------------------
 Swap class stat profiles       : False   (classes swapped 0, scope per tier)
 Swap class growth profiles     : False   (classes swapped 0)
 Shuffle character sheets       : False   (characters swapped 0)
 Boss remix                     : False   (bosses remixed 0)
-Weapons <- weapon effects     : 40%   (grafted 193, different type only: False)
-Weapons <- combat art effect  : 10%   (grafted 25)
-Weapons <- gambit effects     : 10%   (grafted 27)
-Combat arts <- combat art     : 20%   (grafted 22)
-Combat arts <- weapon effect  : 10%   (grafted 4)
-Gambits <- gambit effects     : 20%   (grafted 17)
-Gambits <- weapon effects     : 80%   (grafted 48)
-Unique weapon effect sets     : True   (rerolled 138, left 74)
-    weapons with an effect : 276
+Weapons <- weapon effects     : 20%   (grafted 114, different type only: False)
+Weapons <- combat art effect  : 10%   (grafted 32)
+Weapons <- gambit effects     : 10%   (grafted 39)
+Combat arts <- combat art     : 20%   (grafted 14)
+Combat arts <- weapon effect  : 10%   (grafted 6)
+Gambits <- gambit effects     : 20%   (grafted 14)
+Gambits <- weapon effects     : 10%   (grafted 10)
+Unique weapon effect sets     : True   (rerolled 142, left 12)
+    weapons with an effect : 219
     classes differing from vanilla : 65
     characters differing from vanilla : 42
 
 --- CLASS IDENTITY ---------------------------------------------
 identity pass        : True
 Def / Res clamp      : allowance above vanilla, per class level band
-    lv 1-9   : +20%, 4 class(es) pulled back
-    lv 10-19 : +35%, 8 class(es) pulled back
+    lv 1-9   : +20%, 5 class(es) pulled back
+    lv 10-19 : +35%, 9 class(es) pulled back
     lv 20-29 : +50%, 11 class(es) pulled back
-    lv 30+   : +50%, 11 class(es) pulled back
+    lv 30+   : +50%, 10 class(es) pulled back
 rows checked         : only rows the randomization changed (a vanilla row is not a contradiction to fix)
 Str / Mag trades     : 30   (class stats that contradicted their weapon type and were swapped)
-    Soldier (physical weapon): Str 9 / Mag 13 -> Str 13 / Mag 9
-    Fighter (physical weapon): Str 8 / Mag 14 -> Str 14 / Mag 8
-    Monk (magic weapon): Str 13 / Mag 11 -> Str 11 / Mag 13
-    Lord (physical weapon): Str 6 / Mag 7 -> Str 7 / Mag 6
-    Mercenary (physical weapon): Str 5 / Mag 7 -> Str 7 / Mag 5
-    Thief (physical weapon): Str 5 / Mag 7 -> Str 7 / Mag 5
-classes pulled back  : 34   (Def / Res above the allowance, mostly early classes)
+    Commoner (magic weapon): Str 0 / Mag 0 -> Str 0 / Mag 0
+    Myrmidon (magic weapon): Str 8 / Mag 6 -> Str 6 / Mag 8
+    Fighter (physical weapon): Str 7 / Mag 13 -> Str 13 / Mag 7
+    Lord (physical weapon): Str 5 / Mag 8 -> Str 8 / Mag 5
+    Mercenary (physical weapon): Str 4 / Mag 7 -> Str 7 / Mag 4
+    Thief (physical weapon): Str 6 / Mag 9 -> Str 9 / Mag 6
+classes pulled back  : 35   (Def / Res above the allowance, mostly early classes)
+    Myrmidon base Def 8 -> 7 (vanilla 5, lv 1-9 20%)
     Soldier base Res 7 -> 4 (vanilla 2, lv 1-9 20%)
-    Fighter base Res 6 -> 4 (vanilla 2, lv 1-9 20%)
+    Fighter base Res 7 -> 4 (vanilla 2, lv 1-9 20%)
     Monk base Def 9 -> 5 (vanilla 3, lv 1-9 20%)
     Cavalier base Def 12 -> 8 (vanilla 6, lv 10-19 35%)
-    Brigand base Def 12 -> 8 (vanilla 6, lv 10-19 35%)
-    Brigand boost Def 4 -> 3 (vanilla 0)
+    Brigand base Def 11 -> 8 (vanilla 6, lv 10-19 35%)
 flat trim applied    : 65   (off every class base, last; every normal class, bosses included)
-    lv 1-9   : -6 HP, -2 Def, -7 Res, 7 class(es)
+    lv 1-9   : -5 HP, -2 Def, -2 Res, 7 class(es)
     lv 10-19 : -4 HP, -2 Def, -2 Res, 14 class(es)
     lv 20-29 : -1 HP, -1 Def, -1 Res, 19 class(es)
-    lv 30+   : -1 HP, -0 Def, -0 Res, 25 class(es)
-    Noble (lv 1-9 -6/-2/-7) base HP 30 -> 24, Def 0 -> 0, Res 0 -> 0
-    Commoner (lv 1-9 -6/-2/-7) base HP 30 -> 24, Def 0 -> 0, Res 0 -> 0
-    Myrmidon (lv 1-9 -6/-2/-7) base HP 30 -> 24, Def 6 -> 4, Res 4 -> 0
-    Soldier (lv 1-9 -6/-2/-7) base HP 30 -> 24, Def 6 -> 4, Res 4 -> 0
-    Fighter (lv 1-9 -6/-2/-7) base HP 30 -> 24, Def 6 -> 4, Res 4 -> 0
-    Monk (lv 1-9 -6/-2/-7) base HP 30 -> 24, Def 5 -> 3, Res 5 -> 0
+    lv 30+   : -0 HP, -1 Def, -1 Res, 25 class(es)
+    Noble (lv 1-9 -5/-2/-2) base HP 30 -> 25, Def 0 -> 0, Res 0 -> 0
+    Commoner (lv 1-9 -5/-2/-2) base HP 30 -> 25, Def 0 -> 0, Res 0 -> 0
+    Myrmidon (lv 1-9 -5/-2/-2) base HP 30 -> 25, Def 7 -> 5, Res 4 -> 2
+    Soldier (lv 1-9 -5/-2/-2) base HP 30 -> 25, Def 7 -> 5, Res 4 -> 2
+    Fighter (lv 1-9 -5/-2/-2) base HP 30 -> 25, Def 6 -> 4, Res 4 -> 2
+    Monk (lv 1-9 -5/-2/-2) base HP 30 -> 25, Def 5 -> 3, Res 4 -> 2
 player units given it back : 42   (largest band trim added to their personal bases, so only the enemy side gets weaker and no unit falls below vanilla in any class)
-    Male Byleth personal base +6 HP, +2 Def, +7 Res  (the largest band trim, so the class trim costs this unit nothing in any class)
-    Female Byleth personal base +6 HP, +2 Def, +7 Res  (the largest band trim, so the class trim costs this unit nothing in any class)
-    Edelgard personal base +6 HP, +2 Def, +7 Res  (the largest band trim, so the class trim costs this unit nothing in any class)
-    Dimitri personal base +6 HP, +2 Def, +7 Res  (the largest band trim, so the class trim costs this unit nothing in any class)
-boss rows trimmed    : 37   (HP -1, Def -1, Res -1 off the named, non-playable character rows, on top of the class trim)
-    Rhea (row 36) personal base -1 HP, -1 Def, -1 Res
-    Sothis (row 37) personal base -1 HP, -1 Def, -1 Res
-    Kronya (row 38) personal base -1 HP, -1 Def, -1 Res
-    Solon (row 39) personal base -1 HP, -1 Def, -1 Res
-    Thales (row 40) personal base -1 HP, -1 Def, -1 Res
-    Cornelia (row 41) personal base -1 HP, -1 Def, -1 Res
-    Death Knight (row 42) personal base -1 HP, -1 Def, -1 Res
-    Kostas (row 43) personal base -1 HP, -1 Def, -1 Res
+    Male Byleth personal base +5 HP, +2 Def, +2 Res  (the largest band trim, so the class trim costs this unit nothing in any class)
+    Female Byleth personal base +5 HP, +2 Def, +2 Res  (the largest band trim, so the class trim costs this unit nothing in any class)
+    Edelgard personal base +5 HP, +2 Def, +2 Res  (the largest band trim, so the class trim costs this unit nothing in any class)
+    Dimitri personal base +5 HP, +2 Def, +2 Res  (the largest band trim, so the class trim costs this unit nothing in any class)
+boss rows trimmed    : 37   (HP -0, Def -1, Res -1 off the named, non-playable character rows, on top of the class trim)
+    Rhea (row 36) personal base -0 HP, -1 Def, -1 Res
+    Sothis (row 37) personal base -0 HP, -1 Def, -1 Res
+    Kronya (row 38) personal base -0 HP, -1 Def, -1 Res
+    Solon (row 39) personal base -0 HP, -1 Def, -1 Res
+    Thales (row 40) personal base -0 HP, -1 Def, -1 Res
+    Cornelia (row 41) personal base -0 HP, -1 Def, -1 Res
+    Death Knight (row 42) personal base -0 HP, -1 Def, -1 Res
+    Kostas (row 43) personal base -0 HP, -1 Def, -1 Res
 player start bonus    : 42   (1 level(s) of stats - N x that unit's own growth / 100 - added to every playable unit's personal bases)
-    Male Byleth (+1 level(s) of stats): HP +1, Str +1, Dex +1, Spd +1, Lck +1
-    Female Byleth (+1 level(s) of stats): HP +1, Mag +1, Dex +1, Spd +1, Lck +1
-    Edelgard (+1 level(s) of stats): HP +1, Mag +1, Spd +1, Cha +1
-    Dimitri (+1 level(s) of stats): HP +1, Dex +1, Lck +1, Def +1, Cha +1
+    Male Byleth (+1 level(s) of stats): HP +1, Spd +1, Lck +1, Def +1
+    Female Byleth (+1 level(s) of stats): HP +1, Str +1, Mag +1, Lck +1, Cha +1
+    Edelgard (+1 level(s) of stats): HP +1, Str +1, Mag +1, Lck +1, Res +1, Cha +1
+    Dimitri (+1 level(s) of stats): HP +1, Str +1, Mag +1, Dex +1, Spd +1, Lck +1, Def +1, Cha +1
 
 --- WEAPON EFFECT TEXT -----------------------------------------
 describe effects     : True
 msgdata.bin loaded   : True
-descriptions written : 204
+descriptions written : 199
+effect summaries      : 94 of 97 effect id(s) say what they do on the card (the rest keep the bare name)
 item data loaded     : True
 
 --- LOADED FILES -----------------------------------------------
@@ -190,14 +205,14 @@ mod mode             : True
 no monastery mode    : True
 mod recognised       : No Monastery 2.1 (Skyline plugin)
 table offsets        : not needed - No Monastery 2.1 (Skyline plugin) changes the game by code, not by data files, so the game's own fixed_*.bin are the right input and the compiled-in offsets are correct
-left out of this run : 3 option(s) - weekly goals, seminars, faculty training
+left out of this run : nothing - the options the mod removes were already off
 
 --- MOD COMPATIBILITY -----------------------------------------
 Mod mode                       : True
 Mod checked                    : No Monastery 2.1 (Skyline plugin)   - a Skyline plugin: no game data files, nothing to line up
 Mod folder                     : C:\Users\Owl\AppData\Roaming\Ryujinx\sdcard\atmosphere\contents\010055d009f78000\NoMonastery with Aldebaran
 Mod detail                     : romfs\skyline\plugins\libno_monastery.nro, exefs\subsdk9
-Keep class mastery EXP         : True   (restored 63 requirement(s))
+Keep class mastery EXP         : True   (restored 64 requirement(s))
 fixed_classdata.bin : same size as the original (23812 bytes) - the game's own copy, which is what this mod wants
 fixed_persondata.bin : same size as the original (139456 bytes) - the game's own copy, which is what this mod wants
 fixed_data.bin : same size as the original (39000 bytes) - the game's own copy, which is what this mod wants
@@ -241,17 +256,17 @@ enabled options that still work but behave differently with this mod:
 
 --- NEW CODE - DID IT RUN? -------------------------------------
 class variety picks           : 0
-class weapon type draws       : 122
+class weapon type draws       : 124
 class type bag refills        : 11
-class pick deck rebuilds      : 25
-ability picks                 : 994
-ability picks with blocks     : 918
-weapon range filter calls     : 405
-weapons removed by range      : 0
-siege bypass rolls won        : 30
+class pick deck rebuilds      : 26
+ability picks                 : 982
+ability picks with blocks     : 899
+weapon range filter calls     : 377
+weapons removed by range      : 135
+siege bypass rolls won        : 45
 enemy spells picked           : 0
 spells replaced for range     : 0
-classes growth shifted        : 41
+classes growth shifted        : 37
 tier spread passes            : 2
 first character spell rank    : C (rank 4)
 
@@ -259,28 +274,28 @@ first character spell rank    : C (rank 4)
 Weapon types per class tier (classes, not characters):
 tier       Sword Lance   Axe   Bow Brawl Magic   ???  Dark
 before start       2     0     0     0     0     0     0     0
-after  start       0     0     1     1     0     0     0     0
+after  start       1     0     0     0     0     1     0     0
 before begin       2     1     1     0     0     0     1     0
-after  begin       0     0     1     1     1     1     1     0
+after  begin       0     0     0     0     2     1     2     0
 before inter       5     2     2     1     1     2     1     0
-after  inter       2     2     2     2     2     4     1     0
+after  inter       1     2     3     2     2     3     2     0
 before adv         4     3     4     1     2     4     3     0
-after  adv         3     3     5     3     2     7     3     0
+after  adv         3     3     3     4     4     7     4     0
 before master      1     3     3     1     1     3     2     0
-after  master      2     2     3     3     1     3     1     0
+after  master      4     2     3     2     1     4     1     0
 before unique      5     4     4     2     0     1     0     0
-after  unique      2     4     3     3     5     5     2     0
+after  unique      2     4     3     2     4     5     2     0
 
 What the balancer actually served:
-  start  : 8 of 8 types (Bow, Axe, Sword, Lance, Magic, Dark, ???, Brawl)
-  begin  : 8 of 8 types (Brawl, Bow, Axe, ???, Magic, Sword, Dark, Lance)
-  inter  : 8 of 8 types (Bow, Brawl, Sword, Dark, Magic, Lance, Axe, ???)
-  adv    : 8 of 8 types (Bow, Brawl, Magic, Lance, Axe, Dark, ???, Sword)
-  master : 8 of 8 types (Axe, Bow, Sword, Lance, ???, Dark, Brawl, Magic)
-  unique : 8 of 8 types (Lance, Axe, Dark, ???, Bow, Brawl, Magic, Sword)
-  whole run : 8 of 8 types (Magic, Bow, Axe, Brawl, Sword, ???, Lance, Dark)
+  start  : 8 of 8 types (Sword, Magic, Bow, Axe, Lance, Dark, ???, Brawl)
+  begin  : 8 of 8 types (Dark, ???, Brawl, Lance, Bow, Axe, Sword, Magic)
+  inter  : 8 of 8 types (Bow, Axe, Dark, Lance, Brawl, Sword, Magic, ???)
+  adv    : 8 of 8 types (Sword, Axe, Magic, Dark, Lance, ???, Brawl, Bow)
+  master : 8 of 8 types (Sword, Dark, Brawl, Lance, ???, Bow, Magic, Axe)
+  unique : 8 of 8 types (Dark, Bow, Sword, ???, Brawl, Magic, Axe, Lance)
+  whole run : 8 of 8 types (Dark, Brawl, Lance, Magic, Axe, Sword, Bow, ???)
 
-Most common weapon type per tier: start =Axe x1  begin =Axe x1  inter =Magic x4  adv   =Magic x7  master=Axe x3  unique=Brawl x5  
+Most common weapon type per tier: start =Sword x1  begin =Brawl x2  inter =Axe x3  adv   =Magic x7  master=Sword x4  unique=Magic x5  
 
 --- ABILITY BLOCKLIST CHECK ------------------------------------
 user blocklist       : 20 ability(ies)
@@ -294,12 +309,11 @@ Dancer row (class 43) Dance written back: 1 (the ability spread rotates whole sl
 note: the vanilla data already contains these on purpose (monster classes), they are not touched by the blocklist
 
 --- SIEGE / RANGE CHECK ----------------------------------------
-obtainable weapons above range 4 : 0 (still in the game data, filtered from enemy pools)
+obtainable weapons above range 4 : 2 (still in the game data, filtered from enemy pools)
 spells above range 4 : 4 (replaced by 0 rerolls in this run)
 map units scanned          : 4560
-out of range spell slots   : 47   (2 new, 45 same as vanilla)
-  scenario 21 unit 13 : spell 12 range 10 (NEW)
-  scenario 30 unit 13 : spell 12 range 10 (NEW)
+out of range spell slots   : 46   (1 new, 45 same as vanilla)
+  scenario 24 unit 14 : spell 35 range 10 (NEW)
   scenario 21 unit 22 : spell 12 range 10 (same as vanilla)
   scenario 21 unit 25 : spell 12 range 10 (same as vanilla)
   scenario 22 unit 20 : spell 5 range 10 (same as vanilla)
@@ -310,22 +324,23 @@ out of range spell slots   : 47   (2 new, 45 same as vanilla)
   scenario 25 unit 69 : spell 12 range 10 (same as vanilla)
   scenario 25 unit 74 : spell 5 range 10 (same as vanilla)
   scenario 25 unit 77 : spell 5 range 10 (same as vanilla)
-out of range weapon slots  : 1   (0 new, 1 same as vanilla, bypass chance 10%, bypass rolls won 30)
+out of range weapon slots  : 2   (1 new, 1 same as vanilla, bypass chance 10%, bypass rolls won 45)
+  scenario 21 unit 34 : weapon 48 range 6 (NEW)
   scenario 30 unit 20 : weapon 220 range 30 (same as vanilla)
 
 --- GROWTH SHIFT CHECK -----------------------------------------
-classes with changed enemy growths: 96   (the growth shift itself changed 41)
+classes with changed enemy growths: 97   (the growth shift itself changed 37)
     the rest differ from vanilla because their growths were randomized, not shifted
 stat      enemy growth total  before -> after   |  player before -> after
-HP            1875 ->   2711   |    1380 ->   3224
-Str           1788 ->   2323   |    1319 ->   1373
-Mag            998 ->   2409   |    1209 ->   1309
-Dex            215 ->   2985   |     205 ->   1057
-Spd           1734 ->   2143   |    3704 ->   2509
-Lck             90 ->   1935   |      70 ->   1121
-Def           2777 ->   2463   |    2173 ->   1516
-Res           4495 ->   2937   |    3729 ->   3124
-Cha            440 ->   2102   |     435 ->   1469
+HP            1875 ->   2224   |    1380 ->   2664
+Str           1788 ->   1928   |    1319 ->   1915
+Mag            998 ->   2073   |    1209 ->   1505
+Dex            215 ->   1601   |     205 ->   1327
+Spd           1734 ->   1953   |    3704 ->   2171
+Lck             90 ->   2278   |      70 ->    949
+Def           2777 ->   3566   |    2173 ->   1429
+Res           4495 ->   2224   |    3729 ->   2991
+Cha            440 ->   2784   |     435 ->   1365
 
 --- SUMMARY ----------------------------------------------------
 passed  : 31
@@ -335,35 +350,35 @@ failures: 0
   PASS  boss / monster stats are untouched
   PASS  no class has the same ability twice
   PASS  every class in a tier has a different mastery ability
-  PASS  mastery combat arts: 1 re-rolled to keep the tier unique
+  PASS  mastery combat arts: 0 re-rolled to keep the tier unique
   PASS  boss scaling bonus: not needed (level scaling is off)
   PASS  every character has a different personal ability
-  PASS  growth range limit held (changed class growths 5% to 100%)   12 vanilla value(s) outside the limit kept on purpose
-  PASS  growth totals evened: 26 class(es) scaled, totals now 100 to 386
+  PASS  growth range limit held (changed class growths 10% to 70%)   19 vanilla value(s) outside the limit kept on purpose
+  PASS  growth totals evened: 23 class(es) scaled, totals now 10 to 431
   PASS  stat boost range limit held (-3 to 10)
-  PASS  weapons taking other weapons' effects: 193 entr(ies) at 40% chance
-  PASS  weapons taking a combat art effect: 25 entr(ies) at 10% chance
-  PASS  weapons taking a gambit's effects: 27 entr(ies) at 10% chance
-  PASS  combat arts taking another art's effect: 22 entr(ies) at 20% chance
-  PASS  combat arts taking a weapon's effect: 4 entr(ies) at 10% chance
-  PASS  gambits taking another gambit's effects: 17 entr(ies) at 20% chance
-  PASS  gambits taking a weapon's effects: 48 entr(ies) at 80% chance
-  PASS  unique weapon effect sets: 74 weapon(s) share a set, unavoidable - 276 weapons have an effect but only 96 effect ids exist
+  PASS  weapons taking other weapons' effects: 114 entr(ies) at 20% chance
+  PASS  weapons taking a combat art effect: 32 entr(ies) at 10% chance
+  PASS  weapons taking a gambit's effects: 39 entr(ies) at 10% chance
+  PASS  combat arts taking another art's effect: 14 entr(ies) at 20% chance
+  PASS  combat arts taking a weapon's effect: 6 entr(ies) at 10% chance
+  PASS  gambits taking another gambit's effects: 14 entr(ies) at 20% chance
+  PASS  gambits taking a weapon's effects: 10 entr(ies) at 10% chance
+  PASS  unique weapon effect sets: 12 weapon(s) share a set, unavoidable - 219 weapons have an effect but only 96 effect ids exist
   PASS  boss trim: 37 story unit(s) lost HP / Def / Res on their own rows
   PASS  flat trim: 65 class base(s) lost HP / Def / Res, 42 playable character(s) got the same values back in their personal bases
   PASS  player start bonus: 42 playable unit(s) started with 1 extra level(s) of stats on their personal bases
-  PASS  class identity: 30 Str/Mag trade(s), 34 class(es) with Def / Res pulled back to within the allowance for their level (+20/35/50/50%)
-  PASS  weapon text: 204 weapon description(s) name the effect the run gave them
-  PASS  No Monastery mode left out 3 option(s) the mod removes (weekly goals, seminars, faculty training)
+  PASS  class identity: 30 Str/Mag trade(s), 35 class(es) with Def / Res pulled back to within the allowance for their level (+20/35/50/50%)
+  PASS  weapon text: 199 weapon description(s) name the effect the run gave them and say what it does (94 of 97 effect id(s) have a summary)
+  PASS  No Monastery mode: every option that writes the mod's removed content was already off
   PASS  mod kind: No Monastery 2.1 (Skyline plugin) - no data files to line up, the game's own data is randomized as usual
-  PASS  class variety code ran (0 class picks, 122 weapon type draws)
+  PASS  class variety code ran (0 class picks, 124 weapon type draws)
   PASS  class variety: spread is within the 35% safety level
   PASS  ability blocklist: no blocked ability was introduced
-  PASS  siege limit: 2 new out of range spell(s) allowed by the bypass chance
-  PASS  siege limit: no new out of range weapon on a map unit (1 were already there in vanilla)
+  PASS  siege limit: 1 new out of range spell(s) allowed by the bypass chance
+  PASS  siege limit: 1 new out of range weapon(s) allowed by the bypass chance
   PASS  growth shift: enemy HP growth total rose, Str/Mag/Def/Res fell
-  WARN  tab switching is still slow (Extra options : 393 ms)
-  WARN  base stat range limit: bases are 1 to 34 after the run
+  WARN  tab switching is still slow (Extra options : 398 ms)
+  WARN  base stat range limit: bases are 1 to 30 after the run
   WARN  2 enabled option(s) conflict with the mod - apply the "No Monastery 2.1 (plugin, mod safe)" preset
 
 If anything says FAIL or a new option looks like it did nothing,
@@ -1159,7 +1174,7 @@ heightMax: 204
 modelSize1Min: 0.85
 modelSize1Max: 1.15
 modelSize2Min: 0.85
-modelSize2Max: 1.16
+modelSize2Max: 1.2
 modelPreTsChestSizeMin: 0.07
 modelPreTsChestSizeMax: 1.75
 modelPostTsChestSizeMin: 0.08
