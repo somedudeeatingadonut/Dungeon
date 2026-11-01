@@ -94,25 +94,51 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             List<string> failures = new List<string>();
 
             AppendHeader(text, reason);
-            AppendPresetWarnings(warnings);
-            AppendCrashDetail(text);
-            AppendEnvironment(text);
-            AppendPerformance(text, warnings);
-            AppendOptions(text);
-            AppendMoreOptions(text, passes, warnings, failures);
-            AppendBigOptions(text, passes, warnings, failures);
-            AppendClassIdentity(text, passes, warnings);
-            AppendWeaponText(text, passes, warnings);
-            AppendInputs(text, warnings);
-            AppendModMode(text, passes, warnings);
-            ModSupport.appendReport(text, passes, warnings, failures);
-            AppendCounters(text, passes, warnings);
-            AppendClassVarietyCheck(text, passes, warnings, failures);
-            AppendAbilityCheck(text, passes, warnings, failures);
-            AppendSiegeCheck(text, passes, warnings);
-            AppendGrowthShiftCheck(text, passes, warnings);
-            AppendSummary(text, passes, warnings, failures);
-            AppendSettingsDump(text);
+            // Every section appends to the same builder, so if one of them
+            // throws (a table this build does not expect, an array that is
+            // shorter than usual) the report is still written with everything
+            // up to that point plus the reason - including when the report is
+            // the one written for a crash. A report that dies silently is worth
+            // nothing exactly when it is needed most.
+            try
+            {
+                AppendPresetWarnings(warnings);
+                AppendCrashDetail(text);
+                AppendEnvironment(text);
+                AppendPerformance(text, warnings);
+                AppendOptions(text);
+                AppendMoreOptions(text, passes, warnings, failures);
+                AppendBigOptions(text, passes, warnings, failures);
+                AppendClassIdentity(text, passes, warnings);
+                AppendWeaponText(text, passes, warnings);
+                AppendInputs(text, warnings);
+                AppendModMode(text, passes, warnings);
+                ModSupport.appendReport(text, passes, warnings, failures);
+                AppendCounters(text, passes, warnings);
+                AppendClassVarietyCheck(text, passes, warnings, failures);
+                AppendAbilityCheck(text, passes, warnings, failures);
+                AppendSiegeCheck(text, passes, warnings);
+                AppendGrowthShiftCheck(text, passes, warnings);
+                AppendSummary(text, passes, warnings, failures);
+                AppendSettingsDump(text);
+            }
+            catch (Exception exception)
+            {
+                text.AppendLine();
+                text.AppendLine("--- REPORT ERROR ----------------------------------------------");
+                text.AppendLine("The report stopped here: " + exception.GetType().Name);
+                text.AppendLine("Message : "
+                    + (exception.Message == null || exception.Message.Trim().Length == 0
+                        ? "(no message)" : exception.Message));
+                text.AppendLine("Stage   : "
+                    + (Randomizer.debugStage == null ? "(unknown)" : Randomizer.debugStage));
+                // Kept with the rest of the crash detail, so the next report (and
+                // the crash dialog) can show it too.
+                crashDetail += (crashDetail.Length == 0 ? "" : "\n")
+                    + "Report section error: " + exception.GetType().Name
+                    + (exception.Message == null || exception.Message.Trim().Length == 0
+                        ? "" : ": " + exception.Message);
+            }
 
             lastSummary = passes.Count + " passed, " + warnings.Count + " warnings, " + failures.Count + " failures";
             return text.ToString();

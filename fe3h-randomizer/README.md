@@ -782,7 +782,7 @@ true. The debug report prints both counts:
 
 ```
 weapons with an effect : 151   (151 of them on the 300 rows that have an item card; the rest are rows the item screen has no card for)
-effect kinds available : 25 of 96 status effect(s) land on the unit an attack hits; the other 69 are self / ally buffs that only a support mode can apply
+effect kinds available : 25 of 96 status effect(s) land on the unit an attack hits; 69 are self / ally buffs that only a support mode can apply, and 2 are unused ids nobody can be given
 ```
 
 **The chances are checkable.** Every graft line prints the percentage, what it
@@ -814,8 +814,9 @@ Weapons tab and the effect remix on the Extra options tab.
 The same "only if it changed" rule now covers the other card tables: a spell, a
 combat art, a gambit and a staggering blow keep their own description until the
 run actually changes the effect, effectiveness, properties or range the card
-talks about. Before, the *change message text* option rewrote every row of every
-one of those tables, which is why a 10 % job looked like a 100 % one.
+talks about, and a battalion is only rewritten when one of its stat boosts
+changed. Before, the *change message text* option rewrote every row of every one
+of those tables, which is why a 10 % job looked like a 100 % one.
 
 Descriptions live in `msgdata.bin`, so the run writes that file even when none of
 the text options on the Music and Text tab is on. If `msgdata.bin` was not

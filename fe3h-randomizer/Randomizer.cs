@@ -6432,10 +6432,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         long blowMod = blowBlockLen * (long)index;
 
                         // Same rule as the spells: an untouched row keeps its
-                        // vanilla description.
+                        // vanilla description. The range is part of the card
+                        // text, so a row whose range changed still needs it.
                         byte blowStatusBefore = itemData[blowBlockStart + blowMod + 12L];
                         byte blowEffectivenessBefore = itemData[blowBlockStart + blowMod + 14L];
                         byte blowPropertiesBefore = itemData[blowBlockStart + blowMod + 22L];
+                        byte blowRangeUpBefore = itemData[blowBlockStart + blowMod + 7L];
+                        byte blowRangeLoBefore = itemData[blowBlockStart + blowMod + 10L];
 
                         if (settings.randAtkRange && p(settings.randAtkRangeP) && itemData[blowBlockStart + blowMod + 7L] < 100)
                         {
@@ -6565,7 +6568,9 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         if (msgLoaded && settings.changeMsg
                             && (itemData[blowBlockStart + blowMod + 12L] != blowStatusBefore
                                 || itemData[blowBlockStart + blowMod + 14L] != blowEffectivenessBefore
-                                || itemData[blowBlockStart + blowMod + 22L] != blowPropertiesBefore))
+                                || itemData[blowBlockStart + blowMod + 22L] != blowPropertiesBefore
+                                || itemData[blowBlockStart + blowMod + 7L] != blowRangeUpBefore
+                                || itemData[blowBlockStart + blowMod + 10L] != blowRangeLoBefore))
                         {
                             string newDescription = "";
                             if (itemData[blowBlockStart + blowMod + 12L] != 96)
@@ -6726,6 +6731,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     for (int index = 0; index < 200; index++)
                     {
                         long battalionMod = battalionBlockLen * (long)index;
+
+                        // The card text further down is nothing but the stat
+                        // boosts (28..36). Remember them so a battalion whose
+                        // boosts did not change keeps its own description
+                        // instead of being rewritten with the vanilla numbers.
+                        byte[] battalionBoostsBefore = new byte[9];
+                        for (int boost = 0; boost < 9; boost++)
+                            battalionBoostsBefore[boost] =
+                                itemData[battalionBlockStart + battalionMod + 28L + boost];
+
                         if (settings.randBattalionEndurance)
                             itemData[battalionBlockStart + battalionMod + 6L] = (byte)normalize(advancedRng(itemData[battalionBlockStart + battalionMod + 6L], settings.battalionEnduranceBinomial,
                                 settings.battalionEnduranceLinear, settings.battalionEnduranceLinearDev, settings.battalionEnduranceProportional, settings.battalionEnduranceProportionalDev,
@@ -6886,7 +6901,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                             itemData[battalionBlockStart + battalionMod + 35L] + "Mv";
                         changelog += "\nGambit:\t\t" + gambitNames[itemData[battalionBlockStart + battalionMod + 39L]];
 
-                        if (msgLoaded && settings.changeMsg)
+                        bool battalionBoostsChanged = false;
+                        for (int boost = 0; boost < 9 && !battalionBoostsChanged; boost++)
+                            if (itemData[battalionBlockStart + battalionMod + 28L + boost]
+                                != battalionBoostsBefore[boost])
+                                battalionBoostsChanged = true;
+
+                        if (msgLoaded && settings.changeMsg && battalionBoostsChanged)
                         {
                             string newDescription = "";
                             if (itemData[battalionBlockStart + battalionMod + 28L] != 0)

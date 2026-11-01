@@ -4006,9 +4006,22 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 }
                 else
                 {
-                    Randomizer.seed = Convert.ToInt32(this.seed_textBox.Text);
-                    Randomizer.rng = new RandomLog(Randomizer.seed);
-                    Randomizer.changelog += "\n\nSeed: " + Randomizer.seed.ToString();
+                    // A numeric seed that does not fit in an int (12 digits and
+                    // up) used to throw here and stop the run before it started.
+                    // It falls back the same way a non-numeric seed does.
+                    int seedValue;
+                    if (int.TryParse(this.seed_textBox.Text, out seedValue))
+                    {
+                        Randomizer.seed = seedValue;
+                        Randomizer.rng = new RandomLog(Randomizer.seed);
+                        Randomizer.changelog += "\n\nSeed: " + Randomizer.seed.ToString();
+                    }
+                    else
+                    {
+                        Randomizer.warnings += "\nThe seed's number was too large to use and was not used in randomization.";
+                        Randomizer.rng = new RandomLog();
+                        Randomizer.changelog += "\nNo seed used.";
+                    }
                 }
             }
             else

@@ -318,9 +318,11 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         {
             StringBuilder text = new StringBuilder();
             text.Append(attackCount().ToString()).Append(" of ").Append(statusNone.ToString())
-                .Append(" status effect(s) land on the unit an attack hits; the other ")
+                .Append(" status effect(s) land on the unit an attack hits; ")
                 .Append(supportCount().ToString())
-                .Append(" are self / ally buffs that only a support mode can apply");
+                .Append(" are self / ally buffs that only a support mode can apply, and ")
+                .Append((statusNone - attackCount() - supportCount()).ToString())
+                .Append(" are unused ids nobody can be given");
             if (!tableRead)
                 text.Append(" (status table not read - no numbers on the cards)");
             return text.ToString();

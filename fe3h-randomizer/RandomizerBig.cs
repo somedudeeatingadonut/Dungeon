@@ -104,6 +104,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             statWeaponEffectsRerolled = 0;
             statWeaponDescriptionsDone = 0;
             statGraftNoCounterpart = 0;
+            // Without this a run that could not find the text entries would
+            // leave the count behind, and the next run's report would warn
+            // about weapons from a previous run.
+            statWeaponTextMissing = 0;
         }
 
         // ------------------------------------------------------------- the run
@@ -522,9 +526,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     && data[target + weaponSlotProperties] == 0)
                     continue;
 
+                // The same test the status draw uses (EffectRules.randomForMode):
+                // mode 0 is not the only damaging mode, and the support gambits
+                // are not all mode 0 - 15, 17 and 18 are damaging rows too.
+                bool support = EffectRules.supportMode(data[target + weaponSlotMode]);
                 if (roll(gambitGraftChance))
                 {
-                    int donor = pickGambitDonor(index, data[target + weaponSlotMode]);
+                    int donor = pickGambitDonor(index, support ? 1 : 0);
                     if (donor >= 0)
                     {
                         graftEffect(data, gambitBlock(donor), target);
@@ -536,7 +544,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 {
                     // A support gambit hands its effect to the allies in the
                     // area, so a weapon's debuff has no business on it.
-                    if (data[target + weaponSlotMode] == 0)
+                    if (!support)
                     {
                         int donor = pickWeaponDonor(-1);
                         if (donor >= 0)
