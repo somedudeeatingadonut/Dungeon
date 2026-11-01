@@ -239,6 +239,35 @@ The changelog gets a `---EFFECT REMIX---` section with the counts, the chance
 used for each graft, and the first 40 renamed weapon effects, because the normal
 changelog is built before these passes run.
 
+### The basic Heal is never randomized
+
+Spell 24 (`Heal`, the E-rank healing spell every unit starts with) is written
+**byte for byte** as the game ships it, in every run and with every option. The
+spell pass skips that row before any roll is made, so none of the fields the
+`Spells` tab touches can reach it:
+
+| Byte | Field | Heal, as the game ships it |
+| --- | --- | --- |
+| +4 | use mode | 1 (heal an ally) |
+| +6 | rank | 0 (E) |
+| +7 / +10 | range | 1 / 1 |
+| +11 | uses | 10 |
+| +12 | status effect | 96 (none) |
+| +14 | effectiveness | 0 |
+| +16 / +17 / +18 / +19 | might / hit / crit / weight | 8 / 100 / 0 / 0 |
+| +22 | properties | magic damage |
+
+The changelog prints the row as `Heal ... Left unchanged - the basic Heal is
+never randomized.` and the debug report has a `--- PROTECTED SPELLS ---` section
+that compares the row with the file that was loaded: `all 24 byte(s) identical`
+is a pass, anything else is a **failure** with the exact offsets and values, so a
+later change that writes to it cannot go unnoticed.
+
+This is the spell's own row only. The `Randomize spell lists` option on the
+Characters tab still decides which spells a unit learns - Heal can be swapped for
+another Faith spell there, which is the list option doing its job, not the spell
+being changed.
+
 ### Quick setup for testing
 
 Two buttons at the top of the Extra options tab:

@@ -340,6 +340,19 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         public static short weaponBlockLen = 24;
         public static short magicBlockStart = 12260;
         public static short magicBlockLen = 24;
+
+        // The basic Heal is never randomized, in any run, with any option. It is
+        // the one spell every unit starts with and the one a run cannot do
+        // without, so its whole 24 byte row (rank, range, uses, might, hit, crit,
+        // weight, status effect, effectiveness, damage type, properties) stays
+        // exactly as the game ships it. The debug report compares the row with
+        // the loaded file and warns if anything ever writes to it.
+        public const int basicHealSpellId = 24;
+
+        public static bool isProtectedSpell(int spellIndex)
+        {
+            return spellIndex == basicHealSpellId;
+        }
         public static short turretBlockStart = 13236;
         public static short turretBlockLen = 24;
         public static short gambitBlockStart = 13372;
@@ -5908,6 +5921,17 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     for (int index = 0; index < 38; ++index)
                     {
                         long magicMod = magicBlockLen * (long)index;
+
+                        // Heal is left exactly as the game ships it (see
+                        // basicHealSpellId): no roll of this pass applies to it,
+                        // so the row cannot change even by one byte.
+                        if (Randomizer.isProtectedSpell(index))
+                        {
+                            changelog += "\n\n\tHeal" +
+                                "\nSpell ID:\t\t" + index +
+                                "\nLeft unchanged - the basic Heal is never randomized.";
+                            continue;
+                        }
 
                         // Remembered so the card text is only rewritten when the
                         // spell really changed: refreshing every description was

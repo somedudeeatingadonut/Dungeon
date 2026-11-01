@@ -111,6 +111,7 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 AppendBigOptions(text, passes, warnings, failures);
                 AppendClassIdentity(text, passes, warnings);
                 AppendWeaponText(text, passes, warnings);
+                AppendProtectedSpellCheck(text, passes, failures);
                 AppendInputs(text, warnings);
                 AppendModMode(text, passes, warnings);
                 ModSupport.appendReport(text, passes, warnings, failures);
@@ -1569,6 +1570,71 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         }
 
         // ----------------------------------------------------------- siege
+        // The basic Heal is documented as never randomized, so the report checks
+        // that instead of trusting it: the row is compared byte for byte with the
+        // file that was loaded. Anything that ever writes to it shows up here.
+        private static void AppendProtectedSpellCheck(StringBuilder text, List<string> passes,
+            List<string> failures)
+        {
+            text.AppendLine("--- PROTECTED SPELLS ------------------------------------------");
+            int spellId = Randomizer.basicHealSpellId;
+            string name = (Randomizer.spellNames != null && spellId < Randomizer.spellNames.Length
+                && Randomizer.spellNames[spellId] != null && Randomizer.spellNames[spellId].Length > 0)
+                ? Randomizer.spellNames[spellId] : "spell";
+            text.AppendLine(name + " (spell " + spellId.ToString()
+                + ") : never randomized - no range, might, hit, crit, weight, uses,"
+                + " status effect, effectiveness or damage type is written to it");
+
+            byte[] data = Randomizer.itemData;
+            byte[] vanilla = Randomizer.itemDataV;
+            if (data == null || vanilla == null)
+            {
+                text.AppendLine("(the item table was not written in this run, so there is nothing to compare)");
+                text.AppendLine();
+                return;
+            }
+
+            int block = Randomizer.magicBlockStart + Randomizer.magicBlockLen * spellId;
+            int length = Randomizer.magicBlockLen;
+            if (block < 0 || block + length > data.Length || block + length > vanilla.Length)
+            {
+                text.AppendLine("(the spell table is shorter than this build expects, so the row cannot be checked)");
+                text.AppendLine();
+                return;
+            }
+
+            StringBuilder diff = new StringBuilder();
+            int differing = 0;
+            for (int i = 0; i < length; i++)
+            {
+                if (data[block + i] == vanilla[block + i])
+                    continue;
+                differing++;
+                if (diff.Length > 0)
+                    diff.Append(", ");
+                diff.Append("byte +").Append(i.ToString())
+                    .Append(" ").Append(vanilla[block + i].ToString())
+                    .Append(" -> ").Append(data[block + i].ToString());
+            }
+
+            if (differing == 0)
+            {
+                text.AppendLine("    compared with the loaded file : all "
+                    + length.ToString() + " byte(s) identical");
+                passes.Add("basic Heal: the spell row is byte-for-byte the same as the loaded file");
+            }
+            else
+            {
+                text.AppendLine("    compared with the loaded file : " + differing.ToString()
+                    + " of " + length.ToString() + " byte(s) differ");
+                text.AppendLine("    " + diff.ToString());
+                failures.Add("basic Heal: " + differing.ToString()
+                    + " byte(s) of spell " + spellId.ToString()
+                    + " differ from the loaded file - a pass wrote to a row that is meant to stay untouched");
+            }
+            text.AppendLine();
+        }
+
         private static void AppendSiegeCheck(StringBuilder text, List<string> passes, List<string> warnings)
         {
             text.AppendLine("--- SIEGE / RANGE CHECK ----------------------------------------");
