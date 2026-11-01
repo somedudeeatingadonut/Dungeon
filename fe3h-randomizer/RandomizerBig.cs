@@ -937,21 +937,39 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
         private static void appendWeaponChangelog()
         {
             byte[] vanilla = Randomizer.itemDataV;
+            // Each line carries the percentage, the rows it could reach and what
+            // that percentage averages there, so a single look at the changelog
+            // tells whether a low chance stayed low.
+            int weaponsLeft = weaponCardRows - statWeaponEffectsGrafted;
+            if (weaponsLeft < 0)
+                weaponsLeft = 0;
+            int artsLeft = countUsableArts();
+            int gambitsLeft = countUsableGambits();
             Randomizer.changelog += "\n\n\n---EFFECT REMIX---";
             Randomizer.changelog += "\nWeapon <- weapon: " + statWeaponEffectsGrafted.ToString()
-                + "  (chance " + weaponGraftChance + "%)";
+                + " of " + weaponCardRows + "  (chance " + weaponGraftChance + "%, about "
+                + expectedRoll(weaponGraftChance, weaponCardRows) + ")";
             Randomizer.changelog += "\nWeapon <- combat art: " + statWeaponFromArtGrafted.ToString()
-                + "  (chance " + weaponFromArtChance + "%)";
+                + " of " + weaponsLeft + "  (chance " + weaponFromArtChance + "%, about "
+                + expectedRoll(weaponFromArtChance, weaponsLeft) + ")";
             Randomizer.changelog += "\nWeapon <- gambit: " + statWeaponFromGambitGrafted.ToString()
-                + "  (chance " + weaponFromGambitChance + "%)";
+                + " of " + weaponsLeft + "  (chance " + weaponFromGambitChance + "%, about "
+                + expectedRoll(weaponFromGambitChance, weaponsLeft) + ")";
             Randomizer.changelog += "\nCombat art <- combat art: " + statArtEffectsGrafted.ToString()
-                + "  (chance " + artGraftChance + "%)";
+                + " of " + artsLeft + "  (chance " + artGraftChance + "%, about "
+                + expectedRoll(artGraftChance, artsLeft) + ")";
             Randomizer.changelog += "\nCombat art <- weapon: " + statArtFromWeaponGrafted.ToString()
-                + "  (chance " + artFromWeaponChance + "%)";
+                + " of " + artsLeft + "  (chance " + artFromWeaponChance + "%, about "
+                + expectedRoll(artFromWeaponChance, artsLeft) + ")";
             Randomizer.changelog += "\nGambit <- gambit: " + statGambitEffectsGrafted.ToString()
-                + "  (chance " + gambitGraftChance + "%)";
+                + " of " + gambitsLeft + "  (chance " + gambitGraftChance + "%, about "
+                + expectedRoll(gambitGraftChance, gambitsLeft) + ")";
             Randomizer.changelog += "\nGambit <- weapon: " + statGambitFromWeaponGrafted.ToString()
-                + "  (chance " + gambitFromWeaponChance + "%)";
+                + " of " + gambitsLeft + "  (chance " + gambitFromWeaponChance + "%, about "
+                + expectedRoll(gambitFromWeaponChance, gambitsLeft) + ")";
+            Randomizer.changelog += "\nWeapon cards with an effect: "
+                + countWeaponCardsWithEffects() + " of " + weaponCardRows
+                + "  (the rest have no effect and keep their own description)";
             if (statGraftNoCounterpart > 0)
                 Randomizer.changelog += "\nRolls passed over (the effect means nothing on that item): "
                     + statGraftNoCounterpart.ToString();
@@ -984,6 +1002,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     + (effectDetail.Length > 0 ? "  (" + effectDetail + ")" : "");
                 shown++;
             }
+        }
+
+        // What a percentage averages on that many rows - used by the changelog
+        // and the debug report so a chance can be checked against what it did.
+        public static int expectedRoll(int percent, int rows)
+        {
+            if (percent <= 0 || rows <= 0)
+                return 0;
+            return percent * rows / 100;
         }
 
         // ---------------------------------------------------------- inspection
@@ -1020,6 +1047,47 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     break;
                 if (Randomizer.itemData[block + weaponSlotEffect] != effectNone)
                     count++;
+            }
+            return count;
+        }
+
+        // The rows the combat art remix actually rolls on: an unused art row is
+        // skipped. The debug needs this so "about 10 % of 80" cannot be quoted
+        // for a pool that is really smaller.
+        public static int countUsableArts()
+        {
+            if (Randomizer.itemData == null)
+                return 0;
+            byte[] data = Randomizer.itemData;
+            int count = 0;
+            for (int index = 0; index < artCount; index++)
+            {
+                int target = artBlock(index);
+                if (target + artSlotUsedFlag >= data.Length)
+                    break;
+                if (data[target + artSlotUsedFlag] != 63)
+                    count++;
+            }
+            return count;
+        }
+
+        // Same for gambits: a row with no effect, no effectiveness and no
+        // property is not a gambit at all and is skipped by the remix.
+        public static int countUsableGambits()
+        {
+            if (Randomizer.itemData == null)
+                return 0;
+            byte[] data = Randomizer.itemData;
+            int count = 0;
+            for (int index = 0; index < gambitCount; index++)
+            {
+                int target = gambitBlock(index);
+                if (target + weaponSlotProperties >= data.Length)
+                    break;
+                if (data[target + weaponSlotEffect] == 0 && data[target + weaponSlotEffectiveness] == 0
+                    && data[target + weaponSlotProperties] == 0)
+                    continue;
+                count++;
             }
             return count;
         }

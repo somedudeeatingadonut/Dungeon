@@ -762,6 +762,16 @@ an effect without guessing, the bare name is kept rather than inventing a rule.
 The same summary is written next to the effect in the changelog, and the debug
 report counts how many ids are covered (`effect summaries : 94 of 97`).
 
+**Only the weapons that changed are touched.** Until 1.16.1 a second, older pass
+(this one part of the *change message text* option) also rewrote the description
+of **all 300 weapons** every run: `Inflicts <name>.` for the ones with an effect
+and `No special attributes.` for the rest, wiping the vanilla flavour text of
+every plain iron sword in the game. That is where "every weapon got something"
+came from - the cards were being filled in for weapons whose effect slot was
+empty. That block is gone; the item card is written by the effect text pass
+alone, for the weapons whose effect, effectiveness or properties actually
+changed. A weapon with an empty effect slot keeps its vanilla description.
+
 **Every changed weapon has a card.** The pass used to skip any weapon the tool
 has no name for, which silently left the DLC weapons (ids 223-230, real rows with
 real descriptions) reading as plain weapons, and it never reached the rows above
@@ -771,9 +781,24 @@ what makes "a grafted effect always says what it does" true rather than nearly
 true. The debug report prints both counts:
 
 ```
-weapons with an effect : 151   (151 of them inside the 300 rows the item screen has a card for, 300)
+weapons with an effect : 151   (151 of them on the 300 rows that have an item card; the rest are rows the item screen has no card for)
 effect kinds available : 25 of 96 status effect(s) land on the unit an attack hits; the other 69 are self / ally buffs that only a support mode can apply
 ```
+
+**The chances are checkable.** Every graft line prints the percentage, what it
+actually grafted and what that percentage should average on that many rows:
+
+```
+Weapons <- weapon effects     : 20%   (grafted 57 of 300 card row(s), about 60, different type only: False)
+Weapon cards with an effect   : 82 of 300   (the other 218 keep an empty effect slot and their vanilla description)
+```
+
+A roll is made once per row and a row that fails all of its rolls keeps an empty
+effect slot, so the "of 300" number is the one to read when a percentage looks
+like it was ignored. The two art / gambit lines are compared against the rows
+their pass really visits (unused art rows and empty gambit rows are skipped), and
+the two weapon lines that run after the first graft are compared against the rows
+that graft left free, because that is all their roll can reach.
 
 The generated line covers everything the run actually wrote - the effect id, the
 effectiveness bits (Infantry / Heavy Armor / Cavalry / Flying / Dragon / Monster)
@@ -785,6 +810,12 @@ is dropped when the weapon's *properties* changed, because a vanilla line such a
 it. It
 covers both sources of a changed effect: the *status effect* option on the
 Weapons tab and the effect remix on the Extra options tab.
+
+The same "only if it changed" rule now covers the other card tables: a spell, a
+combat art, a gambit and a staggering blow keep their own description until the
+run actually changes the effect, effectiveness, properties or range the card
+talks about. Before, the *change message text* option rewrote every row of every
+one of those tables, which is why a 10 % job looked like a 100 % one.
 
 Descriptions live in `msgdata.bin`, so the run writes that file even when none of
 the text options on the Music and Text tab is on. If `msgdata.bin` was not

@@ -5888,23 +5888,16 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                             if (properties[1] == 0 && properties[2] == 0 && properties[5] == 0)
                                 changelog += "\tNone";
 
-                            if (msgLoaded && settings.changeMsg && index < 300)
-                            {
-                                string newDescription = "";
-                                if (itemData[weaponBlockStart + weaponMod + 12L] != 96)
-                                    newDescription += "Inflicts " + effectNames[itemData[weaponBlockStart + weaponMod + 12L]] + ".\n";
-                                if (properties[0] == 1)
-                                    newDescription += "Deals magic damage.\n";
-                                if (properties[1] == 1)
-                                    newDescription += "Ignores Def/Res.\n";
-                                if (properties[2] == 1)
-                                    newDescription += "Leaves target at 1 HP.\n";
-                                if (properties[5] == 1)
-                                    newDescription += "Attacks twice when initiating combat.\n";
-                                if (newDescription.Length == 0)
-                                    newDescription = "No special attributes.\n";
-                                msgStrings[11162 + index] = newDescription.Trim(new char[] { '\n' });
-                            }
+                            // The weapon's description is written by the effect
+                            // text pass at the very end of the run, once the
+                            // effect remix has had its say - it knows which
+                            // weapons actually changed and keeps the vanilla
+                            // flavour line underneath. This block used to write
+                            // a description of its own for every single weapon
+                            // (and "No special attributes." for the ones with
+                            // nothing, wiping their flavour text), which made it
+                            // look as if all 300 weapons had been given an
+                            // effect when only a fraction of them had.
                         }
                     }
                 }
@@ -5915,6 +5908,14 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     for (int index = 0; index < 38; ++index)
                     {
                         long magicMod = magicBlockLen * (long)index;
+
+                        // Remembered so the card text is only rewritten when the
+                        // spell really changed: refreshing every description was
+                        // what made whole tables look modified in a run where
+                        // most of the rolls did nothing.
+                        byte magicStatusBefore = itemData[magicBlockStart + magicMod + 12L];
+                        byte magicEffectivenessBefore = itemData[magicBlockStart + magicMod + 14L];
+                        byte magicPropertiesBefore = itemData[magicBlockStart + magicMod + 22L];
 
                         if (settings.randAtkRange && p(settings.randAtkRangeP) && itemData[magicBlockStart + magicMod + 7L] < 100)
                         {
@@ -6056,7 +6057,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                             if (properties[1] == 0 && properties[2] == 0 && properties[5] == 0)
                                 changelog += "\tNone";
 
-                            if (msgLoaded && settings.changeMsg)
+                            if (msgLoaded && settings.changeMsg
+                                && (itemData[magicBlockStart + magicMod + 12L] != magicStatusBefore
+                                    || itemData[magicBlockStart + magicMod + 14L] != magicEffectivenessBefore
+                                    || itemData[magicBlockStart + magicMod + 22L] != magicPropertiesBefore))
                             {
                                 string newDescription = "";
                                 if (itemData[magicBlockStart + magicMod + 12L] != 96)
@@ -6224,6 +6228,15 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                         int gambitMod = (int)gambitBlockLen * index;
                         int extraMod = (int)gambitExtraLen * index;
 
+                        // Cards are only rewritten for gambits that really
+                        // changed; the rest keep their vanilla description.
+                        byte gambitStatusBefore = itemData[gambitBlockStart + gambitMod + 12L];
+                        byte gambitExtraEffectBefore = itemData[gambitExtraStart + extraMod + 8L];
+                        byte gambitEffectivenessBefore = itemData[gambitBlockStart + gambitMod + 14L];
+                        byte gambitPropertiesBefore = itemData[gambitBlockStart + gambitMod + 22L];
+                        byte gambitRangeUpBefore = itemData[gambitBlockStart + gambitMod + 7L];
+                        byte gambitRangeLoBefore = itemData[gambitBlockStart + gambitMod + 10L];
+
                         if (settings.randAtkRange && p(settings.randAtkRangeP) && itemData[gambitBlockStart + gambitMod + 7L] < 100)
                         {
                             int rangeUpBound = itemData[gambitBlockStart + gambitMod + 7L];
@@ -6379,7 +6392,13 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                             if (properties[1] == 0 && properties[2] == 0 && properties[5] == 0)
                                 changelog += "\tNone";
 
-                            if (msgLoaded && settings.changeMsg)
+                            if (msgLoaded && settings.changeMsg
+                                && (itemData[gambitBlockStart + gambitMod + 12L] != gambitStatusBefore
+                                    || itemData[gambitExtraStart + extraMod + 8L] != gambitExtraEffectBefore
+                                    || itemData[gambitBlockStart + gambitMod + 14L] != gambitEffectivenessBefore
+                                    || itemData[gambitBlockStart + gambitMod + 22L] != gambitPropertiesBefore
+                                    || itemData[gambitBlockStart + gambitMod + 7L] != gambitRangeUpBefore
+                                    || itemData[gambitBlockStart + gambitMod + 10L] != gambitRangeLoBefore))
                             {
                                 string newDescription = "";
                                 if (itemData[gambitBlockStart + gambitMod + 12L] != 96)
@@ -6411,6 +6430,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     for (int index = 0; index < 60; ++index)
                     {
                         long blowMod = blowBlockLen * (long)index;
+
+                        // Same rule as the spells: an untouched row keeps its
+                        // vanilla description.
+                        byte blowStatusBefore = itemData[blowBlockStart + blowMod + 12L];
+                        byte blowEffectivenessBefore = itemData[blowBlockStart + blowMod + 14L];
+                        byte blowPropertiesBefore = itemData[blowBlockStart + blowMod + 22L];
 
                         if (settings.randAtkRange && p(settings.randAtkRangeP) && itemData[blowBlockStart + blowMod + 7L] < 100)
                         {
@@ -6537,7 +6562,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 changelog += "\tNone";
                         }
 
-                        if (msgLoaded && settings.changeMsg)
+                        if (msgLoaded && settings.changeMsg
+                            && (itemData[blowBlockStart + blowMod + 12L] != blowStatusBefore
+                                || itemData[blowBlockStart + blowMod + 14L] != blowEffectivenessBefore
+                                || itemData[blowBlockStart + blowMod + 22L] != blowPropertiesBefore))
                         {
                             string newDescription = "";
                             if (itemData[blowBlockStart + blowMod + 12L] != 96)
@@ -6563,6 +6591,12 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                     for (int index = 0; index < 80; index++)
                     {
                         long artMod = artBlockLen * (long)index;
+
+                        // Same rule: an art whose effect did not change keeps
+                        // its own description instead of "No special attributes."
+                        byte artEffectBefore = itemData[artBlockStart + artMod + 7L];
+                        byte artEffectivenessBefore = itemData[artBlockStart + artMod + 14L];
+                        byte artEffectiveness2Before = itemData[artBlockStart + artMod + 15L];
 
                         itemData[artBlockStart + artMod + 0L] = (byte)255; // Weapon requirement for combat arts
                         itemData[artBlockStart + artMod + 1L] = (byte)255;
@@ -6669,7 +6703,10 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                                 if (itemData[artBlockStart + artMod + 14L] == 0)
                                     changelog += "\tNone";
 
-                                if (msgLoaded && settings.changeMsg)
+                                if (msgLoaded && settings.changeMsg
+                                    && (itemData[artBlockStart + artMod + 7L] != artEffectBefore
+                                        || itemData[artBlockStart + artMod + 14L] != artEffectivenessBefore
+                                        || itemData[artBlockStart + artMod + 15L] != artEffectiveness2Before))
                                 {
                                     string newDescription = "";
                                     if (itemData[artBlockStart + artMod + 7L] != 0)

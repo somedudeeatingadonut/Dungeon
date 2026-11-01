@@ -494,21 +494,54 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
                 + "   (characters swapped " + RandomizerBig.statCharSheetsSwapped.ToString() + ")");
             text.AppendLine("Boss remix                     : " + RandomizerBig.bossRemix
                 + "   (bosses remixed " + RandomizerBig.statBossRemixed.ToString() + ")");
+            // Every chance is printed next to what it actually did and what it
+            // should have done on average, so "the tool ignored my percentage" can
+            // be checked instead of guessed: the roll is one per row, and a row
+            // that failed every roll keeps an empty effect slot.
             text.AppendLine("Weapons <- weapon effects     : " + RandomizerBig.weaponGraftChance + "%"
-                + "   (grafted " + RandomizerBig.statWeaponEffectsGrafted.ToString()
+                + "   (grafted " + RandomizerBig.statWeaponEffectsGrafted.ToString() + " of "
+                + RandomizerBig.weaponCardRows.ToString() + " card row(s), about "
+                + RandomizerBig.expectedRoll(RandomizerBig.weaponGraftChance, RandomizerBig.weaponCardRows).ToString()
                 + ", different type only: " + RandomizerBig.weaponDonorsDifferInType + ")");
+            // The art and gambit rolls only reach the weapons the first graft
+            // passed on, so the row count they are compared against is what is
+            // left of the 300, not the whole table.
+            int weaponsLeftForOthers = RandomizerBig.weaponCardRows - RandomizerBig.statWeaponEffectsGrafted;
+            if (weaponsLeftForOthers < 0)
+                weaponsLeftForOthers = 0;
+            int usableArts = RandomizerBig.countUsableArts();
+            int usableGambits = RandomizerBig.countUsableGambits();
             text.AppendLine("Weapons <- combat art effect  : " + RandomizerBig.weaponFromArtChance + "%"
-                + "   (grafted " + RandomizerBig.statWeaponFromArtGrafted.ToString() + ")");
+                + "   (grafted " + RandomizerBig.statWeaponFromArtGrafted.ToString() + " of "
+                + weaponsLeftForOthers.ToString() + " row(s) left, about "
+                + RandomizerBig.expectedRoll(RandomizerBig.weaponFromArtChance, weaponsLeftForOthers).ToString()
+                + "; the roll only reaches the weapons the graft above passed on)");
             text.AppendLine("Weapons <- gambit effects     : " + RandomizerBig.weaponFromGambitChance + "%"
-                + "   (grafted " + RandomizerBig.statWeaponFromGambitGrafted.ToString() + ")");
+                + "   (grafted " + RandomizerBig.statWeaponFromGambitGrafted.ToString() + " of "
+                + weaponsLeftForOthers.ToString() + " row(s) left, about "
+                + RandomizerBig.expectedRoll(RandomizerBig.weaponFromGambitChance, weaponsLeftForOthers).ToString() + ")");
             text.AppendLine("Combat arts <- combat art     : " + RandomizerBig.artGraftChance + "%"
-                + "   (grafted " + RandomizerBig.statArtEffectsGrafted.ToString() + ")");
+                + "   (grafted " + RandomizerBig.statArtEffectsGrafted.ToString() + " of "
+                + usableArts.ToString() + " usable row(s), about "
+                + RandomizerBig.expectedRoll(RandomizerBig.artGraftChance, usableArts).ToString() + ")");
             text.AppendLine("Combat arts <- weapon effect  : " + RandomizerBig.artFromWeaponChance + "%"
-                + "   (grafted " + RandomizerBig.statArtFromWeaponGrafted.ToString() + ")");
+                + "   (grafted " + RandomizerBig.statArtFromWeaponGrafted.ToString() + " of "
+                + usableArts.ToString() + " usable row(s), about "
+                + RandomizerBig.expectedRoll(RandomizerBig.artFromWeaponChance, usableArts).ToString() + ")");
             text.AppendLine("Gambits <- gambit effects     : " + RandomizerBig.gambitGraftChance + "%"
-                + "   (grafted " + RandomizerBig.statGambitEffectsGrafted.ToString() + ")");
+                + "   (grafted " + RandomizerBig.statGambitEffectsGrafted.ToString() + " of "
+                + usableGambits.ToString() + " usable row(s), about "
+                + RandomizerBig.expectedRoll(RandomizerBig.gambitGraftChance, usableGambits).ToString() + ")");
             text.AppendLine("Gambits <- weapon effects     : " + RandomizerBig.gambitFromWeaponChance + "%"
-                + "   (grafted " + RandomizerBig.statGambitFromWeaponGrafted.ToString() + ")");
+                + "   (grafted " + RandomizerBig.statGambitFromWeaponGrafted.ToString() + " of "
+                + usableGambits.ToString() + " usable row(s), about "
+                + RandomizerBig.expectedRoll(RandomizerBig.gambitFromWeaponChance, usableGambits).ToString() + ")");
+            text.AppendLine("Weapon cards with an effect   : "
+                + RandomizerBig.countWeaponCardsWithEffects().ToString() + " of "
+                + RandomizerBig.weaponCardRows.ToString()
+                + "   (the other " + (RandomizerBig.weaponCardRows
+                    - RandomizerBig.countWeaponCardsWithEffects()).ToString()
+                + " keep an empty effect slot and their vanilla description)");
             text.AppendLine("Unique weapon effect sets     : " + RandomizerBig.uniqueWeaponEffects
                 + "   (rerolled " + RandomizerBig.statWeaponEffectsRerolled.ToString()
                 + ", left " + RandomizerBig.countDuplicateWeaponEffects().ToString() + ")");
@@ -960,8 +993,8 @@ namespace Fire_Emblem_Three_Houses_Randomizer_V2
             text.AppendLine("item data loaded     : " + (Randomizer.itemData != null));
             if (!RandomizerBig.describeWeaponEffects)
             {
-                text.AppendLine("(off - the item screen keeps the vanilla text, so a grafted effect"
-                    + " only shows when it fires)");
+                text.AppendLine("(off - the weapons keep the vanilla text, so a grafted effect"
+                    + " is only felt in battle, never read on the card)");
             }
             else if (Randomizer.itemData == null)
             {
